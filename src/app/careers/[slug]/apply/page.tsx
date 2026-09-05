@@ -9,6 +9,7 @@ import { FileText, UploadCloud, CheckCircle2, ChevronLeft, MapPin, PartyPopper, 
 import { toast } from "sonner";
 import { jobs, type Job } from "@/lib/data";
 import { applyJobSchema, type ApplyJobFormData } from "@/lib/schemas";
+import { submitApplication } from "@/lib/api";
 import {
   Select,
   SelectContent,
@@ -328,23 +329,19 @@ export default function ApplyPage({ params }: ApplyPageProps) {
     }
     setSubmitting(true);
     try {
-      await fetch("/api/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jobId: job.id,
-          jobSlug: job.slug,
-          jobTitle: job.title,
-          name: data.name,
-          phone: data.phone,
-          email: data.email,
-          city: data.city,
-          experience: data.experience,
-          specialization: data.specialization,
-          qualification: data.qualification,
-          coverNote: data.coverNote,
-          resumeName: resume.name,
-        }),
+      await submitApplication({
+        jobId: job.id,
+        jobSlug: job.slug,
+        jobTitle: job.title,
+        name: data.name,
+        phone: data.phone,
+        email: data.email,
+        city: data.city,
+        experience: data.experience,
+        specialization: data.specialization,
+        qualification: data.qualification,
+        coverNote: data.coverNote,
+        resumeName: resume.name,
       });
     } catch {
       // best-effort — never block the application on persistence

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useCartStore } from "@/lib/store";
 import { getDeviceId } from "@/lib/device";
+import { syncCartSnapshot } from "@/lib/api";
 
 /**
  * Syncs the Zustand cart + wishlist to the Neon database (best-effort).
@@ -27,14 +28,7 @@ export function CartSync() {
       };
 
       try {
-        void fetch("/api/cart", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "x-device-id": deviceId,
-          },
-          body: JSON.stringify(payload),
-        }).catch(() => {
+        void syncCartSnapshot(deviceId, payload).catch(() => {
           /* best-effort sync, ignore failures */
         });
       } catch {
