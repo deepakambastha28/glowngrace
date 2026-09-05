@@ -21,7 +21,7 @@ module.exports = {
         cream: "#fffafc",
         emerald: "#2e9e6b",
         line: "#f6e7ee",
-        lineSoft: "#f0d5e0",
+        "line-soft": "#f0d5e0",
       },
       fontFamily: {
         heading: ["var(--font-playfair)", "Georgia", "serif"],

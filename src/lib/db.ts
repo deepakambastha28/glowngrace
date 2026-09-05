@@ -72,7 +72,7 @@ export function getDb(): SqlQuery | null {
 async function ensureSchema(db: SqlQuery): Promise<void> {
   if (schemaReady) return;
   for (const statement of SCHEMA_STATEMENTS) {
-    await db(statement);
+    await db.query(statement);
   }
   schemaReady = true;
 }
@@ -87,7 +87,7 @@ export async function query(
   const db = getDb();
   if (!db) return null;
   await ensureSchema(db);
-  const rows = (await db(text, params)) as unknown[];
+  const rows = (await db.query(text, params)) as unknown[];
   return rows as Record<string, unknown>[];
 }
 

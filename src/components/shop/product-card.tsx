@@ -19,7 +19,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const toggleWishlist = useCartStore((state) => state.toggleWishlist);
 
   const isWishlisted = wishlist.includes(product.id);
-  const outOfStock = product.available === 0;
+  const outOfStock = !product.inStock;
 
   const handleWishlist = () => {
     if (isWishlisted) {
@@ -87,7 +87,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </h3>
         <div className="flex items-center gap-2 mt-1.5">
           <RatingStars rating={product.rating} size={13} />
-          <span className="text-[0.8rem] text-muted">({product.reviews})</span>
+          <span className="text-[0.8rem] text-muted">({product.reviewsCount})</span>
         </div>
 
         <div className="flex items-center justify-between mt-3">
