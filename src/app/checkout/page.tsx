@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CreditCard, Smartphone, Landmark, Banknote, ChevronLeft, ChevronRight, Check, Truck, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { checkoutSchema, type CheckoutFormData } from "@/lib/schemas";
+import { createOrder } from "@/lib/api";
 import { useCartStore } from "@/lib/store";
 import { money, cn } from "@/lib/utils";
 import { Stepper, StepperItem } from "@/components/ui/stepper";
@@ -34,6 +35,7 @@ export default function CheckoutPage() {
 
   const [step, setStep] = useState(1);
   const [placing, setPlacing] = useState(false);
+  const placed = useRef(false);
 
   const {
     register,
@@ -61,6 +63,7 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
+    if (placed.current) return;
     if (items.length === 0) {
       router.replace("/cart");
     }
@@ -80,10 +83,12 @@ export default function CheckoutPage() {
   };
 
   const handleNext = async () => {
-    const fields =
-      step === 1
-        ? (["firstName", "lastName", "email", "phone"] as const)
-        : (["street", "locality", "pincode", "landmark"] as const);
+    if (step === 1) {
+      // No data entered on the cart-review step — advance freely.
+      goToStep(step + 1);
+      return;
+    }
+    const fields = ["street", "locality", "pincode", "landmark"] as const;
     const valid = await trigger(fields);
     if (valid) goToStep(step + 1);
   };
@@ -121,16 +126,11 @@ export default function CheckoutPage() {
       paymentMethod: data.paymentMethod,
     };
 
-    try {
-      await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } catch {
+    createOrder(payload).catch(() => {
       // best-effort — never block the purchase on persistence
-    }
+    });
 
+    placed.current = true;
     clearCart();
     toast.success("Order placed successfully! 🎉");
     router.push(`/checkout/success?order=${orderId}`);

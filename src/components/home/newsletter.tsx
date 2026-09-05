@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { subscribeNewsletter } from "@/lib/api";
 
 export function Newsletter() {
   const [email, setEmail] = useState("");
@@ -15,17 +16,12 @@ export function Newsletter() {
     }
     setStatus("loading");
     try {
-      const res = await fetch("/api/newsletter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
+      const res = await subscribeNewsletter(email);
       if (res.ok) {
         setStatus("subscribed");
         toast.success("You're subscribed! Stay glowing, gorgeous. ✨");
       } else {
-        toast.error(data.error ?? "Could not subscribe. Please try again.");
+        toast.error(res.errorMessage ?? "Could not subscribe. Please try again.");
         setStatus("idle");
       }
     } catch {
