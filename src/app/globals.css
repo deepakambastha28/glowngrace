@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --rose: #d6336c;
+    --rose-dark: #b02a5b;
+    --rose-soft: #f4a6c0;
+    --blush: #fff5f7;
+    --gold: #c9a35b;
+    --charcoal: #2b2330;
+    --muted: #8a7f8f;
+    --cream: #fffafc;
+    --green: #2e9e6b;
+    --shadow: 0 12px 40px rgba(214, 51, 108, 0.12);
+    --line: #f6e7ee;
+    --line-soft: #f0d5e0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  * {
+    @apply border-line;
+  }
+
+  body {
+    @apply bg-cream text-charcoal font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold tracking-[0.3px];
+  }
+
+  ::selection {
+    background: var(--rose);
+    color: #fff;
+  }
+}
+
+@layer components {
+  /* ---- Buttons (pill shapes, rose gradient — mirrors design reference) ---- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-8 py-3 font-body text-sm font-semibold tracking-wide transition-all duration-300 cursor-pointer select-none disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn text-white;
+    background: linear-gradient(135deg, var(--rose), var(--rose-dark));
+    box-shadow: 0 8px 22px rgba(214, 51, 108, 0.35);
+  }
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(214, 51, 108, 0.45);
+  }
+  .btn-outline {
+    @apply btn text-rose;
+    background: transparent;
+    border: 1.6px solid var(--rose);
+  }
+  .btn-outline:hover {
+    background: var(--rose);
+    color: #fff;
+  }
+  .btn-light {
+    @apply btn text-white;
+    background: #fff;
+    color: var(--rose);
+    box-shadow: 0 8px 22px rgba(214, 51, 108, 0.3);
+  }
+  .btn-light:hover {
+    background: var(--charcoal);
+    color: #fff;
+  }
+  .btn-gold {
+    @apply btn text-white;
+    background: var(--gold);
+    box-shadow: 0 8px 22px rgba(201, 163, 91, 0.3);
+  }
+  .btn-gold:hover {
+    transform: translateY(-3px);
+  }
+  .btn-block {
+    width: 100%;
+  }
+
+  /* ---- Sections ---- */
+  .section {
+    padding: 70px 0;
+  }
+  .section-head {
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto 50px;
+  }
+  .eyebrow {
+    color: var(--gold);
+    font-size: 0.85rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .section-head h2 {
+    font-size: 2.3rem;
+    margin: 12px 0 14px;
+    color: var(--charcoal);
+  }
+  .section-head p {
+    color: var(--muted);
+    font-size: 1.05rem;
+  }
+  .section-head.light h2 { color: #fff; }
+  .section-head.light p { color: #d9cbd8; }
+
+  /* ---- Cards ---- */
+  .card {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+    transition: transform 0.35s, box-shadow 0.35s, border-color 0.35s;
+  }
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow);
+  }
+
+  /* ---- Top bar ---- */
+  .topbar {
+    background: var(--charcoal);
+    color: #f6eef1;
+    font-size: 0.82rem;
+    padding: 8px 0;
+  }
+
+  /* ---- Breadcrumb ---- */
+  .breadcrumb {
+    background: var(--blush);
+    padding: 18px 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .breadcrumb a:hover { color: var(--rose); }
+
+  /* ---- Job type pill ---- */
+  .job-type {
+    display: inline-block;
+    background: var(--blush);
+    color: var(--rose);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  /* ---- Inputs ---- */
+  .field-label {
+    @apply text-xs font-semibold text-charcoal mb-1.5 flex;
+  }
+  .field-input,
+  .field-textarea {
+    @apply w-full rounded-xl border-[1.5px] border-line-soft bg-white px-4 py-3 text-[0.95rem] text-charcoal outline-none transition-all;
+  }
+  .field-input:focus,
+  .field-textarea:focus {
+    border-color: var(--rose);
+    box-shadow: 0 0 0 3px rgba(214, 51, 108, 0.08);
+  }
+}
