@@ -19,3 +19,7 @@ export function calculateDiscount(price: number, oldPrice: number): number {
   if (!oldPrice || oldPrice <= price) return 0;
   return Math.round(((oldPrice - price) / oldPrice) * 100);
 }
+
+export function jobLocation(location: string): string {
+  return location.includes(",") ? location : `${location}, Lucknow`;
+}

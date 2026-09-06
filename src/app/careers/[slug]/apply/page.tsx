@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn, jobLocation } from "@/lib/utils";
 
 interface ApplyPageProps {
   params: { slug: string };
@@ -48,6 +48,7 @@ const specializationOptions = [
   "Makeup Artistry",
   "Hair Styling",
   "Nail Art",
+  "Mehndi Artistry",
   "Bridal Services",
   "Spa & Wellness",
 ];
@@ -175,7 +176,7 @@ function ApplicantForm({
         <p className="eyebrow">Job Application</p>
         <h1>Apply for {job.title}</h1>
         <p className="flex items-center justify-center gap-2">
-          <MapPin className="h-4 w-4 text-rose" /> {job.salon} · {job.location}, Lucknow
+          <MapPin className="h-4 w-4 text-rose" /> {job.salon} · {jobLocation(job.location)}
         </p>
       </div>
 

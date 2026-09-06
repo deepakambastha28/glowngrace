@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { MapPin, Clock, Briefcase, ArrowRight } from "lucide-react";
 import { jobs } from "@/lib/data";
+import { jobLocation } from "@/lib/utils";
 
 export default function CareersPage() {
   return (
@@ -42,7 +43,7 @@ export default function CareersPage() {
 
               <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-muted text-[0.83rem] mt-4">
                 <span className="flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4" /> {job.location}, Lucknow
+                  <MapPin className="h-4 w-4" /> {jobLocation(job.location)}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Briefcase className="h-4 w-4" /> {job.experience}
@@ -54,7 +55,7 @@ export default function CareersPage() {
 
               <div className="mt-4 mb-5 flex items-center justify-between">
                 <span className="text-[1.3rem] font-extrabold text-rose">{job.salary}</span>
-                <span className="text-[0.8rem] text-muted">per month</span>
+                <span className="text-[0.8rem] text-muted">{job.salaryUnit}</span>
               </div>
 
               <div className="flex gap-2.5">
@@ -82,7 +83,7 @@ export default function CareersPage() {
             Become a verified partner salon and hire trained, passionate
             professionals through Glow &amp; Grace.
           </p>
-          <Link href="/#services" className="btn-gold">
+          <Link href="/partner" className="btn-gold">
             Become a Partner Salon
           </Link>
         </div>

@@ -2,13 +2,22 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Mail, Lock, Heart } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { loginSchema, type LoginFormData } from "@/lib/schemas";
+import { useAuthStore } from "@/lib/auth";
+
+const DEMO_EMAIL = "demo@glowandgrace.com";
+const DEMO_PASSWORD = "demo123";
+
+const DEMO_NAME = "Demo User";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const signIn = useAuthStore((state) => state.signIn);
   const {
     register,
     handleSubmit,
@@ -23,8 +32,17 @@ export default function LoginPage() {
       : null
   );
 
-  const onSubmit = (_data: LoginFormData) => {
-    toast.success("Welcome back, gorgeous! ✨ (Demo login)");
+  const onSubmit = (data: LoginFormData) => {
+    if (
+      data.email.toLowerCase() === DEMO_EMAIL &&
+      data.password === DEMO_PASSWORD
+    ) {
+      signIn({ name: DEMO_NAME, email: DEMO_EMAIL });
+      toast.success("Welcome back, gorgeous! ✨");
+      router.push("/");
+      return;
+    }
+    toast.error("Invalid email or password. Try the demo credentials below.");
   };
 
   return (
@@ -42,6 +60,16 @@ export default function LoginPage() {
             ✔ Account created! Please sign in.
           </p>
         )}
+      </div>
+
+      <div className="mb-6 rounded-[16px] border border-dashed border-gold/50 bg-gold/10 px-4 py-3 text-sm text-charcoal">
+        <p className="font-semibold text-gold">Demo credentials</p>
+        <p className="mt-1">
+          Email: <span className="font-semibold">{DEMO_EMAIL}</span>
+        </p>
+        <p>
+          Password: <span className="font-semibold">{DEMO_PASSWORD}</span>
+        </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="card !rounded-[20px] p-7 space-y-5">

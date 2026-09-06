@@ -15,15 +15,15 @@ export function CtaBanner() {
             ✿
           </span>
           <h2 className="text-white text-[2rem] md:text-[2.4rem] mb-3">
-            Ready to Start Your Own Glow-Up?
+            Ready to Begin Your Beauty Journey?
           </h2>
           <p className="text-white/85 text-[1.05rem] mb-8 max-w-xl mx-auto">
-            Shop &apos;til you glow, or land your dream beauty job — Glow &amp;
-            Grace has you covered.
+            Whether you&apos;re shopping for the perfect glow or searching for
+            your dream beauty career, Glow &amp; Grace is here for you.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/products" className="btn btn-light">
-              Shop Bestsellers
+              Get Started Today
             </Link>
             <Link href="/careers" className="btn btn-gold">
               Explore Careers

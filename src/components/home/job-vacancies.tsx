@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { jobs } from "@/lib/data";
+import { jobLocation } from "@/lib/utils";
 
 export function JobVacancies() {
   return (
@@ -28,8 +29,8 @@ export function JobVacancies() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-4 text-muted text-[0.82rem] mt-4 mb-4">
-                <span className="flex items-center gap-1.5">📍 {job.location}, Lucknow</span>
-                <span className="flex items-center gap-1.5">💰 {job.salary}/mo</span>
+                <span className="flex items-center gap-1.5">📍 {jobLocation(job.location)}</span>
+                <span className="flex items-center gap-1.5">💰 {job.salary} {job.salaryUnit}</span>
                 <span className="flex items-center gap-1.5">🕒 {job.experience}</span>
               </div>
               <div className="flex gap-2.5">
