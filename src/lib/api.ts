@@ -1,4 +1,8 @@
-import type { OrderPayload, ApplicationPayload } from "@/lib/schemas";
+import type {
+  OrderPayload,
+  ApplicationPayload,
+  PartnerPayload,
+} from "@/lib/schemas";
 
 interface ApiResponse<T = unknown> {
   ok: boolean;
@@ -38,19 +42,9 @@ function body(value: unknown): RequestInit {
 }
 
 export type OrderResponse = { persisted: boolean; orderId?: string };
-export type NewsletterResponse = { subscribed: boolean };
 export type ApplicationResponse = { applied: boolean };
+export type PartnerResponse = { registered: boolean };
 export type CartSnapshotResponse = { synced?: boolean; items?: unknown[]; wishlist?: unknown[] };
-
-/** POST /api/newsletter — subscribe an email address. */
-export function subscribeNewsletter(
-  email: string
-): Promise<ApiResponse<NewsletterResponse>> {
-  return request<NewsletterResponse>("/api/newsletter", {
-    method: "POST",
-    ...body({ email }),
-  });
-}
 
 /** POST /api/orders — persist a completed checkout. */
 export function createOrder(
@@ -69,6 +63,16 @@ export function submitApplication(
   return request<ApplicationResponse>("/api/applications", {
     method: "POST",
     ...body(application),
+  });
+}
+
+/** POST /api/partners — register a partner salon. */
+export function submitPartnerForm(
+  partner: PartnerPayload
+): Promise<ApiResponse<PartnerResponse>> {
+  return request<PartnerResponse>("/api/partners", {
+    method: "POST",
+    ...body(partner),
   });
 }
 

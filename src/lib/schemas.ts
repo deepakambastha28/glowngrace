@@ -78,10 +78,6 @@ export const applicationPayloadSchema = z.object({
 
 export type ApplicationPayload = z.infer<typeof applicationPayloadSchema>;
 
-export const newsletterPayloadSchema = z.object({
-  email: z.string().email(),
-});
-
 export const applyJobSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   phone: z
@@ -103,6 +99,39 @@ export const applyJobSchema = z.object({
 });
 
 export type ApplyJobFormData = z.infer<typeof applyJobSchema>;
+
+export const partnerSchema = z.object({
+  ownerName: z.string().min(2, "Owner name must be at least 2 characters"),
+  salonName: z.string().min(2, "Salon name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z
+    .string()
+    .min(10, "Phone must be at least 10 digits")
+    .max(15, "Phone must be at most 15 digits"),
+  city: z.string().min(2, "Please enter your city"),
+  services: z.string().min(1, "Please select your primary service"),
+  message: z
+    .string()
+    .min(10, "Message must be at least 10 characters")
+    .max(600, "Message must be at most 600 characters"),
+  acceptTerms: z.literal(true, {
+    errorMap: () => ({ message: "You must accept the partner terms" }),
+  }),
+});
+
+export type PartnerFormData = z.infer<typeof partnerSchema>;
+
+export const partnerPayloadSchema = z.object({
+  ownerName: z.string(),
+  salonName: z.string(),
+  email: z.string().email(),
+  phone: z.string(),
+  city: z.string(),
+  services: z.string(),
+  message: z.string(),
+});
+
+export type PartnerPayload = z.infer<typeof partnerPayloadSchema>;
 
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
