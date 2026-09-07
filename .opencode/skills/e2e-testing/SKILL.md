@@ -48,6 +48,13 @@ mirrors the reference design and changes.
   Wishlist section on the cart page: `wishlist-item`, `wishlist-add-to-cart`
   (`In Cart`/`Add to Cart` states), `wishlist-remove`. The wishlist section is
   hidden when empty and renders on both the empty and populated cart views.
+- Admin (`/admin`): **no storefront chrome** — `topbar`/`navbar` are hidden on
+  `/admin` (see `storefront-gate`); footer is also hidden there. Login inputs by
+  label `Email Address` / `Password` (use `{ exact: true }` — the toggle button
+  also contains "Password"). Dashboard renders at `/admin` once the session
+  cookie is set; sidebar gated by session (`admin-sidebar` testid present only
+  when authed). Demo creds: `admin@glowngrace.in` / `admin123`. Login/logout
+  force a full-page reload so layout and page stay in sync.
 - Checkout: `checkout-next`, `place-order`, `order-summary`, `order-confirmation`,
   `order-id`. **Gotcha:** on the cart-review step `checkout-next` advances
   without validating (fields mount on step 2); getByLabel on step-2 fields only
