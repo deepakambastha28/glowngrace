@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
-import { TopBar } from "@/components/layout/topbar";
-import { Navbar } from "@/components/layout/navbar";
+import { StorefrontGate } from "@/components/layout/storefront-gate";
 import { FooterGate } from "@/components/layout/footer-gate";
 import { CartSync } from "@/components/layout/cart-sync";
 import { PersistHydrator } from "@/components/layout/persist-hydrator";
@@ -68,8 +67,7 @@ export default function RootLayout({
       >
         <PersistHydrator />
         <CartSync />
-        <TopBar />
-        <Navbar />
+        <StorefrontGate />
         <main className="flex-1">{children}</main>
         <FooterGate />
         <Toaster />
