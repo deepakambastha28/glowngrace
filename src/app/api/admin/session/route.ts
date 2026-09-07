@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { query, isDbConfigured } from "@/lib/db";
 
 const SESSION_COOKIE = "glow-grace-admin";
-const ADMIN_EMAIL = "admin@glowandgrace.in";
+const ADMIN_EMAIL = "admin@glowngrace.in";
 
 /** GET /api/admin/session — returns whether a valid admin session exists. */
 export async function GET(request: NextRequest) {

@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { query, isDbConfigured } from "@/lib/db";
 import { adminLoginSchema } from "@/lib/schemas";
 
-const ADMIN_EMAIL = "admin@glowandgrace.in";
+const ADMIN_EMAIL = "admin@glowngrace.in";
 const ADMIN_PASSWORD = "admin123";
 const SESSION_COOKIE = "glow-grace-admin";
 
