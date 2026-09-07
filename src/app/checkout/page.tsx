@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { checkoutSchema, type CheckoutFormData } from "@/lib/schemas";
 import { createOrder } from "@/lib/api";
 import { useCartStore } from "@/lib/store";
+import { usePersistReady } from "@/lib/use-persist-ready";
 import { money, cn } from "@/lib/utils";
 import { Stepper, StepperItem } from "@/components/ui/stepper";
 
@@ -28,6 +29,7 @@ const paymentMethods = [
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const persistReady = usePersistReady();
   const items = useCartStore((state) => state.items);
   const subtotal = useCartStore((state) => state.getSubtotal());
   const gst = useCartStore((state) => state.getGST());
@@ -64,10 +66,10 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (placed.current) return;
-    if (items.length === 0) {
+    if (persistReady && items.length === 0) {
       router.replace("/cart");
     }
-  }, [items.length, router]);
+  }, [persistReady, items.length, router]);
 
   const deliveryOption = watch("deliveryOption");
   const delivery = deliveryOptions.find((d) => d.id === deliveryOption) ?? deliveryOptions[0];

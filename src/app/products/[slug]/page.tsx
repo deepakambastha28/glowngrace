@@ -123,7 +123,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
         {/* Info */}
         <div>
-          <span className="text-[0.8rem] font-bold uppercase tracking-[1.2px] text-muted">
+          <span className="text-[0.8rem] font-bold uppercase tracking-[1.2px] text-gold">
             {product.brand}
           </span>
           <h1 className="mt-2 text-[2.2rem] font-bold leading-tight">{product.name}</h1>
@@ -295,7 +295,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             <p className="eyebrow">You May Also Like</p>
             <h2>Complete Your Glow Routine</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-[26px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

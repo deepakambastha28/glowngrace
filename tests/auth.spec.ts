@@ -4,8 +4,8 @@ test.describe("Auth pages", () => {
   test("login validates fields and shows a demo success toast", async ({ page }) => {
     await page.goto("/login");
 
-    await page.getByLabel("Email").fill("priya@example.com");
-    await page.getByLabel("Password").fill("secret123");
+    await page.getByLabel("Email").fill("demo@glowandgrace.com");
+    await page.getByLabel("Password").fill("demo123");
     await page.getByRole("button", { name: "Sign In" }).click();
 
     await expect(page.getByText(/Welcome back/)).toBeVisible();

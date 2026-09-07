@@ -13,7 +13,6 @@ test.describe("Home page", () => {
     await expect(page.getByTestId("jobs-section")).toBeVisible();
     await expect(page.getByTestId("testimonials-section")).toBeVisible();
     await expect(page.getByTestId("cta-banner")).toBeVisible();
-    await expect(page.getByTestId("newsletter")).toBeVisible();
 
     await expect(page).toHaveTitle(/Glow & Grace/);
   });

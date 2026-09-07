@@ -39,7 +39,7 @@ export function PlacementServices() {
             <h2>Parlour Placement &amp; Job Consultancy</h2>
             <p>Connecting skilled beauty professionals with the finest parlours across Lucknow.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-[26px]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {services.map(({ icon: Icon, title, description }) => (
               <div
                 key={title}
