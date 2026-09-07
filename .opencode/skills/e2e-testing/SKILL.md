@@ -44,7 +44,10 @@ mirrors the reference design and changes.
 - Shop: `product-card`, `product-card-image`, `product-card-*` on list pages,
   `wishlist-button`, `add-to-cart`, `product-search`, `product-sort`
 - Cart: `empty-cart`, `cart-item`, `cart-qty-plus`, `cart-qty-minus`, `cart-remove`,
-  `promo-input`, `promo-apply`, `cart-subtotal`, `cart-total`, `cart-checkout`
+  `promo-input`, `promo-apply`, `cart-subtotal`, `cart-total`, `cart-checkout`.
+  Wishlist section on the cart page: `wishlist-item`, `wishlist-add-to-cart`
+  (`In Cart`/`Add to Cart` states), `wishlist-remove`. The wishlist section is
+  hidden when empty and renders on both the empty and populated cart views.
 - Checkout: `checkout-next`, `place-order`, `order-summary`, `order-confirmation`,
   `order-id`. **Gotcha:** on the cart-review step `checkout-next` advances
   without validating (fields mount on step 2); getByLabel on step-2 fields only

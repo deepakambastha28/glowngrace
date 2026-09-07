@@ -96,3 +96,64 @@ export function fetchCartSnapshot(
     headers: { "x-device-id": deviceId },
   });
 }
+
+// ---------------------------------------------------------------
+// Admin
+// ---------------------------------------------------------------
+
+export type AdminSessionResponse = { authed: boolean; email?: string };
+export type AdminLoginResponse = {
+  authed: boolean;
+  email?: string;
+  error?: string;
+};
+export type AdminProductResponse = { persisted: boolean; id?: number };
+export type AdminJobResponse = { persisted: boolean; id?: number };
+export type AdminReviewResponse = { persisted: boolean; id?: number };
+
+export function adminLogin(
+  email: string,
+  password: string
+): Promise<ApiResponse<AdminLoginResponse>> {
+  return request<AdminLoginResponse>("/api/admin/login", {
+    method: "POST",
+    ...body({ email, password }),
+  });
+}
+
+export function adminLogout(): Promise<ApiResponse<AdminSessionResponse>> {
+  return request<AdminSessionResponse>("/api/admin/logout", {
+    method: "POST",
+  });
+}
+
+export function adminSession(): Promise<ApiResponse<AdminSessionResponse>> {
+  return request<AdminSessionResponse>("/api/admin/session");
+}
+
+export function createAdminProduct(
+  product: unknown
+): Promise<ApiResponse<AdminProductResponse>> {
+  return request<AdminProductResponse>("/api/admin/products", {
+    method: "POST",
+    ...body(product),
+  });
+}
+
+export function createAdminJob(
+  job: unknown
+): Promise<ApiResponse<AdminJobResponse>> {
+  return request<AdminJobResponse>("/api/admin/jobs", {
+    method: "POST",
+    ...body(job),
+  });
+}
+
+export function createAdminReview(
+  review: unknown
+): Promise<ApiResponse<AdminReviewResponse>> {
+  return request<AdminReviewResponse>("/api/admin/reviews", {
+    method: "POST",
+    ...body(review),
+  });
+}

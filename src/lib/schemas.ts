@@ -157,3 +157,64 @@ export const signupSchema = z
   });
 
 export type SignupFormData = z.infer<typeof signupSchema>;
+
+// ---------------------------------------------------------------
+// Admin
+// ---------------------------------------------------------------
+
+export const adminLoginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export type AdminLoginFormData = z.infer<typeof adminLoginSchema>;
+
+export const adminProductSchema = z.object({
+  emoji: z.string().min(1, "Please choose an icon"),
+  brand: z.string().min(1, "Please enter a brand"),
+  name: z.string().min(1, "Please enter a product name"),
+  category: z.enum(["Makeup", "Skincare", "Nail Care", "Fragrances"]),
+  price: z.coerce.number().int().positive("Enter a price"),
+  oldPrice: z.coerce.number().int().nonnegative().default(0),
+  stock: z.coerce.number().int().nonnegative().default(0),
+  description: z.string().default(""),
+  descriptionHtml: z.string().default(""),
+  features: z.array(z.string()).default([]),
+  tags: z.array(z.string()).default([]),
+  imageData: z.string().optional().nullable(),
+  shade: z.string().default(""),
+  size: z.string().default(""),
+  finish: z.string().default(""),
+  ingredients: z.string().default(""),
+  isNew: z.boolean().default(false),
+});
+
+export type AdminProductFormData = z.infer<typeof adminProductSchema>;
+
+export const adminJobSchema = z.object({
+  title: z.string().min(1, "Please enter a position title"),
+  salon: z.string().min(1, "Please enter a salon name"),
+  location: z.string().min(1, "Please enter a location"),
+  type: z.enum(["Full Time", "Part Time", "Contract"]),
+  salaryMin: z.coerce.number().int().positive("Enter minimum salary"),
+  salaryMax: z.coerce.number().int().nonnegative().default(0),
+  salaryText: z.string().default(""),
+  experience: z.string().default("Fresher"),
+  openings: z.coerce.number().int().positive().default(1),
+  description: z.string().default(""),
+  requirements: z.array(z.string()).default([]),
+});
+
+export type AdminJobFormData = z.infer<typeof adminJobSchema>;
+
+export const adminReviewSchema = z.object({
+  author: z.string().min(1, "Please enter a name"),
+  initial: z.string().default(""),
+  product: z.string().min(1, "Please select a product"),
+  rating: z.coerce.number().int().min(1).max(5),
+  comment: z.string().min(1, "Please enter the review text"),
+  location: z.string().default(""),
+  status: z.enum(["Approved", "Pending", "Hidden"]),
+});
+
+export type AdminReviewFormData = z.infer<typeof adminReviewSchema>;
