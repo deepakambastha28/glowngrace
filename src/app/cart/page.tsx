@@ -1,13 +1,107 @@
 "use client";
 
 import Link from "next/link";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
+import {
+  Minus, Plus, Trash2, ShoppingBag, ArrowRight, Heart, ShoppingCart,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useCartStore } from "@/lib/store";
+import { products } from "@/lib/data";
 import { money, cn } from "@/lib/utils";
 
 const FREE_SHIPPING_THRESHOLD = 999;
+
+function WishlistSection() {
+  const items = useCartStore((state) => state.items);
+  const wishlist = useCartStore((state) => state.wishlist);
+  const addItem = useCartStore((state) => state.addItem);
+  const toggleWishlist = useCartStore((state) => state.toggleWishlist);
+
+  const wishlistProducts = products.filter((p) => wishlist.includes(p.id));
+  const isInCart = (id: string) => items.some((i) => i.product.id === id);
+
+  const handleAdd = (id: string) => {
+    const product = products.find((p) => p.id === id);
+    if (!product || isInCart(id)) return;
+    addItem(product);
+    toast.success(`${product.name} added to cart 🛍️`);
+  };
+
+  const handleRemove = (id: string, name: string) => {
+    toggleWishlist(id);
+    toast.success(`${name} removed from wishlist`);
+  };
+
+  if (wishlistProducts.length === 0) return null;
+
+  return (
+    <section className="mt-12">
+      <div className="flex items-center gap-2 mb-6">
+        <Heart className="h-5 w-5 text-rose" />
+        <h2 className="text-[1.25rem] font-bold">Your Wishlist ({wishlistProducts.length})</h2>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {wishlistProducts.map((product) => {
+          const inCart = isInCart(product.id);
+          return (
+            <div key={product.id} className="card !rounded-[18px] p-5 flex flex-col" data-testid="wishlist-item">
+              <div className="flex items-start justify-between gap-3">
+                <Link
+                  href={`/products/${product.slug}`}
+                  className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-rose-blush text-3xl"
+                >
+                  {product.emoji}
+                </Link>
+                <button
+                  onClick={() => handleRemove(product.id, product.name)}
+                  className="grid h-8 w-8 place-items-center rounded-full text-rose bg-rose-blush hover:bg-rose hover:text-white transition-colors cursor-pointer"
+                  aria-label={`Remove ${product.name} from wishlist`}
+                  data-testid="wishlist-remove"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="mt-3 flex-1">
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[1.2px] text-gold">
+                  {product.brand}
+                </p>
+                <Link
+                  href={`/products/${product.slug}`}
+                  className="mt-0.5 block text-[0.98rem] font-semibold leading-snug hover:text-rose transition-colors"
+                >
+                  {product.name}
+                </Link>
+                <p className="mt-1 text-[0.95rem] font-bold text-rose">{money(product.price)}</p>
+              </div>
+
+              <button
+                onClick={() => handleAdd(product.id)}
+                disabled={inCart}
+                className={cn(
+                  "btn w-full !py-2.5 !px-4 !text-[0.85rem] mt-4",
+                  inCart ? "btn-gold" : "btn-primary"
+                )}
+                data-testid="wishlist-add-to-cart"
+              >
+                {inCart ? (
+                  <>
+                    <ShoppingCart className="h-4 w-4" /> In Cart
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="h-4 w-4" /> Add to Cart
+                  </>
+                )}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 
 export default function CartPage() {
   const items = useCartStore((state) => state.items);
@@ -61,6 +155,7 @@ export default function CartPage() {
             Start Shopping <ArrowRight className="h-5 w-5" />
           </Link>
         </div>
+        <WishlistSection />
       </>
     );
   }
@@ -97,66 +192,68 @@ export default function CartPage() {
               </button>
             </div>
 
-            <div className="space-y-5">
+            <div className="space-y-4">
               {items.map(({ product, quantity }) => (
                 <div
                   key={product.id}
-                  className="flex flex-col sm:flex-row gap-4 border-b border-line pb-5 last:border-0 last:pb-0"
+                  className="grid grid-cols-[80px_1fr] sm:grid-cols-[90px_1fr_auto] items-center gap-4 sm:gap-[18px] rounded-2xl border border-line bg-white p-4 sm:p-[18px]"
                   data-testid="cart-item"
                 >
                   <Link
                     href={`/products/${product.slug}`}
-                    className="grid h-[88px] w-full sm:w-[88px] shrink-0 place-items-center rounded-2xl bg-rose-blush"
+                    className="grid h-20 w-20 sm:h-[90px] sm:w-[90px] shrink-0 place-items-center rounded-xl bg-gradient-to-br from-rose-blush to-[#fbe0ea]"
                   >
-                    <span className="text-4xl">{product.emoji}</span>
+                    <span className="text-4xl sm:text-[2.6rem]">{product.emoji}</span>
                   </Link>
 
-                  <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="flex-1">
-                      <Link
-                        href={`/products/${product.slug}`}
-                        className="text-[1rem] font-semibold hover:text-rose transition-colors"
-                      >
-                        {product.name}
-                      </Link>
-                      <p className="text-[0.8rem] text-muted mt-0.5">
-                        {product.brand} · {money(product.price)}
-                      </p>
-                      <p className="text-[0.95rem] font-bold text-rose mt-1">
-                        {money(product.price * quantity)}
-                      </p>
-                    </div>
+                  <div className="min-w-0">
+                    <Link
+                      href={`/products/${product.slug}`}
+                      className="text-[0.72rem] font-bold uppercase tracking-[1.5px] text-gold hover:text-rose transition-colors"
+                    >
+                      {product.brand}
+                    </Link>
+                    <Link
+                      href={`/products/${product.slug}`}
+                      className="mt-0.5 block truncate text-[1.05rem] font-semibold leading-snug hover:text-rose transition-colors"
+                    >
+                      {product.name}
+                    </Link>
+                    <p className="mt-1 text-[0.95rem] font-bold text-rose">
+                      {money(product.price * quantity)}
+                    </p>
+                  </div>
 
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center rounded-full border-2 border-line bg-white overflow-hidden">
-                        <button
-                          onClick={() => updateQuantity(product.id, quantity - 1)}
-                          data-testid="cart-qty-minus"
-                          className="grid h-9 w-9 place-items-center text-rose hover:bg-rose-blush transition-colors cursor-pointer"
-                          aria-label="Decrease quantity"
-                        >
-                          <Minus className="h-4 w-4" />
-                        </button>
-                        <span className="w-9 text-center font-bold">{quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(product.id, quantity + 1)}
-                          data-testid="cart-qty-plus"
-                          className="grid h-9 w-9 place-items-center text-rose hover:bg-rose-blush transition-colors cursor-pointer"
-                          aria-label="Increase quantity"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </button>
-                      </div>
-
+                  <div className="col-start-2 sm:col-start-auto flex items-center justify-between sm:flex-col sm:items-end gap-3">
+                    <div className="flex items-center rounded-full border-[1.5px] border-[#f0d5e0] bg-white overflow-hidden">
                       <button
-                        onClick={() => handleRemove(product.id, product.name)}
-                        data-testid="cart-remove"
-                        className="grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-rose hover:text-white transition-colors cursor-pointer"
-                        aria-label={`Remove ${product.name}`}
+                        onClick={() => updateQuantity(product.id, quantity - 1)}
+                        data-testid="cart-qty-minus"
+                        className="grid h-8 w-8 place-items-center text-rose hover:bg-rose-blush transition-colors cursor-pointer"
+                        aria-label="Decrease quantity"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="w-[38px] text-center font-semibold text-[0.95rem]">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={() => updateQuantity(product.id, quantity + 1)}
+                        data-testid="cart-qty-plus"
+                        className="grid h-8 w-8 place-items-center text-rose hover:bg-rose-blush transition-colors cursor-pointer"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="h-4 w-4" />
                       </button>
                     </div>
+
+                    <button
+                      onClick={() => handleRemove(product.id, product.name)}
+                      data-testid="cart-remove"
+                      className="text-[0.82rem] font-medium text-muted hover:text-rose transition-colors cursor-pointer"
+                    >
+                      Remove
+                    </button>
                   </div>
                 </div>
               ))}
@@ -237,6 +334,8 @@ export default function CartPage() {
             </Link>
           </div>
         </div>
+
+        <WishlistSection />
       </div>
     </>
   );
