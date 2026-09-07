@@ -43,6 +43,9 @@ pill buttons) when touching UI.
   `chore:`, `feat:`, `style:`, `fix:`, `docs:`. Stage-wise: one cohesion/commit.
 - No code comments unless asked; mirror existing style.
 - `data-testid` hooks exist for E2E; prefer them over text/CSS selectors.
+- **Always follow TDD (user-mandated):** write a failing test first (typically a
+  Playwright E2E in `tests/`), run it to confirm it fails, then make it pass
+  with the minimal implementation. Never implement behavior before its test.
 
 ## Verification (always before shipping)
 - `npm run lint`
@@ -53,6 +56,8 @@ pill buttons) when touching UI.
 ## Git workflow policy (user-mandated)
 - Trunk-based. `main` is the only long-lived branch; work lands via a short
   branch + PR.
+- **Never commit or push directly to `main`** — all work is committed on a
+  feature branch and shipped through a PR reviewed by the user.
 - **Never create a branch while a PR is open.**
 - Before branching: `git status`, `git log --oneline -10`, `gh pr list --state open`.
 - Create branch from `origin/main`.
