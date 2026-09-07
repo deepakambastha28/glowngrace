@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { loginSchema, type LoginFormData } from "@/lib/schemas";
 import { useAuthStore } from "@/lib/auth";
 
-const DEMO_EMAIL = "demo@glowandgrace.com";
+const DEMO_EMAIL = "demo@glowngrace.in";
 const DEMO_PASSWORD = "demo123";
 
 const DEMO_NAME = "Demo User";

@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { LayoutDashboard, Package, Briefcase, MessageSquare, Plus, LogOut } from "lucide-react";
-import { adminLogout } from "@/lib/api";
+import { adminLogout, adminSession } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const navGroups = [
@@ -28,17 +29,32 @@ const navGroups = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
+  const [authed, setAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    adminSession().then((res) => setAuthed(Boolean(res.data?.authed)));
+  }, []);
 
   const handleLogout = async () => {
     await adminLogout();
-    router.push("/admin");
-    router.refresh();
+    window.location.assign("/admin");
   };
+
+  if (authed === null) {
+    return (
+      <div className="grid min-h-screen place-items-center p-8 text-muted">
+        Loading…
+      </div>
+    );
+  }
+
+  if (!authed) {
+    return <div className="min-h-screen py-10">{children}</div>;
+  }
 
   return (
     <div className="admin-shell">
-      <aside className="admin-sidebar px-4 py-6">
+      <aside className="admin-sidebar px-4 py-6" data-testid="admin-sidebar">
         <div className="px-3 pb-5 border-b border-white/10 mb-4">
           <div className="font-heading text-xl font-bold text-white">
             Glow<span className="text-gold">&amp;</span>Grace

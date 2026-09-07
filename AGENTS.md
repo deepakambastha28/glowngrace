@@ -46,6 +46,8 @@ pill buttons) when touching UI.
 - **Always follow TDD (user-mandated):** write a failing test first (typically a
   Playwright E2E in `tests/`), run it to confirm it fails, then make it pass
   with the minimal implementation. Never implement behavior before its test.
+- **Never edit the `design/` folder** — it is read-only design reference only
+  (source of truth `design/glow-grace-full.html`). It is gitignored.
 
 ## Verification (always before shipping)
 - `npm run lint`

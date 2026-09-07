@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   Eye, EyeOff, Heart, Wallet, ShoppingBag, Users, Briefcase, Lock,
   TrendingUp, TrendingDown,
@@ -24,7 +23,7 @@ interface DashboardData {
   }[];
 }
 
-const DEMO_EMAIL = "admin@glowandgrace.in";
+const DEMO_EMAIL = "admin@glowngrace.in";
 const DEMO_PASS = "admin123";
 
 const money = (n: number) => "₹" + (n || 0).toLocaleString("en-IN");
@@ -45,7 +44,6 @@ const chartData = [
 ];
 
 export default function AdminPage() {
-  const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
 
@@ -80,19 +78,15 @@ export default function AdminPage() {
     const res = await adminLogin(email, password);
     setSaving(false);
     if (res.data?.authed) {
-      setAuthed(true);
-      loadDashboard();
-    } else {
-      setErr(res.data?.error || "Invalid credentials. Try the demo login.");
+      window.location.reload();
+      return;
     }
+    setErr(res.data?.error || "Invalid credentials. Try the demo login.");
   };
 
   const handleLogout = async () => {
     await adminLogout();
-    setAuthed(false);
-    setEmail("");
-    setPassword("");
-    router.refresh();
+    window.location.assign("/admin");
   };
 
   if (checking) {
@@ -131,7 +125,7 @@ export default function AdminPage() {
                 className="field-input !rounded-full !pl-11"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@glowandgrace.in"
+                placeholder="admin@glowngrace.in"
               />
             </div>
           </div>
