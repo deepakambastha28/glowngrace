@@ -167,4 +167,79 @@
     border-color: var(--rose);
     box-shadow: 0 0 0 3px rgba(214, 51, 108, 0.08);
   }
+
+  /* ---- Admin console ---- */
+  .admin-shell {
+    display: flex;
+    min-height: 100vh;
+    background: #faf5f8;
+  }
+  .admin-sidebar {
+    width: 255px;
+    background: #241d29;
+    color: #e9dfe6;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .admin-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 11px;
+    cursor: pointer;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: #cfc2ce;
+    transition: 0.2s;
+    margin-bottom: 2px;
+  }
+  .admin-nav-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+  }
+  .admin-nav-item.active {
+    background: linear-gradient(135deg, var(--rose), #b02a5b);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(214, 51, 108, 0.35);
+  }
+  .p-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.74rem;
+    font-weight: 700;
+  }
+  .p-pill.green { background: #eaf7f0; color: var(--green); }
+  .p-pill.amber { background: #fbf3e2; color: #e0a63b; }
+  .p-pill.blue { background: #e9f1fa; color: #3b82c9; }
+  .p-pill.red { background: #fdeaea; color: #d64545; }
+  .p-pill.rose { background: var(--blush); color: var(--rose); }
+  .p-pill.grey { background: #f0edf1; color: var(--muted); }
+  .admin-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .admin-table th {
+    text-align: left;
+    padding: 13px 16px;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1.5px solid var(--line);
+    white-space: nowrap;
+  }
+  .star-gold { color: var(--gold); }
+  @media (max-width: 820px) {
+    .admin-shell { flex-direction: column; }
+    .admin-sidebar { width: 100%; height: auto; position: static; }
+  }
 }

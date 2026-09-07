@@ -3,7 +3,7 @@ import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { TopBar } from "@/components/layout/topbar";
 import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
+import { FooterGate } from "@/components/layout/footer-gate";
 import { CartSync } from "@/components/layout/cart-sync";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -69,7 +69,7 @@ export default function RootLayout({
         <TopBar />
         <Navbar />
         <main className="flex-1">{children}</main>
-        <Footer />
+        <FooterGate />
         <Toaster />
       </body>
     </html>
