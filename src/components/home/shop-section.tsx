@@ -43,7 +43,7 @@ export function Bestsellers() {
           <p>Handpicked favourites loved by women across Lucknow.</p>
         </div>
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-[26px]"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           data-testid="product-grid"
         >
           {products.slice(0, 8).map((product) => (

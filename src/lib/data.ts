@@ -24,12 +24,14 @@ export interface Job {
   salon: string;
   location: string;
   salary: string;
+  salaryUnit: string;
   experience: string;
   openings: number;
   description: string;
   responsibilities: string[];
   requirements: string[];
   perks: string[];
+  occasions?: string[];
 }
 
 export interface CartItem {
@@ -237,6 +239,7 @@ export const jobs: Job[] = [
     salon: "Blush Beauty Lounge",
     location: "Hazratganj",
     salary: "₹18k–25k",
+    salaryUnit: "per month",
     experience: "2+ years",
     openings: 2,
     description:
@@ -270,6 +273,7 @@ export const jobs: Job[] = [
     salon: "Glamour Studio",
     location: "Gomti Nagar",
     salary: "₹20k–30k",
+    salaryUnit: "per month",
     experience: "1+ year",
     openings: 1,
     description:
@@ -303,6 +307,7 @@ export const jobs: Job[] = [
     salon: "Style Hub Salon",
     location: "Aliganj",
     salary: "₹15k–22k",
+    salaryUnit: "per month",
     experience: "Fresher OK",
     openings: 1,
     description:
@@ -336,6 +341,7 @@ export const jobs: Job[] = [
     salon: "The Nail Bar",
     location: "Indira Nagar",
     salary: "₹16k–24k",
+    salaryUnit: "per month",
     experience: "1+ year",
     openings: 1,
     description:
@@ -359,6 +365,281 @@ export const jobs: Job[] = [
       "Free nail products for personal use",
       "Creative freedom in designs",
       "Feature work on our Instagram",
+    ],
+  },
+  {
+    id: "5",
+    slug: "mehndi-artist",
+    type: "Part Time",
+    title: "Mehndi Artist",
+    salon: "Mehndi by Grace",
+    location: "Omega Green Park Township, Uattardhona, Uttar Pradesh",
+    salary: "₹100–500",
+    salaryUnit: "per hand",
+    experience: "Fresher OK",
+    openings: 2,
+    description:
+      "Bridal & festive mehndi bookings across Lucknow. Showcase your designs and keep 100% of your earnings — we connect you directly with clients, with no bidding, no middlemen and no commission.",
+    responsibilities: [
+      "Create intricate bridal mehndi designs for weddings and events",
+      "Provide festival and party mehndi services for clients",
+      "Consult clients on design preferences and pricing",
+      "Maintain hygiene standards for tools and workspace",
+      "Build a loyal client base across Lucknow",
+    ],
+    requirements: [
+      "Based in Lucknow",
+      "Experience as a Mehndi Artist (fresh talent also welcome)",
+      "Own mehndi/henna tools or equipment",
+      "Smartphone with internet access",
+      "Available for at least a few hours per week",
+    ],
+    perks: [
+      "Flexible schedule — accept only what suits you",
+      "Work locally near your area of Lucknow",
+    ],
+    occasions: [
+      "Durga Ashtami: Sunday, October 18, 2026",
+      "Maha Navami: Monday, October 19, 2026",
+    ],
+  },
+];
+
+export interface PartnerPhoto {
+  emoji: string;
+  gradient: string;
+  caption: string;
+}
+
+export interface PartnerService {
+  name: string;
+  price: string;
+}
+
+export interface Partner {
+  id: string;
+  slug: string;
+  name: string;
+  type: string;
+  loc: string;
+  emoji: string;
+  gradient: string;
+  rating: number;
+  reviews: number;
+  estd: number;
+  staff: number;
+  services: number;
+  description: string;
+  tags: string[];
+  gallery: PartnerPhoto[];
+  menu: PartnerService[];
+}
+
+export const localityPos: Record<string, { x: number; y: number }> = {
+  Hazratganj: { x: 48, y: 52 },
+  "Gomti Nagar": { x: 72, y: 32 },
+  Aliganj: { x: 34, y: 18 },
+  "Indira Nagar": { x: 78, y: 20 },
+  "Vibhuti Khand": { x: 66, y: 48 },
+  Mahanagar: { x: 44, y: 30 },
+};
+
+export const partners: Partner[] = [
+  {
+    id: "1",
+    slug: "blush-beauty-lounge",
+    name: "Blush Beauty Lounge",
+    type: "Premium Unisex Salon",
+    loc: "Hazratganj",
+    emoji: "💇‍♀️",
+    gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)",
+    rating: 4.9,
+    reviews: 214,
+    estd: 2016,
+    staff: 12,
+    services: 32,
+    description:
+      "A luxurious full-service beauty lounge in the heart of Hazratganj, offering premium hair, skin and bridal services with certified professionals and international products.",
+    tags: ["Bridal", "Hair Spa", "Facials", "Keratin"],
+    gallery: [
+      { emoji: "💇‍♀️", gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)", caption: "Styling Station" },
+      { emoji: "💅", gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)", caption: "Nail Bar" },
+      { emoji: "🧖‍♀️", gradient: "linear-gradient(135deg,#8a1f47,#d6336c)", caption: "Facial Room" },
+      { emoji: "💄", gradient: "linear-gradient(135deg,#b02a5b,#f4a6c0)", caption: "Makeup Studio" },
+      { emoji: "💆‍♀️", gradient: "linear-gradient(135deg,#2e9e6b,#a8e0c5)", caption: "Spa Suite" },
+      { emoji: "👰", gradient: "linear-gradient(135deg,#c9a35b,#d6336c)", caption: "Bridal Lounge" },
+      { emoji: "🪮", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "Hair Wash" },
+      { emoji: "✨", gradient: "linear-gradient(135deg,#d6336c,#c9a35b)", caption: "Reception" },
+    ],
+    menu: [
+      { name: "💇‍♀️ Hair Cut & Style", price: "₹499" },
+      { name: "🎨 Hair Colour", price: "₹1,499" },
+      { name: "💆‍♀️ Hair Spa", price: "₹899" },
+      { name: "🧖‍♀️ Gold Facial", price: "₹1,299" },
+      { name: "👰 Bridal Makeup", price: "₹8,999" },
+      { name: "💅 Gel Manicure", price: "₹699" },
+    ],
+  },
+  {
+    id: "2",
+    slug: "glamour-studio",
+    name: "Glamour Studio",
+    type: "Makeup & Bridal Studio",
+    loc: "Gomti Nagar",
+    emoji: "💄",
+    gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)",
+    rating: 4.8,
+    reviews: 189,
+    estd: 2018,
+    staff: 9,
+    services: 24,
+    description:
+      "A trend-setting makeup and bridal studio in Gomti Nagar known for flawless HD & airbrush makeup, styled by award-winning artists for weddings and events.",
+    tags: ["HD Makeup", "Airbrush", "Party", "Draping"],
+    gallery: [
+      { emoji: "💄", gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)", caption: "Makeup Bar" },
+      { emoji: "👰", gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)", caption: "Bridal Suite" },
+      { emoji: "✨", gradient: "linear-gradient(135deg,#b02a5b,#c9a35b)", caption: "Glam Corner" },
+      { emoji: "💇‍♀️", gradient: "linear-gradient(135deg,#8a1f47,#d6336c)", caption: "Styling" },
+      { emoji: "📸", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "Photo Zone" },
+      { emoji: "💍", gradient: "linear-gradient(135deg,#c9a35b,#d6336c)", caption: "Trial Room" },
+    ],
+    menu: [
+      { name: "💄 HD Makeup", price: "₹3,499" },
+      { name: "✈️ Airbrush Makeup", price: "₹5,999" },
+      { name: "👰 Bridal Package", price: "₹12,999" },
+      { name: "🎉 Party Makeup", price: "₹2,499" },
+      { name: "🧣 Saree Draping", price: "₹499" },
+      { name: "💇‍♀️ Hair Styling", price: "₹899" },
+    ],
+  },
+  {
+    id: "3",
+    slug: "style-hub-salon",
+    name: "Style Hub Salon",
+    type: "Hair & Styling Salon",
+    loc: "Aliganj",
+    emoji: "💇",
+    gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)",
+    rating: 4.7,
+    reviews: 142,
+    estd: 2019,
+    staff: 8,
+    services: 20,
+    description:
+      "Aliganj's favourite hair studio specialising in modern cuts, global colour and keratin treatments in a chic, relaxed setting.",
+    tags: ["Hair Cut", "Colour", "Smoothening", "Kids"],
+    gallery: [
+      { emoji: "💇", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "Cutting Zone" },
+      { emoji: "🎨", gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)", caption: "Colour Bar" },
+      { emoji: "🪮", gradient: "linear-gradient(135deg,#2e9e6b,#a8e0c5)", caption: "Wash Area" },
+      { emoji: "💆", gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)", caption: "Treatment" },
+      { emoji: "✨", gradient: "linear-gradient(135deg,#8a1f47,#d6336c)", caption: "Lounge" },
+    ],
+    menu: [
+      { name: "💇 Hair Cut", price: "₹399" },
+      { name: "🎨 Global Colour", price: "₹2,499" },
+      { name: "💆 Keratin", price: "₹3,999" },
+      { name: "🌿 Smoothening", price: "₹3,499" },
+      { name: "👦 Kids Cut", price: "₹249" },
+      { name: "💧 Hair Spa", price: "₹799" },
+    ],
+  },
+  {
+    id: "4",
+    slug: "the-nail-bar",
+    name: "The Nail Bar",
+    type: "Nail Art & Spa",
+    loc: "Indira Nagar",
+    emoji: "💅",
+    gradient: "linear-gradient(135deg,#8a1f47,#d6336c)",
+    rating: 4.9,
+    reviews: 167,
+    estd: 2020,
+    staff: 6,
+    services: 18,
+    description:
+      "A dedicated nail art & spa boutique in Indira Nagar offering gel, acrylic and intricate nail art alongside relaxing hand & foot spas.",
+    tags: ["Gel Nails", "Acrylic", "Nail Art", "Pedicure"],
+    gallery: [
+      { emoji: "💅", gradient: "linear-gradient(135deg,#8a1f47,#d6336c)", caption: "Nail Studio" },
+      { emoji: "🦶", gradient: "linear-gradient(135deg,#2e9e6b,#a8e0c5)", caption: "Pedi Lounge" },
+      { emoji: "🎨", gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)", caption: "Art Corner" },
+      { emoji: "✨", gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)", caption: "Reception" },
+      { emoji: "💎", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "Gems Bar" },
+    ],
+    menu: [
+      { name: "💅 Gel Manicure", price: "₹699" },
+      { name: "💎 Acrylic Extensions", price: "₹1,499" },
+      { name: "🎨 Nail Art (per nail)", price: "₹99" },
+      { name: "🦶 Spa Pedicure", price: "₹899" },
+      { name: "✋ Spa Manicure", price: "₹699" },
+      { name: "💧 Paraffin Treatment", price: "₹499" },
+    ],
+  },
+  {
+    id: "5",
+    slug: "serene-skin-clinic",
+    name: "Serene Skin Clinic",
+    type: "Skin & Wellness",
+    loc: "Vibhuti Khand",
+    emoji: "🧖‍♀️",
+    gradient: "linear-gradient(135deg,#2e9e6b,#a8e0c5)",
+    rating: 4.8,
+    reviews: 98,
+    estd: 2017,
+    staff: 7,
+    services: 22,
+    description:
+      "A calming skin & wellness clinic offering advanced facials, clean-ups and dermatologist-approved treatments for glowing, healthy skin.",
+    tags: ["Facials", "Clean-up", "Anti-Ageing", "Peels"],
+    gallery: [
+      { emoji: "🧖‍♀️", gradient: "linear-gradient(135deg,#2e9e6b,#a8e0c5)", caption: "Facial Suite" },
+      { emoji: "💆‍♀️", gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)", caption: "Therapy Room" },
+      { emoji: "🌿", gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)", caption: "Herbal Bar" },
+      { emoji: "✨", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "Waiting Area" },
+    ],
+    menu: [
+      { name: "🧖‍♀️ Fruit Facial", price: "₹999" },
+      { name: "💎 Diamond Facial", price: "₹1,799" },
+      { name: "🌿 Herbal Clean-up", price: "₹599" },
+      { name: "⏳ Anti-Ageing", price: "₹2,499" },
+      { name: "🧴 Chemical Peel", price: "₹1,999" },
+      { name: "💧 Hydra Glow", price: "₹2,299" },
+    ],
+  },
+  {
+    id: "6",
+    slug: "elegance-bridal-house",
+    name: "Elegance Bridal House",
+    type: "Bridal & Occasion",
+    loc: "Mahanagar",
+    emoji: "👰",
+    gradient: "linear-gradient(135deg,#b02a5b,#f4a6c0)",
+    rating: 5.0,
+    reviews: 203,
+    estd: 2015,
+    staff: 14,
+    services: 28,
+    description:
+      "Lucknow's celebrated bridal house delivering complete wedding beauty — from pre-bridal packages to the perfect big-day look, all under one elegant roof.",
+    tags: ["Bridal", "Pre-Bridal", "Mehndi", "Groom"],
+    gallery: [
+      { emoji: "👰", gradient: "linear-gradient(135deg,#b02a5b,#f4a6c0)", caption: "Bridal Suite" },
+      { emoji: "💄", gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)", caption: "Makeup Room" },
+      { emoji: "🖐️", gradient: "linear-gradient(135deg,#2e9e6b,#a8e0c5)", caption: "Mehndi Corner" },
+      { emoji: "💇‍♀️", gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)", caption: "Hair Studio" },
+      { emoji: "💍", gradient: "linear-gradient(135deg,#8a1f47,#d6336c)", caption: "Trial Lounge" },
+      { emoji: "📸", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "Photo Set" },
+      { emoji: "✨", gradient: "linear-gradient(135deg,#c9a35b,#d6336c)", caption: "Reception" },
+    ],
+    menu: [
+      { name: "👰 Complete Bridal", price: "₹18,999" },
+      { name: "🌸 Pre-Bridal Package", price: "₹9,999" },
+      { name: "🖐️ Bridal Mehndi", price: "₹3,999" },
+      { name: "🤵 Groom Grooming", price: "₹4,499" },
+      { name: "💄 Reception Look", price: "₹6,999" },
+      { name: "👗 Engagement Makeup", price: "₹5,499" },
     ],
   },
 ];

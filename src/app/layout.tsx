@@ -5,6 +5,7 @@ import { TopBar } from "@/components/layout/topbar";
 import { Navbar } from "@/components/layout/navbar";
 import { FooterGate } from "@/components/layout/footer-gate";
 import { CartSync } from "@/components/layout/cart-sync";
+import { PersistHydrator } from "@/components/layout/persist-hydrator";
 import { Toaster } from "@/components/ui/toaster";
 
 const playfair = Playfair_Display({
@@ -65,6 +66,7 @@ export default function RootLayout({
       <body
         className={`${playfair.variable} ${inter.variable} bg-cream text-charcoal font-body min-h-screen flex flex-col`}
       >
+        <PersistHydrator />
         <CartSync />
         <TopBar />
         <Navbar />

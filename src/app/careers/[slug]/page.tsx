@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, Clock, Briefcase, Users, Check } from "lucide-react";
+import { MapPin, Clock, Briefcase, Users, Check, Heart } from "lucide-react";
+import { toast } from "sonner";
 import { jobs } from "@/lib/data";
-import { money } from "@/lib/utils";
+import { money, jobLocation } from "@/lib/utils";
 
 interface JobDetailPageProps {
   params: { slug: string };
@@ -40,7 +41,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
         <div>
           <span className="job-type">{job.type}</span>
           <h1 className="mt-3 text-[2.4rem] font-bold leading-tight">{job.title}</h1>
-          <p className="mt-2 text-muted">🏢 {job.salon} · {job.location}, Lucknow</p>
+          <p className="mt-2 text-muted">🏢 {job.salon} · {jobLocation(job.location)}</p>
 
           <div className="mt-6 flex flex-wrap gap-2.5">
             {infoPills.map(({ icon: Icon, value }) => (
@@ -58,6 +59,28 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
               <h2 className="text-[1.3rem] font-bold mb-4">About the Role</h2>
               <p className="text-charcoal/70 leading-relaxed">{job.description}</p>
             </section>
+
+            {job.occasions && job.occasions.length > 0 && (
+              <section className="rounded-[16px] bg-gold/10 p-7">
+                <h2 className="text-[1.3rem] font-bold mb-1 text-charcoal">
+                  Upcoming Occasions
+                </h2>
+                <p className="text-[0.85rem] text-muted mb-4">
+                  Peak mehndi season — lock in your dates early.
+                </p>
+                <div className="space-y-2.5">
+                  {job.occasions.map((occasion) => (
+                    <div
+                      key={occasion}
+                      className="flex items-center gap-3 rounded-full bg-white px-5 py-3 text-[0.95rem] text-charcoal/80"
+                    >
+                      <span className="text-lg">🎉</span>
+                      {occasion}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <section className="rounded-[16px] border border-line bg-white p-7">
               <h2 className="text-[1.3rem] font-bold mb-4">Responsibilities</h2>
@@ -107,13 +130,19 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
           <div className="card !rounded-[18px] p-6 text-center">
             <p className="text-muted text-[0.9rem]">Salary range</p>
             <p className="mt-1 text-[1.8rem] font-extrabold text-rose">{job.salary}</p>
-            <p className="text-[0.8rem] text-muted">per month · {job.experience}</p>
+            <p className="text-[0.8rem] text-muted">{job.salaryUnit} · {job.experience}</p>
             <div className="mt-4 rounded-full bg-gold/15 px-5 py-2.5 text-[0.85rem] text-charcoal/80">
               ⭐ {job.openings} position{job.openings > 1 ? "s" : ""} available
             </div>
             <Link href={`/careers/${job.slug}/apply`} className="btn-primary w-full mt-6" data-testid="apply-now">
               Apply Now
             </Link>
+            <button
+              onClick={() => toast.success("Job saved to your favourites 💼")}
+              className="btn-outline w-full mt-3"
+            >
+              <Heart className="h-4 w-4" /> Save Job
+            </button>
             <p className="mt-4 text-[0.8rem] text-muted">
               Applications close soon — apply today!
             </p>

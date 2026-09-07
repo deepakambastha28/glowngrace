@@ -76,8 +76,8 @@ export function ProductCard({ product }: ProductCardProps) {
         </button>
       </div>
 
-      <div className="mt-4">
-        <span className="text-[0.75rem] font-semibold uppercase tracking-[1.2px] text-muted">
+      <div className="p-5">
+        <span className="text-[0.75rem] font-semibold uppercase tracking-[1.2px] text-gold">
           {product.brand}
         </span>
         <h3 className="text-[1.03rem] font-semibold mt-1 leading-snug">

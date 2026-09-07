@@ -47,11 +47,6 @@ const SCHEMA_STATEMENTS: string[] = [
     resume_name TEXT,
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
-  `CREATE TABLE IF NOT EXISTS gg_newsletter_subscribers (
-    id SERIAL PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
-  )`,
   `CREATE TABLE IF NOT EXISTS gg_cart_snapshots (
     id SERIAL PRIMARY KEY,
     device_id TEXT UNIQUE NOT NULL,
@@ -59,7 +54,7 @@ const SCHEMA_STATEMENTS: string[] = [
     wishlist JSONB NOT NULL DEFAULT '[]'::jsonb,
     updated_at TIMESTAMPTZ DEFAULT now()
   )`,
-  `CREATE TABLE IF NOT EXISTS gg_admin_products (
+`CREATE TABLE IF NOT EXISTS gg_admin_products (
     id SERIAL PRIMARY KEY,
     slug TEXT UNIQUE NOT NULL,
     emoji TEXT NOT NULL,
@@ -114,6 +109,17 @@ const SCHEMA_STATEMENTS: string[] = [
     id SERIAL PRIMARY KEY,
     token TEXT UNIQUE NOT NULL,
     email TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+  )`,
+  `CREATE TABLE IF NOT EXISTS gg_partners (
+    id SERIAL PRIMARY KEY,
+    owner_name TEXT NOT NULL,
+    salon_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    city TEXT NOT NULL,
+    services TEXT NOT NULL,
+    message TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
 ];

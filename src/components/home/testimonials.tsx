@@ -9,7 +9,7 @@ export function Testimonials() {
           <p className="eyebrow">Testimonials</p>
           <h2>Loved by Women Across Lucknow</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-[26px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((t) => (
             <div key={t.id} className="card !rounded-[18px] p-[30px]">
               <div className="font-heading text-[2.4rem] leading-none text-rose-soft">

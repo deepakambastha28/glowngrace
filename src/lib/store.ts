@@ -86,6 +86,7 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: "glow-grace-cart",
+      skipHydration: true,
     }
   )
 );
