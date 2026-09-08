@@ -34,26 +34,33 @@ test.describe("Home page", () => {
     await page.goto("/");
 
     const circle = page.getByTestId("hero-circle");
-    await circle.hover();
     await expect(circle).toBeVisible();
 
     const slides = circle.getByTestId("hero-circle-product");
     await expect(slides).toHaveCount(4);
     await expect(slides.first()).toHaveAttribute("data-active", "true");
 
-    await page.getByTestId("hero-circle-next").click();
-    await expect(slides.nth(1)).toHaveAttribute("data-active", "true");
-    await expect(slides.first()).toHaveAttribute("data-active", "false");
+    await expect(slides.nth(1)).toHaveAttribute("data-active", "true", {
+      timeout: 7000,
+    });
 
-    await page.getByTestId("hero-circle-prev").click();
-    await expect(slides.first()).toHaveAttribute("data-active", "true");
+    await expect(circle.getByTestId("hero-circle-prev")).toHaveCount(0);
+    await expect(circle.getByTestId("hero-circle-next")).toHaveCount(0);
+    await expect(circle.locator("button")).toHaveCount(0);
   });
 
   test("hero circle product links to its product page", async ({ page }) => {
     await page.goto("/");
 
-    await page.getByTestId("hero-circle").hover();
-    await page.getByTestId("hero-circle-product").first().click();
+    const circle = page.getByTestId("hero-circle");
+    await circle.hover();
+    await expect(circle).toBeVisible();
+
+    const slides = circle.getByTestId("hero-circle-product");
+    await expect(slides).toHaveCount(4);
+    await expect(circle.getByText("Luxe Liquid Lipstick")).toHaveCount(0);
+
+    await slides.first().click();
 
     await expect(page).toHaveURL(/\/products\/luxe-liquid-lipstick/);
   });
