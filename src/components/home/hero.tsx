@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { stats, trustItems } from "@/lib/data";
+import { HeroCircleCarousel } from "@/components/home/hero-circle-carousel";
 
 export function Hero() {
   return (
@@ -56,9 +57,7 @@ export function Hero() {
           >
             <div className="relative grid h-[380px] w-[380px] place-items-center rounded-full bg-rose-gradient shadow-rose">
               <span className="absolute -inset-[18px] rounded-full border-2 border-dashed border-gold/50" />
-              <span className="text-[8.5rem] drop-shadow-[0_10px_20px_rgba(0,0,0,0.15)]">
-                💄
-              </span>
+              <HeroCircleCarousel />
             </div>
             <div className="absolute top-[30px] left-[-10px] flex items-center gap-2.5 rounded-2xl bg-white px-4 py-3.5 text-[0.85rem] font-semibold shadow-rose">
               <span>🌸</span> Premium Skincare

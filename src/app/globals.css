@@ -1009,6 +1009,111 @@
     white-space: nowrap;
   }
   .star-gold { color: var(--gold); }
+  /* ---- Hero circle carousel ---- */
+  .hero-circle {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 9999px;
+  }
+  .hc-track {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    transition: transform 0.6s ease;
+  }
+  .hc-slide {
+    flex: 0 0 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    color: #fff;
+    text-decoration: none;
+  }
+  .hc-emoji {
+    font-size: 5rem;
+    line-height: 1;
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
+  }
+  .hc-name {
+    font-size: 1.02rem;
+    font-weight: 700;
+    max-width: 78%;
+    text-align: center;
+  }
+  .hc-price {
+    font-size: 0.9rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.24);
+    padding: 4px 13px;
+    border-radius: 20px;
+  }
+  .hc-cta {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    opacity: 0.95;
+  }
+  .hc-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--charcoal);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    opacity: 0;
+    transition: 0.25s;
+    z-index: 2;
+  }
+  .hero-circle:hover .hc-arrow {
+    opacity: 1;
+  }
+  .hc-arrow:hover {
+    background: #fff;
+    color: var(--rose);
+  }
+  .hc-prev {
+    left: 8px;
+  }
+  .hc-next {
+    right: 8px;
+  }
+  .hc-dots {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 7px;
+    z-index: 2;
+  }
+  .hc-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.75);
+    cursor: pointer;
+    padding: 0;
+    transition: 0.25s;
+  }
+  .hc-dot.on {
+    background: #fff;
+    width: 20px;
+    border-radius: 10px;
+  }
   /* ---- Events carousel banner ---- */
   .event-carousel {
     position: relative;

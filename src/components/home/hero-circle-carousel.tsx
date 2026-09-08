@@ -1,0 +1,94 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { products } from "@/lib/data";
+import { cn } from "@/lib/utils";
+
+const CATEGORY_GRADIENT: Record<string, string> = {
+  Makeup: "linear-gradient(135deg,#d6336c,#f4a6c0)",
+  Skincare: "linear-gradient(135deg,#2e9e6b,#a8e0c5)",
+  "Nail Care": "linear-gradient(135deg,#c9a35b,#f0d9a8)",
+  Fragrances: "linear-gradient(135deg,#3b82c9,#a8c9f0)",
+};
+
+export function HeroCircleCarousel() {
+  const featured = useMemo(() => products.slice(0, 4), []);
+  const count = featured.length;
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  const next = useCallback(
+    () => setIndex((i) => (i + 1) % count),
+    [count]
+  );
+  const prev = useCallback(
+    () => setIndex((i) => (i - 1 + count) % count),
+    [count]
+  );
+
+  useEffect(() => {
+    if (paused) return;
+    const t = setInterval(next, 3500);
+    return () => clearInterval(t);
+  }, [paused, next]);
+
+  return (
+    <div
+      className="hero-circle"
+      data-testid="hero-circle"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div
+        className="hc-track"
+        style={{ transform: `translateX(-${index * 100}%)` }}
+      >
+        {featured.map((p, i) => (
+          <Link
+            key={p.id}
+            href={`/products/${p.slug}`}
+            className="hc-slide"
+            data-testid="hero-circle-product"
+            data-active={i === index}
+            style={{ background: CATEGORY_GRADIENT[p.category] }}
+            aria-hidden={i !== index}
+            tabIndex={i === index ? 0 : -1}
+          >
+            <span className="hc-emoji">{p.emoji}</span>
+            <span className="hc-name">{p.name}</span>
+            <span className="hc-price">₹{p.price.toLocaleString("en-IN")}</span>
+            <span className="hc-cta">View →</span>
+          </Link>
+        ))}
+      </div>
+      <button
+        className="hc-arrow hc-prev"
+        data-testid="hero-circle-prev"
+        onClick={prev}
+        aria-label="Previous product"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      <button
+        className="hc-arrow hc-next"
+        data-testid="hero-circle-next"
+        onClick={next}
+        aria-label="Next product"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+      <div className="hc-dots">
+        {featured.map((_, i) => (
+          <button
+            key={i}
+            className={cn("hc-dot", i === index && "on")}
+            onClick={() => setIndex(i)}
+            aria-label={`Go to product ${i + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
