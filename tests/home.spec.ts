@@ -9,7 +9,7 @@ test.describe("Home page", () => {
     await expect(page.getByTestId("logo")).toBeVisible();
 
     await expect(page.getByTestId("hero-shop")).toBeVisible();
-    await expect(page.getByTestId("services-section")).toBeVisible();
+    await expect(page.getByTestId("services-section")).toHaveCount(0);
     await expect(page.getByTestId("jobs-section")).toBeVisible();
     await expect(page.getByTestId("testimonials-section")).toBeVisible();
     await expect(page.getByTestId("cta-banner")).toBeVisible();
@@ -24,9 +24,9 @@ test.describe("Home page", () => {
     await expect(page.getByTestId("product-card").first()).toBeVisible();
   });
 
-  test("career CTA jumps to the vacancies section", async ({ page }) => {
+  test("career CTA navigates to the careers page", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("hero-career").click();
-    await expect(page.getByTestId("jobs-section")).toBeVisible();
+    await expect(page).toHaveURL(/\/careers/);
   });
 });
