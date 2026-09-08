@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Search, CalendarDays, MapPin } from "lucide-react";
 import { events } from "@/lib/data";
 import { EventCard } from "@/components/events/event-card";
+import { EventCarousel } from "@/components/events/event-carousel";
 
 const MONTHS = [
   "Jan",
@@ -85,6 +86,8 @@ export default function EventsPage() {
           <span className="text-charcoal">Events</span>
         </div>
       </div>
+
+      <EventCarousel />
 
       <section className="section pt-10">
         <div className="mx-auto max-w-screen-xl px-6">
