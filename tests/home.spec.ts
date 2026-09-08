@@ -29,4 +29,32 @@ test.describe("Home page", () => {
     await page.getByTestId("hero-career").click();
     await expect(page).toHaveURL(/\/careers/);
   });
+
+  test("hero circle cycles through product slides", async ({ page }) => {
+    await page.goto("/");
+
+    const circle = page.getByTestId("hero-circle");
+    await circle.hover();
+    await expect(circle).toBeVisible();
+
+    const slides = circle.getByTestId("hero-circle-product");
+    await expect(slides).toHaveCount(4);
+    await expect(slides.first()).toHaveAttribute("data-active", "true");
+
+    await page.getByTestId("hero-circle-next").click();
+    await expect(slides.nth(1)).toHaveAttribute("data-active", "true");
+    await expect(slides.first()).toHaveAttribute("data-active", "false");
+
+    await page.getByTestId("hero-circle-prev").click();
+    await expect(slides.first()).toHaveAttribute("data-active", "true");
+  });
+
+  test("hero circle product links to its product page", async ({ page }) => {
+    await page.goto("/");
+
+    await page.getByTestId("hero-circle").hover();
+    await page.getByTestId("hero-circle-product").first().click();
+
+    await expect(page).toHaveURL(/\/products\/luxe-liquid-lipstick/);
+  });
 });
