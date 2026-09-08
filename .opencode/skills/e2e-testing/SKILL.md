@@ -68,6 +68,10 @@ mirrors the reference design and changes.
   lightbox), `event-lightbox` (open when any `event-photo` clicked). Date labels
   use a deterministic `DD Mon YYYY` format ("Sun, 20 Sep 2026"), **not**
   `localeDateString` (locale `en-IN` yields "Sept", breaking label matches).
+  Carousel banner on `/events` (below the breadcrumb, above the toolbar):
+  `event-carousel` (container; hover pauses autoplay — hover in tests to keep
+  the active slide stable), `event-slide` (4 slides, `data-active="true/false"`),
+  `event-carousel-prev`, `event-carousel-next`, `event-carousel-dot`.
 - Auth: `login-*` / `signup-*` fields (email/password inputs by label text)
 
 **strict-mode gotcha:** `add-to-cart` / `wishlist-button` testids appear on
