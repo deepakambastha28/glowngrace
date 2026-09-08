@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { products } from "@/lib/data";
-import { cn } from "@/lib/utils";
 
 const CATEGORY_GRADIENT: Record<string, string> = {
   Makeup: "linear-gradient(135deg,#d6336c,#f4a6c0)",
@@ -21,10 +19,6 @@ export function HeroCircleCarousel() {
 
   const next = useCallback(
     () => setIndex((i) => (i + 1) % count),
-    [count]
-  );
-  const prev = useCallback(
-    () => setIndex((i) => (i - 1 + count) % count),
     [count]
   );
 
@@ -53,40 +47,11 @@ export function HeroCircleCarousel() {
             data-testid="hero-circle-product"
             data-active={i === index}
             style={{ background: CATEGORY_GRADIENT[p.category] }}
-            aria-hidden={i !== index}
+            aria-label={p.name}
             tabIndex={i === index ? 0 : -1}
           >
             <span className="hc-emoji">{p.emoji}</span>
-            <span className="hc-name">{p.name}</span>
-            <span className="hc-price">₹{p.price.toLocaleString("en-IN")}</span>
-            <span className="hc-cta">View →</span>
           </Link>
-        ))}
-      </div>
-      <button
-        className="hc-arrow hc-prev"
-        data-testid="hero-circle-prev"
-        onClick={prev}
-        aria-label="Previous product"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-      <button
-        className="hc-arrow hc-next"
-        data-testid="hero-circle-next"
-        onClick={next}
-        aria-label="Next product"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
-      <div className="hc-dots">
-        {featured.map((_, i) => (
-          <button
-            key={i}
-            className={cn("hc-dot", i === index && "on")}
-            onClick={() => setIndex(i)}
-            aria-label={`Go to product ${i + 1}`}
-          />
         ))}
       </div>
     </div>
