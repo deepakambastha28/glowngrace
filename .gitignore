@@ -40,6 +40,8 @@ next-env.d.ts
 
 # local artifacts
 preview.log
+server-err.log
+server-out.log
 
 # design reference (never edit)
 design/
