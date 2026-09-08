@@ -78,4 +78,43 @@ test.describe("Events", () => {
 
     await expect(page).toHaveURL(/\/events/);
   });
+
+  test.describe("Carousel banner", () => {
+    test("renders after the breadcrumb and navigates slides", async ({ page }) => {
+      await page.goto("/events");
+
+      await page.getByTestId("event-carousel").hover();
+      await expect(page.getByTestId("event-slide")).toHaveCount(4);
+      await expect(
+        page.getByTestId("event-slide").first()
+      ).toHaveAttribute("data-active", "true");
+
+      await page.getByTestId("event-carousel-next").click();
+      await expect(
+        page.getByTestId("event-slide").nth(1)
+      ).toHaveAttribute("data-active", "true");
+      await expect(
+        page.getByTestId("event-slide").first()
+      ).toHaveAttribute("data-active", "false");
+
+      await page.getByTestId("event-carousel-prev").click();
+      await expect(
+        page.getByTestId("event-slide").first()
+      ).toHaveAttribute("data-active", "true");
+
+      await page.getByTestId("event-carousel-dot").nth(3).click();
+      await expect(
+        page.getByTestId("event-slide").nth(3)
+      ).toHaveAttribute("data-active", "true");
+    });
+
+    test("opens the featured event from a slide", async ({ page }) => {
+      await page.goto("/events");
+
+      await page.getByTestId("event-carousel").hover();
+      await page.getByTestId("event-slide").first().click();
+
+      await expect(page).toHaveURL(/\/events\/festive-makeup-masterclass/);
+    });
+  });
 });
