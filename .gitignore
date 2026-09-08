@@ -40,6 +40,8 @@ next-env.d.ts
 
 # local artifacts
 preview.log
+preview-2.log
+preview3.log
 server-err.log
 server-out.log
 
