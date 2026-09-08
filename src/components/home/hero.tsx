@@ -34,7 +34,7 @@ export function Hero() {
               <Link href="/products" className="btn-primary" data-testid="hero-shop">
                 Shop Cosmetics
               </Link>
-              <Link href="/#services" className="btn-outline" data-testid="hero-career">
+              <Link href="/careers" className="btn-outline" data-testid="hero-career">
                 Find a Career
               </Link>
             </div>

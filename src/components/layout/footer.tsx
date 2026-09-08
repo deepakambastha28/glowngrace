@@ -10,7 +10,7 @@ const shopLinks = [
 const careersLinks = [
   { label: "Find Jobs", href: "/careers" },
   { label: "Our Partners", href: "/partners" },
-  { label: "Skill Training", href: "/#services" },
+  { label: "Skill Training", href: "/careers" },
   { label: "Hire Talent", href: "/partner" },
   { label: "Success Stories", href: "/#testimonials" },
 ];
