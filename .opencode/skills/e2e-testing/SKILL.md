@@ -61,6 +61,17 @@ mirrors the reference design and changes.
   after advancing.
 - Careers: `job-grid`, `apply-now` (detail page), links `Apply Now` on the list,
   `apply-form`, `resume-input`, `submit-application`
+- Events: `event-search`, `event-date-filter` (option label = month, e.g. "Sep 2026"),
+  `event-loc-filter`, `event-clear`, `event-count`, `event-tile` (card → links to
+  `/events/<slug>`), `event-date`, `event-loc` (on tile; contains "📍 <loc> · <time>"),
+  detail page `event-gallery`, `event-photo` (gallery tiles — click opens the
+  lightbox), `event-lightbox` (open when any `event-photo` clicked). Date labels
+  use a deterministic `DD Mon YYYY` format ("Sun, 20 Sep 2026"), **not**
+  `localeDateString` (locale `en-IN` yields "Sept", breaking label matches).
+  Carousel banner on `/events` (below the breadcrumb, above the toolbar):
+  `event-carousel` (container; hover pauses autoplay — hover in tests to keep
+  the active slide stable), `event-slide` (4 slides, `data-active="true/false"`),
+  `event-carousel-prev`, `event-carousel-next`, `event-carousel-dot`.
 - Auth: `login-*` / `signup-*` fields (email/password inputs by label text)
 
 **strict-mode gotcha:** `add-to-cart` / `wishlist-button` testids appear on

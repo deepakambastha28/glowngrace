@@ -24,6 +24,7 @@ const navLinks = [
   { href: "/#services", label: "Placement" },
   { href: "/careers", label: "Careers" },
   { href: "/partners", label: "Partners" },
+  { href: "/events", label: "Events" },
   { href: "/#testimonials", label: "Reviews" },
 ];
 

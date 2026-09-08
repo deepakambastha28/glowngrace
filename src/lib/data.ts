@@ -720,3 +720,273 @@ export const trustItems = [
   { emoji: "💳", text: "Secure Payments" },
   { emoji: "🤝", text: "Verified Job Placements" },
 ];
+
+export interface EventPhoto {
+  emoji: string;
+  gradient: string;
+  caption: string;
+}
+
+export interface EventItem {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  emoji: string;
+  gradient: string;
+  date: string;
+  time: string;
+  loc: string;
+  venue: string;
+  price: string;
+  capacity: number;
+  spotsLeft: number;
+  description: string;
+  agenda: string[];
+  tags: string[];
+  gallery: EventPhoto[];
+}
+
+export const events: EventItem[] = [
+  {
+    id: "1",
+    slug: "festive-makeup-masterclass",
+    title: "Festive Makeup Masterclass",
+    category: "Makeup Masterclass",
+    emoji: "💄",
+    gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)",
+    date: "2026-09-20",
+    time: "11:00 AM",
+    loc: "Aliganj",
+    venue: "Glow & Grace Studio, Aliganj",
+    price: "₹499",
+    capacity: 40,
+    spotsLeft: 12,
+    description:
+      "Get Diwali-ready with our signature festive look. Learn step-by-step blending, shimmer placement and long-wear techniques from our lead makeup artists.",
+    agenda: [
+      "Skin prep for long-lasting festive makeup",
+      "Base & contouring fundamentals",
+      "Festive eye looks: smokey & shimmer",
+      "Photography-proof lipline & blush",
+    ],
+    tags: ["Festive", "Makeup", "Diwali"],
+    gallery: [
+      { emoji: "💄", gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)", caption: "Makeup Station" },
+      { emoji: "✨", gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)", caption: "Festive Eye Look" },
+      { emoji: "🎨", gradient: "linear-gradient(135deg,#b02a5b,#f4a6c0)", caption: "Shimmer Palette" },
+      { emoji: "📸", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "Final Look" },
+    ],
+  },
+  {
+    id: "2",
+    slug: "bridal-glow-workshop",
+    title: "Bridal Glow Workshop",
+    category: "Bridal Workshop",
+    emoji: "👰",
+    gradient: "linear-gradient(135deg,#c9a35b,#d6336c)",
+    date: "2026-10-04",
+    time: "2:00 PM",
+    loc: "Gomti Nagar",
+    venue: "Blush Beauty Lounge, Gomti Nagar",
+    price: "₹999",
+    capacity: 30,
+    spotsLeft: 6,
+    description:
+      "A hands-on bridal workshop covering HD makeup, draping and hair styling for the big day. Includes a live bridal demo and a take-home look book.",
+    agenda: [
+      "Bridal skin ritual & prepping",
+      "HD & airbrush base demo",
+      "Saree & lehenga draping styles",
+      "Veil, hair bun & accessories styling",
+    ],
+    tags: ["Bridal", "HD Makeup", "Draping"],
+    gallery: [
+      { emoji: "👰", gradient: "linear-gradient(135deg,#c9a35b,#d6336c)", caption: "Bridal Look" },
+      { emoji: "💍", gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)", caption: "Jewellery Styling" },
+      { emoji: "🧖‍♀️", gradient: "linear-gradient(135deg,#2e9e6b,#a8e0c5)", caption: "Skin Ritual" },
+      { emoji: "💇‍♀️", gradient: "linear-gradient(135deg,#8a1f47,#d6336c)", caption: "Hair Styling" },
+      { emoji: "📸", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "Rehearsal Shoot" },
+    ],
+  },
+  {
+    id: "3",
+    slug: "skincare-glow-clinic",
+    title: "Skincare & Glow Clinic",
+    category: "Skincare Clinic",
+    emoji: "🧴",
+    gradient: "linear-gradient(135deg,#2e9e6b,#a8e0c5)",
+    date: "2026-10-18",
+    time: "10:00 AM",
+    loc: "Hazratganj",
+    venue: "Glow & Grace Salon, Hazratganj",
+    price: "Free",
+    capacity: 60,
+    spotsLeft: 28,
+    description:
+      "A free session with our skin specialists on building a winter glow routine — cleansers, hydration layering and sunscreen habits that actually work.",
+    agenda: [
+      "Decode your skin type",
+      "Winter hydration layering",
+      "Serum actives 101",
+      "Live demo: 5-minute glow ritual",
+    ],
+    tags: ["Skincare", "Free", "Winter"],
+    gallery: [
+      { emoji: "🧴", gradient: "linear-gradient(135deg,#2e9e6b,#a8e0c5)", caption: "Product Demo" },
+      { emoji: "✨", gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)", caption: "Glow Ritual" },
+      { emoji: "🧖‍♀️", gradient: "linear-gradient(135deg,#8a1f47,#d6336c)", caption: "Consult Corner" },
+      { emoji: "🌿", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "Hydration Bar" },
+    ],
+  },
+  {
+    id: "4",
+    slug: "luxury-hair-artistry-demo",
+    title: "Luxury Hair Artistry Demo",
+    category: "Hair Artistry",
+    emoji: "💇‍♀️",
+    gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)",
+    date: "2026-11-07",
+    time: "12:00 PM",
+    loc: "Indira Nagar",
+    venue: "Style Hub Salon, Indira Nagar",
+    price: "₹299",
+    capacity: 50,
+    spotsLeft: 18,
+    description:
+      "Global colour, keratin and effortless curls under one roof. Watch our senior stylists transform live models and pick new-season hair hacks.",
+    agenda: [
+      "New-season global colour trends",
+      "Keratin & smoothening science",
+      "Live curl & blowout styling",
+      "Home hair-care for salon results",
+    ],
+    tags: ["Hair", "Colour", "Keratin"],
+    gallery: [
+      { emoji: "💇‍♀️", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "Styling Stage" },
+      { emoji: "🎨", gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)", caption: "Colour Bar" },
+      { emoji: "🪮", gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)", caption: "Curl Demo" },
+      { emoji: "✨", gradient: "linear-gradient(135deg,#8a1f47,#d6336c)", caption: "Final Blowout" },
+    ],
+  },
+  {
+    id: "5",
+    slug: "winter-bridal-pop-up-expo",
+    title: "Winter Bridal Pop-up Expo",
+    category: "Beauty Expo",
+    emoji: "🎪",
+    gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)",
+    date: "2026-11-21",
+    time: "3:00 PM",
+    loc: "Vibhuti Khand",
+    venue: "Lake Garden Banquet, Vibhuti Khand",
+    price: "Free",
+    capacity: 120,
+    spotsLeft: 45,
+    description:
+      "Meet 20+ handpicked makeup artists, mehendi stylists and wedding vendors. Live trials, outfit spots and exclusive bridal offers at one venue.",
+    agenda: [
+      "Meet 20+ bridal vendors",
+      "Live makeup & mehendi trials",
+      "Bridal wardrobe styling corner",
+      "Exclusive pop-up offers",
+    ],
+    tags: ["Bridal", "Expo", "Mehendi"],
+    gallery: [
+      { emoji: "🎪", gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)", caption: "Expo Floor" },
+      { emoji: "💍", gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)", caption: "Vendor Stalls" },
+      { emoji: "👰", gradient: "linear-gradient(135deg,#b02a5b,#f4a6c0)", caption: "Live Trial" },
+      { emoji: "🪷", gradient: "linear-gradient(135deg,#2e9e6b,#a8e0c5)", caption: "Mehendi Corner" },
+    ],
+  },
+  {
+    id: "6",
+    slug: "matte-lipstick-trend-launch",
+    title: "Matte Lipstick Trend Launch",
+    category: "Trend Launch",
+    emoji: "💋",
+    gradient: "linear-gradient(135deg,#b02a5b,#f4a6c0)",
+    date: "2026-12-05",
+    time: "5:00 PM",
+    loc: "Mahanagar",
+    venue: "Glow & Grace Flagship, Mahanagar",
+    price: "Free",
+    capacity: 80,
+    spotsLeft: 30,
+    description:
+      "Be the first to try our new 12-shade matte lipstick range. Skin-tone mapping, swatch parties and a goodie bag with every RSVP.",
+    agenda: [
+      "Range reveal & swatch party",
+      "Skin-tone shade mapping",
+      "Long-wear wear-test demo",
+      "Goodie bag giveaway",
+    ],
+    tags: ["Launch", "Lipstick", "Swatch"],
+    gallery: [
+      { emoji: "💋", gradient: "linear-gradient(135deg,#b02a5b,#f4a6c0)", caption: "Launch Stage" },
+      { emoji: "💄", gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)", caption: "12 Shade Range" },
+      { emoji: "🎁", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "Goodie Bag" },
+      { emoji: "✨", gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)", caption: "Swatch Counter" },
+    ],
+  },
+  {
+    id: "7",
+    slug: "new-year-makeover-meetup",
+    title: "New Year Makeover Meetup",
+    category: "Meetup",
+    emoji: "🎉",
+    gradient: "linear-gradient(135deg,#8a1f47,#d6336c)",
+    date: "2026-12-19",
+    time: "6:00 PM",
+    loc: "Hazratganj",
+    venue: "Glow & Grace Salon, Hazratganj",
+    price: "₹599",
+    capacity: 45,
+    spotsLeft: 9,
+    description:
+      "Ring in the new year with a fresh look. Express makeovers, professional photos and our stylists' 2027 trend forecast over coffee & dessert.",
+    agenda: [
+      "Express makeover by stylists",
+      "2027 beauty trend forecast",
+      "Pro photo booth",
+      "Coffee & dessert social",
+    ],
+    tags: ["New Year", "Makeover", "Social"],
+    gallery: [
+      { emoji: "🎉", gradient: "linear-gradient(135deg,#8a1f47,#d6336c)", caption: "Happy Hour" },
+      { emoji: "💄", gradient: "linear-gradient(135deg,#c9a35b,#f0d9a8)", caption: "Makeover Station" },
+      { emoji: "📸", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "Photo Booth" },
+      { emoji: "☕", gradient: "linear-gradient(135deg,#b02a5b,#f4a6c0)", caption: "Dessert Bar" },
+    ],
+  },
+  {
+    id: "8",
+    slug: "bridal-budget-bootcamp",
+    title: "Bridal Budget Bootcamp",
+    category: "Bridal Workshop",
+    emoji: "💍",
+    gradient: "linear-gradient(135deg,#d6336c,#c9a35b)",
+    date: "2027-01-09",
+    time: "11:30 AM",
+    loc: "Gomti Nagar",
+    venue: "Blush Beauty Lounge, Gomti Nagar",
+    price: "Free",
+    capacity: 55,
+    spotsLeft: 22,
+    description:
+      "Plan a dream wedding glow without the shock price tag. Budget-friendly bridal AMUs, insider pricing tips and a Q&A with our senior makeup artists.",
+    agenda: [
+      "Bridal AMU on a budget",
+      "Insider pricing tips",
+      "D.I.Y. bridal kit essentials",
+      "Live Q&A with senior artists",
+    ],
+    tags: ["Bridal", "Budget", "Q&A"],
+    gallery: [
+      { emoji: "💍", gradient: "linear-gradient(135deg,#d6336c,#c9a35b)", caption: "Q&A Stage" },
+      { emoji: "👰", gradient: "linear-gradient(135deg,#c9a35b,#d6336c)", caption: "Budget Bridal Look" },
+      { emoji: "💰", gradient: "linear-gradient(135deg,#2e9e6b,#a8e0c5)", caption: "Savings Board" },
+      { emoji: "🎨", gradient: "linear-gradient(135deg,#3b82c9,#a8c9f0)", caption: "DIY Kit Demo" },
+    ],
+  },
+];
