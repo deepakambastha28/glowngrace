@@ -122,6 +122,24 @@ const SCHEMA_STATEMENTS: string[] = [
     message TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
+  `CREATE TABLE IF NOT EXISTS gg_candidates (
+    id SERIAL PRIMARY KEY,
+    user_email TEXT NOT NULL,
+    full_name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    email TEXT NOT NULL,
+    city TEXT NOT NULL,
+    experience TEXT NOT NULL DEFAULT '',
+    specialization TEXT NOT NULL DEFAULT '',
+    qualification TEXT NOT NULL DEFAULT '',
+    bio TEXT NOT NULL DEFAULT '',
+    skills JSONB NOT NULL DEFAULT '[]'::jsonb,
+    gallery JSONB NOT NULL DEFAULT '[]'::jsonb,
+    resume_name TEXT,
+    status TEXT NOT NULL DEFAULT 'Active',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+  )`,
 ];
 
 export function getDb(): SqlQuery | null {

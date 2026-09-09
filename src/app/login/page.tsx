@@ -3,17 +3,30 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Heart } from "lucide-react";
+import { Mail, Lock, Heart, Shield, User, Briefcase, ShoppingBag } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { loginSchema, type LoginFormData } from "@/lib/schemas";
-import { useAuthStore } from "@/lib/auth";
+import { useAuthStore, findRegisteredUser } from "@/lib/auth";
 
-const DEMO_EMAIL = "demo@glowngrace.in";
-const DEMO_PASSWORD = "demo123";
+const DEMO_USERS = [
+  { email: "shopper@glowngrace.in", password: "shopper123", name: "Priya (Shopper)", role: "user" as const },
+  { email: "candidate@glowngrace.in", password: "candidate123", name: "Ananya (Candidate)", role: "candidate" as const },
+  { email: "admin@glowngrace.in", password: "admin123", name: "Admin User", role: "admin" as const },
+];
 
-const DEMO_NAME = "Demo User";
+const roleRedirect: Record<string, string> = {
+  admin: "/admin",
+  candidate: "/candidate",
+  user: "/shopper",
+};
+
+const roleIcon: Record<string, React.ReactNode> = {
+  user: <ShoppingBag className="h-4 w-4 mt-0.5 text-gold shrink-0" />,
+  candidate: <Briefcase className="h-4 w-4 mt-0.5 text-rose shrink-0" />,
+  admin: <Shield className="h-4 w-4 mt-0.5 text-[#3b82c9] shrink-0" />,
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,15 +46,28 @@ export default function LoginPage() {
   );
 
   const onSubmit = (data: LoginFormData) => {
-    if (
-      data.email.toLowerCase() === DEMO_EMAIL &&
-      data.password === DEMO_PASSWORD
-    ) {
-      signIn({ name: DEMO_NAME, email: DEMO_EMAIL });
-      toast.success("Welcome back, gorgeous! ✨");
-      router.push("/");
+    // Check demo users first
+    const demo = DEMO_USERS.find(
+      (u) =>
+        u.email.toLowerCase() === data.email.toLowerCase() &&
+        u.password === data.password
+    );
+    if (demo) {
+      signIn({ name: demo.name, email: demo.email, role: demo.role });
+      toast.success(`Welcome back, ${demo.name}! ✨`);
+      router.push(roleRedirect[demo.role] || "/");
       return;
     }
+
+    // Check registered users
+    const registered = findRegisteredUser(data.email, data.password);
+    if (registered) {
+      signIn({ name: registered.name, email: registered.email, role: registered.role });
+      toast.success(`Welcome back, ${registered.name}! ✨`);
+      router.push(roleRedirect[registered.role] || "/");
+      return;
+    }
+
     toast.error("Invalid email or password. Try the demo credentials below.");
   };
 
@@ -64,12 +90,18 @@ export default function LoginPage() {
 
       <div className="mb-6 rounded-[16px] border border-dashed border-gold/50 bg-gold/10 px-4 py-3 text-sm text-charcoal">
         <p className="font-semibold text-gold">Demo credentials</p>
-        <p className="mt-1">
-          Email: <span className="font-semibold">{DEMO_EMAIL}</span>
-        </p>
-        <p>
-          Password: <span className="font-semibold">{DEMO_PASSWORD}</span>
-        </p>
+        <div className="mt-2 flex flex-col gap-2">
+          {DEMO_USERS.map((u) => (
+            <div key={u.email} className="flex items-start gap-2">
+              {roleIcon[u.role]}
+              <div>
+                <p className="font-semibold text-charcoal capitalize">{u.role}</p>
+                <p>Email: <span className="font-semibold">{u.email}</span></p>
+                <p>Password: <span className="font-semibold">{u.password}</span></p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="card !rounded-[20px] p-7 space-y-5">

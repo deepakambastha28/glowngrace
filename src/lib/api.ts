@@ -2,6 +2,7 @@ import type {
   OrderPayload,
   ApplicationPayload,
   PartnerPayload,
+  CandidatePayload,
 } from "@/lib/schemas";
 
 interface ApiResponse<T = unknown> {
@@ -43,6 +44,22 @@ function body(value: unknown): RequestInit {
 
 export type OrderResponse = { persisted: boolean; orderId?: string };
 export type ApplicationResponse = { applied: boolean };
+export type ApplicationRecord = {
+  id: string;
+  jobId: string;
+  jobSlug: string;
+  jobTitle: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  city: string;
+  experience: string;
+  specialization: string;
+  qualification: string;
+  coverNote: string;
+  resumeName: string | null;
+  createdAt: string;
+};
 export type PartnerResponse = { registered: boolean };
 export type CartSnapshotResponse = { synced?: boolean; items?: unknown[]; wishlist?: unknown[] };
 
@@ -64,6 +81,36 @@ export function submitApplication(
     method: "POST",
     ...body(application),
   });
+}
+
+/** GET /api/applications?email=... — fetch applications by email (last 30 days). */
+export function fetchApplications(
+  email: string
+): Promise<ApiResponse<{ persisted: boolean; items: ApplicationRecord[] }>> {
+  return request(`/api/applications?email=${encodeURIComponent(email)}`);
+}
+
+export type OrderRecord = {
+  id: string;
+  customerName: string;
+  email: string;
+  phone: string;
+  address: unknown;
+  items: { name: string; quantity: number; price: number }[];
+  subtotal: number;
+  gst: number;
+  shipping: number;
+  total: number;
+  deliveryOption: string;
+  paymentMethod: string;
+  createdAt: string;
+};
+
+/** GET /api/orders?email=... — fetch orders by email (last 30 days). */
+export function fetchOrders(
+  email: string
+): Promise<ApiResponse<{ persisted: boolean; orders: OrderRecord[] }>> {
+  return request(`/api/orders?email=${encodeURIComponent(email)}`);
 }
 
 /** POST /api/partners — register a partner salon. */
@@ -155,5 +202,70 @@ export function createAdminReview(
   return request<AdminReviewResponse>("/api/admin/reviews", {
     method: "POST",
     ...body(review),
+  });
+}
+
+// ---------------------------------------------------------------
+// Candidate Profile
+// ---------------------------------------------------------------
+
+export type CandidateResponse = { persisted: boolean; id?: number };
+export type CandidateListResponse = { persisted: boolean; items: CandidateRecord[] };
+export type CandidateRecord = {
+  id: string;
+  userEmail: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  city: string;
+  experience: string;
+  specialization: string;
+  qualification: string;
+  bio: string;
+  skills: string[];
+  gallery: string[];
+  resumeName: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** GET /api/candidates?email=... — fetch a candidate profile by email. */
+export function fetchCandidate(
+  email: string
+): Promise<ApiResponse<{ persisted: boolean; candidate: CandidateRecord | null }>> {
+  return request(`/api/candidates?email=${encodeURIComponent(email)}`);
+}
+
+/** POST /api/candidates — create or update a candidate profile. */
+export function saveCandidate(
+  profile: CandidatePayload & { userEmail: string }
+): Promise<ApiResponse<CandidateResponse>> {
+  return request<CandidateResponse>("/api/candidates", {
+    method: "POST",
+    ...body(profile),
+  });
+}
+
+/** DELETE /api/candidates?id=... — delete a candidate profile. */
+export function deleteCandidate(
+  id: number
+): Promise<ApiResponse<{ deleted: boolean }>> {
+  return request<{ deleted: boolean }>(`/api/candidates?id=${id}`, {
+    method: "DELETE",
+  });
+}
+
+/** GET /api/admin/candidates — list all candidates (admin). */
+export function adminFetchCandidates(): Promise<ApiResponse<CandidateListResponse>> {
+  return request<CandidateListResponse>("/api/admin/candidates");
+}
+
+/** DELETE /api/admin/candidates?id=... — delete a candidate (admin). */
+export function adminDeleteCandidate(
+  id: number
+): Promise<ApiResponse<{ deleted: boolean }>> {
+  return request<{ deleted: boolean }>(`/api/admin/candidates?id=${id}`, {
+    method: "DELETE",
   });
 }

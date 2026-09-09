@@ -2,6 +2,45 @@ import { NextResponse } from "next/server";
 import { query, isDbConfigured } from "@/lib/db";
 import { orderPayloadSchema } from "@/lib/schemas";
 
+/** GET /api/orders?email= — fetch orders for a given email (last 30 days). */
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get("email");
+
+    if (!email) {
+      return NextResponse.json(
+        { persisted: false, error: "Email is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!isDbConfigured()) {
+      return NextResponse.json({ persisted: false, orders: [] });
+    }
+
+    const rows = await query(
+      `SELECT order_id AS "id", customer_name AS "customerName", email, phone,
+              address, items, subtotal, gst, shipping, total,
+              delivery_option AS "deliveryOption", payment_method AS "paymentMethod",
+              created_at AS "createdAt"
+       FROM gg_orders
+       WHERE LOWER(email) = LOWER($1)
+         AND created_at >= NOW() - INTERVAL '30 days'
+       ORDER BY created_at DESC`,
+      [email]
+    );
+
+    return NextResponse.json({ persisted: true, orders: rows || [] });
+  } catch (error) {
+    console.error("GET /api/orders failed", error);
+    return NextResponse.json(
+      { persisted: false, orders: [] },
+      { status: 500 }
+    );
+  }
+}
+
 /** POST /api/orders — persists a completed checkout order. */
 export async function POST(request: Request) {
   try {

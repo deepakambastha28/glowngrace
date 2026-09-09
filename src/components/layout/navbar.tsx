@@ -11,6 +11,7 @@ import {
   X,
   ChevronDown,
   LogOut,
+  UserCircle,
 } from "lucide-react";
 import { Logo } from "./logo";
 import { useCartStore } from "@/lib/store";
@@ -42,6 +43,8 @@ export function Navbar() {
     setMobileOpen(false);
     router.push("/");
   };
+
+  const profileHref = user?.role === "admin" ? "/admin" : user?.role === "candidate" ? "/candidate" : "/shopper";
 
   return (
     <header
@@ -107,6 +110,14 @@ export function Navbar() {
                         </p>
                         <p className="truncate text-xs text-muted">{user.email}</p>
                       </div>
+                      <Link
+                        href={profileHref}
+                        onClick={() => setAccountOpen(false)}
+                        className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium text-charcoal/80 transition-colors hover:bg-rose-blush hover:text-rose"
+                      >
+                        <UserCircle className="h-4 w-4" />
+                        My Profile
+                      </Link>
                       <button
                         onClick={handleLogout}
                         className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium text-charcoal/80 transition-colors hover:bg-rose-blush hover:text-rose"
@@ -176,6 +187,14 @@ export function Navbar() {
             <div className="rounded-xl bg-rose-blush px-4 py-2">
               <p className="truncate text-sm font-semibold text-rose">{user.name}</p>
               <p className="truncate text-xs text-muted">{user.email}</p>
+              <Link
+                href={profileHref}
+                onClick={() => setMobileOpen(false)}
+                className="mt-1 flex w-full items-center gap-2 px-1 py-1 text-sm font-medium text-charcoal/80 hover:text-rose"
+              >
+                <UserCircle className="h-4 w-4" />
+                My Profile
+              </Link>
               <button
                 onClick={handleLogout}
                 className="mt-1 flex w-full items-center gap-2 px-1 py-1 text-sm font-medium text-charcoal/80 hover:text-rose"
