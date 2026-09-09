@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/auth";
+import { usePersistReady } from "@/lib/use-persist-ready";
 import { saveCandidate, fetchCandidate, deleteCandidate, fetchApplications } from "@/lib/api";
 import type { ApplicationRecord } from "@/lib/api";
 import { jobs } from "@/lib/data";
@@ -48,6 +49,7 @@ function daysAgo(dateStr: string): string {
 
 export default function CandidatePage() {
   const router = useRouter();
+  const persistReady = usePersistReady();
   const user = useAuthStore((s) => s.user);
 
   const [loading, setLoading] = useState(true);
@@ -72,10 +74,12 @@ export default function CandidatePage() {
   const [appsLoading, setAppsLoading] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      router.push("/login");
-      return;
-    }
+    if (persistReady && !user) router.replace("/login");
+  }, [persistReady, user, router]);
+
+  useEffect(() => {
+    if (!persistReady || !user) return;
+
     setEmail(user.email);
     setFullName(user.name);
 
@@ -97,7 +101,7 @@ export default function CandidatePage() {
       }
       setLoading(false);
     });
-  }, [user, router]);
+  }, [user, router, persistReady]);
 
   useEffect(() => {
     if (tab !== "applications" || !user) return;
@@ -192,7 +196,7 @@ export default function CandidatePage() {
     }
   };
 
-  if (!user) return null;
+  if (!persistReady || !user) return null;
 
   if (loading) {
     return (

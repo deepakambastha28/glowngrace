@@ -1,14 +1,37 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Auth pages", () => {
-  test("login validates fields and shows a demo success toast", async ({ page }) => {
+  test("shopper login validates fields and shows a success toast", async ({ page }) => {
     await page.goto("/login");
 
-    await page.getByLabel("Email").fill("demo@glowngrace.in");
-    await page.getByLabel("Password").fill("demo123");
+    await page.getByLabel("Email").fill("shopper@glowngrace.in");
+    await page.getByLabel("Password").fill("shopper123");
     await page.getByRole("button", { name: "Sign In" }).click();
 
-    await expect(page.getByText(/Welcome back/)).toBeVisible();
+    await page.waitForURL(/\/shopper/);
+    await expect(page).toHaveURL(/\/shopper/);
+  });
+
+  test("candidate login works and redirects", async ({ page }) => {
+    await page.goto("/login");
+
+    await page.getByLabel("Email").fill("candidate@glowngrace.in");
+    await page.getByLabel("Password").fill("candidate123");
+    await page.getByRole("button", { name: "Sign In" }).click();
+
+    await page.waitForURL(/\/candidate/);
+    await expect(page).toHaveURL(/\/candidate/);
+  });
+
+  test("admin login works and redirects", async ({ page }) => {
+    await page.goto("/login");
+
+    await page.getByLabel("Email").fill("admin@glowngrace.in");
+    await page.getByLabel("Password").fill("admin123");
+    await page.getByRole("button", { name: "Sign In" }).click();
+
+    await page.waitForURL(/\/admin/);
+    await expect(page).toHaveURL(/\/admin/);
   });
 
   test("login shows validation errors for a short password", async ({ page }) => {

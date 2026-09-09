@@ -34,7 +34,11 @@ pill buttons) when touching UI.
 - API client: `src/lib/api.ts` (typed wrappers over a shared `request<T>()`).
   Business components call THIS, not bare `fetch`.
 - Schemas: `src/lib/schemas.ts` (Zod) — checkout, order payload, application,
-  newsletter, auth forms.
+  newsletter, auth forms (login, signup with `accountType`), candidate profile.
+- Auth: Zustand (`src/lib/auth.ts`), persisted to localStorage
+  `glow-grace-user`. Roles: `user` | `candidate` | `admin`. Demo credentials
+  in `src/app/login/page.tsx` (`shopper@...`, `candidate@...`, `admin@...`).
+  Registered users stored in localStorage `glow-grace-registered-users`.
 - Data: `src/lib/data.ts` — products have `reviewsCount` (not `reviews`) and
   `inStock` (not `available`). Grep it before coding against a shape.
 
