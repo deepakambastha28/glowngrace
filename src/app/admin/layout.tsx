@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, Briefcase, MessageSquare, Plus, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, Briefcase, MessageSquare, Users, Plus, LogOut } from "lucide-react";
 import { adminLogout, adminSession } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +23,7 @@ const navGroups = [
       { href: "/admin/products", label: "Products", icon: Package },
       { href: "/admin/jobs", label: "Jobs", icon: Briefcase },
       { href: "/admin/reviews", label: "Reviews", icon: MessageSquare },
+      { href: "/admin/candidates", label: "Candidates", icon: Users },
     ],
   },
 ];

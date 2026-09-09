@@ -150,6 +150,9 @@ export const signupSchema = z
       .max(15, "Phone must be at most 15 digits"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string(),
+    accountType: z.enum(["user", "candidate", "admin"], {
+      errorMap: () => ({ message: "Please select an account type" }),
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -218,3 +221,42 @@ export const adminReviewSchema = z.object({
 });
 
 export type AdminReviewFormData = z.infer<typeof adminReviewSchema>;
+
+// ---------------------------------------------------------------
+// Candidate Profile
+// ---------------------------------------------------------------
+
+export const candidateProfileSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  phone: z
+    .string()
+    .min(10, "Phone must be at least 10 digits")
+    .max(15, "Phone must be at most 15 digits"),
+  email: z.string().email("Invalid email address"),
+  city: z.string().min(2, "Please enter your city"),
+  experience: z.string().default(""),
+  specialization: z.string().default(""),
+  qualification: z.string().default(""),
+  bio: z.string().max(600, "Bio must be at most 600 characters").default(""),
+  skills: z.array(z.string()).default([]),
+  gallery: z.array(z.string()).default([]),
+  resumeName: z.string().optional(),
+});
+
+export type CandidateProfileFormData = z.infer<typeof candidateProfileSchema>;
+
+export const candidatePayloadSchema = z.object({
+  fullName: z.string(),
+  phone: z.string(),
+  email: z.string().email(),
+  city: z.string(),
+  experience: z.string(),
+  specialization: z.string(),
+  qualification: z.string(),
+  bio: z.string(),
+  skills: z.array(z.string()),
+  gallery: z.array(z.string()),
+  resumeName: z.string().optional(),
+});
+
+export type CandidatePayload = z.infer<typeof candidatePayloadSchema>;
