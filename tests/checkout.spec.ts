@@ -1,17 +1,32 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type APIRequestContext, type Page } from "@playwright/test";
+import { seedProduct, deleteSeededProduct } from "./helpers";
 
-async function addToCart(page: import("@playwright/test").Page) {
-  await page.goto("/products/luxe-liquid-lipstick");
+const seededSlugs: string[] = [];
+
+async function addToCart(page: Page, request: APIRequestContext) {
+  const name = `E2E Checkout ${Date.now()} ${seededSlugs.length}`;
+  const slug = await seedProduct(request, name);
+  seededSlugs.push(slug);
+  await page.goto(`/products/${slug}`);
   await page.getByRole("button", { name: "Add to Cart" }).click();
   await expect(page.getByTestId("cart-count")).toHaveText("1");
 }
 
 test.describe("Checkout flow", () => {
-  test("completes a 3-step order and reaches confirmation", async ({ page }) => {
-    await addToCart(page);
+  test.describe.configure({ timeout: 90_000 });
+
+  test.afterEach(async ({ request }) => {
+    for (const slug of seededSlugs.splice(0)) {
+      await deleteSeededProduct(request, slug);
+    }
+  });
+
+  test("completes a 3-step order and reaches confirmation", async ({ page, request }) => {
+    await addToCart(page, request);
 
     await page.goto("/checkout");
     await expect(page.getByTestId("order-summary")).toBeVisible();
+    await expect(page.getByTestId("cart-count")).toHaveText("1");
 
     // Step 1 → Shipping & Payment
     await page.getByTestId("checkout-next").click();

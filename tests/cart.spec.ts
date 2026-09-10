@@ -1,14 +1,28 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type APIRequestContext, type Page } from "@playwright/test";
+import { seedProduct, deleteSeededProduct } from "./helpers";
 
-async function addToCart(page: import("@playwright/test").Page) {
-  await page.goto("/products/luxe-liquid-lipstick");
+const seededSlugs: string[] = [];
+
+async function addToCart(page: Page, request: APIRequestContext) {
+  const name = `E2E Cart ${Date.now()} ${seededSlugs.length}`;
+  const slug = await seedProduct(request, name);
+  seededSlugs.push(slug);
+  await page.goto(`/products/${slug}`);
   await page.getByRole("button", { name: "Add to Cart" }).click();
   await expect(page.getByTestId("cart-count")).toHaveText("1");
 }
 
 test.describe("Cart", () => {
-  test("applies the GLOW10 promo and shows a discount row", async ({ page }) => {
-    await addToCart(page);
+  test.describe.configure({ timeout: 90_000 });
+
+  test.afterEach(async ({ request }) => {
+    for (const slug of seededSlugs.splice(0)) {
+      await deleteSeededProduct(request, slug);
+    }
+  });
+
+  test("applies the GLOW10 promo and shows a discount row", async ({ page, request }) => {
+    await addToCart(page, request);
 
     await page.goto("/cart");
     await expect(page.getByTestId("cart-item")).toHaveCount(1);
@@ -20,8 +34,8 @@ test.describe("Cart", () => {
     await expect(page.getByTestId("promo-apply")).toHaveText("Applied");
   });
 
-  test("removes an item back to the empty state", async ({ page }) => {
-    await addToCart(page);
+  test("removes an item back to the empty state", async ({ page, request }) => {
+    await addToCart(page, request);
 
     await page.goto("/cart");
     await page.getByTestId("cart-remove").click();
@@ -29,8 +43,8 @@ test.describe("Cart", () => {
     await expect(page.getByTestId("empty-cart")).toBeVisible();
   });
 
-  test("proceeds to checkout", async ({ page }) => {
-    await addToCart(page);
+  test("proceeds to checkout", async ({ page, request }) => {
+    await addToCart(page, request);
 
     await page.goto("/cart");
     await page.getByTestId("cart-checkout").click();

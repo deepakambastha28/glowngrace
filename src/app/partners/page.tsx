@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, Map, LayoutGrid } from "lucide-react";
-import { partners, localityPos } from "@/lib/data";
+import { localityPos } from "@/lib/data";
 import type { Partner } from "@/lib/data";
+import { fetchPartners } from "@/lib/api";
 import { PartnerCard } from "@/components/partners/partner-card";
 
 type SortKey = "rating" | "name" | "reviews";
@@ -16,25 +17,38 @@ const sortOptions: { value: SortKey; label: string }[] = [
 ];
 
 export default function PartnersPage() {
+  const [items, setItems] = useState<Partner[]>([]);
   const [query, setQuery] = useState("");
   const [loc, setLoc] = useState("");
   const [service, setService] = useState("");
   const [sort, setSort] = useState<SortKey>("rating");
   const [view, setView] = useState<"grid" | "map">("grid");
 
+  useEffect(() => {
+    let active = true;
+    fetchPartners().then((res) => {
+      if (!active) return;
+      const list = res.data?.items;
+      if (list?.length) setItems(list);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const allLocs = useMemo(
-    () => Array.from(new Set(partners.map((p) => p.loc))).sort(),
-    []
+    () => Array.from(new Set(items.map((p) => p.loc))).sort(),
+    [items]
   );
 
   const allServices = useMemo(
-    () => Array.from(new Set(partners.flatMap((p) => p.tags))).sort(),
-    []
+    () => Array.from(new Set(items.flatMap((p) => p.tags))).sort(),
+    [items]
   );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let list = partners.filter((p) => {
+    let list = items.filter((p) => {
       const matchesQ =
         !q ||
         p.name.toLowerCase().includes(q) ||
@@ -51,7 +65,7 @@ export default function PartnersPage() {
     else if (sort === "reviews")
       list.sort((a, b) => b.reviews - a.reviews);
     return list;
-  }, [query, loc, service, sort]);
+  }, [query, loc, service, sort, items]);
 
   const pins = useMemo(() => {
     const seen: Record<string, number> = {};
@@ -167,7 +181,7 @@ export default function PartnersPage() {
           {/* Count + chips */}
           <div className="partner-count">
             <span>
-              Showing <b>{filtered.length}</b> of {partners.length} parlours
+              Showing <b>{filtered.length}</b> of {items.length} parlours
             </span>
             {hasFilters && (
               <span className="active-chips">

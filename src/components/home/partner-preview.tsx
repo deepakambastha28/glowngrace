@@ -1,12 +1,31 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { partners } from "@/lib/data";
+import type { Partner } from "@/lib/data";
+import { fetchPartners } from "@/lib/api";
 import { PartnerCard } from "@/components/partners/partner-card";
 
 export function PartnerPreview() {
+  const [partners, setPartners] = useState<Partner[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetchPartners().then((res) => {
+      if (!active) return;
+      if (res.data?.items?.length) setPartners(res.data.items);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const featured = partners
     .slice()
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 3);
+
+  if (featured.length === 0) return null;
 
   return (
     <section className="section" data-testid="partners-preview-section">

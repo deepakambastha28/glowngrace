@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import { Minus, Plus, ShoppingBag, Zap, Heart, Truck, RefreshCcw, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import { products, reviews } from "@/lib/data";
+import { reviews } from "@/lib/data";
+import type { Product } from "@/lib/data";
+import { fetchProducts } from "@/lib/api";
 import { useCartStore } from "@/lib/store";
 import { money, calculateDiscount, cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,20 +27,44 @@ const galleryShadows = [
 
 export default function ProductPage({ params }: ProductPageProps) {
   const router = useRouter();
-  const product = products.find((p) => p.slug === params.slug);
 
-  if (!product) {
-    notFound();
-  }
-
+  const [status, setStatus] = useState<"loading" | "ready">("loading");
+  const [product, setProduct] = useState<Product | undefined>(undefined);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const addItem = useCartStore((state) => state.addItem);
   const toggleWishlist = useCartStore((state) => state.toggleWishlist);
-  const isWishlisted = useCartStore((state) => state.wishlist.includes(product.id));
+  const isWishlisted = useCartStore((state) =>
+    product ? state.wishlist.includes(product.id) : false
+  );
+
+  useEffect(() => {
+    let active = true;
+    fetchProducts().then((res) => {
+      if (!active) return;
+      const items = res.data?.items;
+      if (items?.length) {
+        setAllProducts(items);
+        setProduct(items.find((p) => p.slug === params.slug));
+      }
+      setStatus("ready");
+    });
+    return () => {
+      active = false;
+    };
+  }, [params.slug]);
+
+  if (status === "ready" && !product) {
+    notFound();
+  }
+
+  if (!product) {
+    return <div className="py-32 text-center text-muted">Loading product…</div>;
+  }
 
   const discount = calculateDiscount(product.price, product.oldPrice);
-  const related = products
+  const related = allProducts
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4);
 

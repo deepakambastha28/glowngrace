@@ -1,6 +1,23 @@
 import { test, expect } from "@playwright/test";
+import { seedProduct, deleteSeededProduct } from "./helpers";
 
 test.describe("Home page", () => {
+  const seededSlugs: string[] = [];
+
+  test.beforeAll(async ({ request }) => {
+    const stamp = Date.now();
+    for (let i = 0; i < 4; i += 1) {
+      const slug = await seedProduct(request, `E2E Home ${stamp} ${i}`);
+      seededSlugs.push(slug);
+    }
+  });
+
+  test.afterAll(async ({ request }) => {
+    for (const slug of seededSlugs) {
+      await deleteSeededProduct(request, slug);
+    }
+  });
+
   test("renders layout, hero, and key sections", async ({ page }) => {
     await page.goto("/");
 
@@ -58,10 +75,9 @@ test.describe("Home page", () => {
 
     const slides = circle.getByTestId("hero-circle-product");
     await expect(slides).toHaveCount(4);
-    await expect(circle.getByText("Luxe Liquid Lipstick")).toHaveCount(0);
 
     await slides.first().click();
 
-    await expect(page).toHaveURL(/\/products\/luxe-liquid-lipstick/);
+    await expect(page).toHaveURL(/\/products\/.+$/);
   });
 });

@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { products, categories } from "@/lib/data";
+import { categories } from "@/lib/data";
+import type { Product } from "@/lib/data";
+import { fetchProducts } from "@/lib/api";
 import { ProductCard } from "@/components/shop/product-card";
 import { cn } from "@/lib/utils";
 
@@ -12,12 +14,24 @@ type SortOption = "trending" | "price-asc" | "price-desc" | "rating";
 const categoryOptions = ["All", ...categories.map((c) => c.name)];
 
 export default function ProductsPage() {
+  const [items, setItems] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("All");
   const [sort, setSort] = useState<SortOption>("trending");
 
+  useEffect(() => {
+    let active = true;
+    fetchProducts().then((res) => {
+      if (!active) return;
+      if (res.data?.items?.length) setItems(res.data.items);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const filteredProducts = useMemo(() => {
-    let result = products.filter((p) => {
+    let result = items.filter((p) => {
       const matchesCategory = category === "All" || p.category === category;
       const matchesSearch =
         p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -41,7 +55,7 @@ export default function ProductsPage() {
     }
 
     return result;
-  }, [search, category, sort]);
+  }, [items, search, category, sort]);
 
   return (
     <div className="pb-16">

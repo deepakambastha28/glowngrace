@@ -1,7 +1,16 @@
 import { test, expect } from "@playwright/test";
+import { seedProduct, deleteSeededProduct } from "./helpers";
 
 test.describe("Shop (product listing)", () => {
-  test("shows the full curated product grid", async ({ page }) => {
+  const seededSlugs: string[] = [];
+
+  test.afterEach(async ({ request }) => {
+    for (const slug of seededSlugs.splice(0)) {
+      await deleteSeededProduct(request, slug);
+    }
+  });
+
+  test("shows the product grid", async ({ page }) => {
     await page.goto("/products");
 
     await expect(page.getByTestId("product-card").first()).toBeVisible();
@@ -11,8 +20,12 @@ test.describe("Shop (product listing)", () => {
     await expect(page).toHaveTitle(/Shop|Products|Beauty/i);
   });
 
-  test("search filters the grid", async ({ page }) => {
+  test("search filters the grid", async ({ page, request }) => {
+    const slug = await seedProduct(request, `E2E Lush Lipstick ${Date.now()}`);
+    seededSlugs.push(slug);
+
     await page.goto("/products");
+    await expect(page.getByTestId("product-card").first()).toBeVisible();
 
     const before = await page.getByTestId("product-card").count();
     await page.getByTestId("product-search").fill("Lipstick");
