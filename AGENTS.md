@@ -39,8 +39,12 @@ pill buttons) when touching UI.
   `glow-grace-user`. Roles: `user` | `candidate` | `admin`. Demo credentials
   in `src/app/login/page.tsx` (`shopper@...`, `candidate@...`, `admin@...`).
   Registered users stored in localStorage `glow-grace-registered-users`.
-- Data: `src/lib/data.ts` — products have `reviewsCount` (not `reviews`) and
-  `inStock` (not `available`). Grep it before coding against a shape.
+- Data: `src/lib/data.ts` — static catalog was removed from the storefront:
+  `/api/products` and `/api/partners` are **admin-DB only** (products have
+  `reviewsCount` (not `reviews`) and `inStock` (not `available`) — grep it
+  before coding against a shape). `data.ts` still backs jobs/careers,
+  testimonials, and events. Storefront E2E specs seed admin records via
+  `tests/helpers.ts` (`seedProduct` / `deleteSeededProduct`).
 
 ## Conventions
 - Commit style (used on main): lowercase type + summary —

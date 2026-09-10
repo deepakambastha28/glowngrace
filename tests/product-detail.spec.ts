@@ -1,8 +1,21 @@
 import { test, expect } from "@playwright/test";
+import { seedProduct, deleteSeededProduct } from "./helpers";
 
 test.describe("Product detail", () => {
-  test("adds to cart and updates the nav badge", async ({ page }) => {
-    await page.goto("/products/luxe-liquid-lipstick");
+  const seededSlugs: string[] = [];
+
+  test.afterEach(async ({ request }) => {
+    for (const slug of seededSlugs.splice(0)) {
+      await deleteSeededProduct(request, slug);
+    }
+  });
+
+  test("adds to cart and updates the nav badge", async ({ page, request }) => {
+    const name = `E2E Detail Cart ${Date.now()}`;
+    const slug = await seedProduct(request, name);
+    seededSlugs.push(slug);
+
+    await page.goto(`/products/${slug}`);
 
     const addToCart = page.getByRole("button", { name: "Add to Cart" });
     await expect(addToCart).toBeVisible();
@@ -15,8 +28,12 @@ test.describe("Product detail", () => {
     await expect(page.getByTestId("cart-item")).toHaveCount(1);
   });
 
-  test("quantity stepper increases the checked-out count", async ({ page }) => {
-    await page.goto("/products/vitamin-c-face-serum");
+  test("quantity stepper increases the checked-out count", async ({ page, request }) => {
+    const name = `E2E Detail Qty ${Date.now()}`;
+    const slug = await seedProduct(request, name);
+    seededSlugs.push(slug);
+
+    await page.goto(`/products/${slug}`);
 
     await page.getByRole("button", { name: "Increase quantity" }).click();
     await expect(page.getByTestId("quantity-display")).toHaveText("2");

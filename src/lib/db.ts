@@ -75,6 +75,7 @@ const SCHEMA_STATEMENTS: string[] = [
     finish TEXT,
     ingredients TEXT,
     is_new BOOLEAN NOT NULL DEFAULT false,
+    hidden BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
   `CREATE TABLE IF NOT EXISTS gg_admin_jobs (
@@ -92,6 +93,7 @@ const SCHEMA_STATEMENTS: string[] = [
     description TEXT NOT NULL DEFAULT '',
     requirements JSONB NOT NULL DEFAULT '[]'::jsonb,
     status TEXT NOT NULL DEFAULT 'Open',
+    hidden BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
   `CREATE TABLE IF NOT EXISTS gg_admin_reviews (
@@ -122,6 +124,26 @@ const SCHEMA_STATEMENTS: string[] = [
     message TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
+  `CREATE TABLE IF NOT EXISTS gg_admin_partners (
+    id SERIAL PRIMARY KEY,
+    slug TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT 'Beauty Parlour',
+    loc TEXT NOT NULL DEFAULT '',
+    emoji TEXT NOT NULL DEFAULT '💄',
+    gradient TEXT NOT NULL DEFAULT '',
+    rating NUMERIC(2,1) NOT NULL DEFAULT 4.5,
+    reviews INT NOT NULL DEFAULT 0,
+    estd INT NOT NULL DEFAULT 2024,
+    staff INT NOT NULL DEFAULT 1,
+    services INT NOT NULL DEFAULT 1,
+    description TEXT NOT NULL DEFAULT '',
+    tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+    gallery JSONB NOT NULL DEFAULT '[]'::jsonb,
+    menu JSONB NOT NULL DEFAULT '[]'::jsonb,
+    status TEXT NOT NULL DEFAULT 'Active',
+    created_at TIMESTAMPTZ DEFAULT now()
+  )`,
   `CREATE TABLE IF NOT EXISTS gg_candidates (
     id SERIAL PRIMARY KEY,
     user_email TEXT NOT NULL,
@@ -140,6 +162,8 @@ const SCHEMA_STATEMENTS: string[] = [
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
   )`,
+  `ALTER TABLE gg_admin_products ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT false`,
+  `ALTER TABLE gg_admin_jobs ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT false`,
 ];
 
 export function getDb(): SqlQuery | null {

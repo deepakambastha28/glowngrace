@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { query, isDbConfigured } from "@/lib/db";
-import { adminProductSchema } from "@/lib/schemas";
+import { adminProductSchema, adminProductPatchSchema } from "@/lib/schemas";
 
 function slugify(text: string): string {
   return text
@@ -16,18 +16,8 @@ function statusFor(stock: number): string {
   return "Active";
 }
 
-/** GET /api/admin/products — list admin-created products. */
-export async function GET() {
-  if (!isDbConfigured()) {
-    return NextResponse.json({ persisted: false, items: [] });
-  }
-  const rows = await query(
-    `SELECT id, slug, emoji, brand, name, category, price, old_price, stock,
-       status, description, description_html, features, tags, image_data,
-       shade, size, finish, ingredients, is_new, created_at
-     FROM gg_admin_products ORDER BY created_at DESC`
-  );
-  const items = (rows ?? []).map((r) => ({
+function toItem(r: Record<string, unknown>) {
+  return {
     id: String(r.id),
     slug: r.slug,
     emoji: r.emoji,
@@ -48,8 +38,37 @@ export async function GET() {
     finish: r.finish,
     ingredients: r.ingredients,
     isNew: Boolean(r.is_new),
+    hidden: Boolean(r.hidden),
     createdAt: r.created_at,
-  }));
+  };
+}
+
+/** GET /api/admin/products — list admin-created products, or a single product when ?id=... */
+export async function GET(request: NextRequest) {
+  if (!isDbConfigured()) {
+    return NextResponse.json({ persisted: false, items: [] });
+  }
+
+  const id = request.nextUrl.searchParams.get("id");
+  if (id) {
+    const rows = await query(
+      `SELECT id, slug, emoji, brand, name, category, price, old_price, stock,
+         status, description, description_html, features, tags, image_data,
+         shade, size, finish, ingredients, is_new, hidden, created_at
+       FROM gg_admin_products WHERE id = $1 LIMIT 1`,
+      [Number(id)]
+    );
+    const item = rows?.length ? toItem(rows[0]) : null;
+    return NextResponse.json({ persisted: true, item });
+  }
+
+  const rows = await query(
+    `SELECT id, slug, emoji, brand, name, category, price, old_price, stock,
+       status, description, description_html, features, tags, image_data,
+       shade, size, finish, ingredients, is_new, hidden, created_at
+     FROM gg_admin_products ORDER BY created_at DESC`
+  );
+  const items = (rows ?? []).map(toItem);
   return NextResponse.json({ persisted: true, items });
 }
 
@@ -115,4 +134,99 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+/** PATCH /api/admin/products?id=... — edit a product, or toggle visibility with { hidden }. */
+export async function PATCH(request: NextRequest) {
+  const id = request.nextUrl.searchParams.get("id");
+  if (!id) {
+    return NextResponse.json(
+      { persisted: false, error: "ID is required" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const body = await request.json();
+    const parsed = adminProductPatchSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { persisted: false, error: "Invalid payload" },
+        { status: 400 }
+      );
+    }
+    const d = parsed.data;
+    const keys = Object.keys(body);
+    if (keys.length === 0) {
+      return NextResponse.json(
+        { persisted: false, error: "No fields to update" },
+        { status: 400 }
+      );
+    }
+    const onlyHidden = keys.length === 1 && keys[0] === "hidden";
+
+    if (!isDbConfigured()) {
+      return NextResponse.json({ persisted: false });
+    }
+
+    const sql = onlyHidden
+      ? `UPDATE gg_admin_products SET hidden=$1 WHERE id=$2`
+      : `UPDATE gg_admin_products
+           SET emoji=$1, brand=$2, name=$3, category=$4, price=$5, old_price=$6,
+               stock=$7, status=$8, description=$9, description_html=$10,
+               features=$11::jsonb, tags=$12::jsonb, image_data=$13, shade=$14,
+               size=$15, finish=$16, ingredients=$17, is_new=$18
+         WHERE id=$19`;
+    const params = onlyHidden
+      ? [d.hidden, Number(id)]
+      : [
+          d.emoji,
+          d.brand,
+          d.name,
+          d.category,
+          d.price,
+          d.oldPrice,
+d.stock,
+            statusFor(d.stock ?? 0),
+          d.description,
+          d.descriptionHtml,
+          JSON.stringify(d.features),
+          JSON.stringify(d.tags),
+          d.imageData || null,
+          d.shade,
+          d.size,
+          d.finish,
+          d.ingredients,
+          d.isNew,
+          Number(id),
+        ];
+
+    await query(sql, params);
+
+    return NextResponse.json({ persisted: true });
+  } catch (error) {
+    console.error("PATCH /api/admin/products failed", error);
+    return NextResponse.json(
+      { persisted: false, error: "Could not update product" },
+      { status: 500 }
+    );
+  }
+}
+
+/** DELETE /api/admin/products?id=... — delete an admin-created product. */
+export async function DELETE(request: NextRequest) {
+  const id = request.nextUrl.searchParams.get("id");
+  if (!id) {
+    return NextResponse.json(
+      { deleted: false, error: "ID is required" },
+      { status: 400 }
+    );
+  }
+
+  if (!isDbConfigured()) {
+    return NextResponse.json({ deleted: false });
+  }
+
+  await query(`DELETE FROM gg_admin_products WHERE id = $1`, [Number(id)]);
+  return NextResponse.json({ deleted: true });
 }

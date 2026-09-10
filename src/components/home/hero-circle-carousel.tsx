@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { products } from "@/lib/data";
+import type { Product } from "@/lib/data";
+import { fetchProducts } from "@/lib/api";
 
 const CATEGORY_GRADIENT: Record<string, string> = {
   Makeup: "linear-gradient(135deg,#d6336c,#f4a6c0)",
@@ -12,21 +13,33 @@ const CATEGORY_GRADIENT: Record<string, string> = {
 };
 
 export function HeroCircleCarousel() {
-  const featured = useMemo(() => products.slice(0, 4), []);
+  const [items, setItems] = useState<Product[]>([]);
+  const featured = useMemo(() => items.slice(0, 4), [items]);
   const count = featured.length;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
+  useEffect(() => {
+    let active = true;
+    fetchProducts().then((res) => {
+      if (!active) return;
+      if (res.data?.items?.length) setItems(res.data.items);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const next = useCallback(
-    () => setIndex((i) => (i + 1) % count),
+    () => setIndex((i) => (count === 0 ? 0 : (i + 1) % count)),
     [count]
   );
 
   useEffect(() => {
-    if (paused) return;
+    if (paused || count === 0) return;
     const t = setInterval(next, 3500);
     return () => clearInterval(t);
-  }, [paused, next]);
+  }, [paused, next, count]);
 
   return (
     <div

@@ -1,5 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { categories, products } from "@/lib/data";
+import { categories } from "@/lib/data";
+import type { Product } from "@/lib/data";
+import { fetchProducts } from "@/lib/api";
 import { ProductCard } from "@/components/shop/product-card";
 
 export function ShopCategories() {
@@ -34,6 +39,19 @@ export function ShopCategories() {
 }
 
 export function Bestsellers() {
+  const [items, setItems] = useState<Product[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetchProducts().then((res) => {
+      if (!active) return;
+      if (res.data?.items?.length) setItems(res.data.items);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <section className="section bg-rose-blush">
       <div className="mx-auto max-w-screen-xl px-6">
@@ -46,7 +64,7 @@ export function Bestsellers() {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           data-testid="product-grid"
         >
-          {products.slice(0, 8).map((product) => (
+          {items.slice(0, 8).map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>

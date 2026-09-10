@@ -32,17 +32,38 @@ npx playwright show-report                        # open the HTML report
 Headed mode (`test:e2e:ui`) still launches its own server via `webServer`; do not
 start a separate `npm run start`.
 
+## DB-only storefront (important!)
+
+- The storefront catalog comes **only from the admin DB**. `/api/products` and
+  `/api/partners` return `{ items: [...] }` and never merge static data from
+  `src/lib/data.ts`. Old static slugs like `luxe-liquid-lipstick` **404** now.
+- Home hero circle + Bestsellers + partner preview are client-fetched from those
+  APIs, so the DOM needs a beat to hydrate/populate. Assert with
+  `toBeVisible({ timeout: 30_000 })` after navigation; never count cards
+  immediately after `goto` (the grid is client-side).
+- To test storefront flows you must have admin records. Use the helpers in
+  `tests/helpers.ts`: `seedProduct(request, name)` returns the created slug; add
+  cleanup via `deleteSeededProduct(request, slug)` in `afterAll`/`afterEach`
+  (keeps the DB tidy for repeated runs). See `tests/storefront-db-only.spec.ts`
+  and `tests/home.spec.ts` for the pattern.
+- Admin record specs self-clean the records they create (products/partners/candidates).
+
 ## Selector conventions
 
 The app exposes `data-testid` hooks. Prefer these over text/CSS because page copy
 mirrors the reference design and changes.
 
 - Nav/layout: `topbar`, `navbar`, `logo`, `cart-link`, `cart-count`
-- Home: `hero-shop`, `category-<name>` (e.g. `category-makeup`), `services-section`,
+- Home: `hero-shop`, `hero-career`, `category-<name>` (e.g. `category-makeup`),
   `jobs-section`, `testimonials-section`, `newsletter`, `newsletter-email`,
-  `newsletter-submit`, `cta-banner`
-- Shop: `product-card`, `product-card-image`, `product-card-*` on list pages,
-  `wishlist-button`, `add-to-cart`, `product-search`, `product-sort`
+  `newsletter-submit`, `cta-banner`, `hero-circle` (rotating product carousel),
+  `hero-circle-product` (a slide; the active slide carries `data-active="true"`,
+  each slide links to `/products/<slug>`; autoplay advances every ~3.5s and is
+  paused on hover). `partners-preview-section` renders only when the DB has
+  partners; the whole block is absent when empty.
+- Shop: `product-card` (grid card, `data-product-id="admin-<N>"`),
+  `product-card-image`, `wishlist-button`, `add-to-cart`, `product-search`,
+  `product-sort`. Unknown product slugs render the custom 404 (`heading /404/`).
 - Cart: `empty-cart`, `cart-item`, `cart-qty-plus`, `cart-qty-minus`, `cart-remove`,
   `promo-input`, `promo-apply`, `cart-subtotal`, `cart-total`, `cart-checkout`.
   Wishlist section on the cart page: `wishlist-item`, `wishlist-add-to-cart`
@@ -54,7 +75,12 @@ mirrors the reference design and changes.
   also contains "Password"). Dashboard renders at `/admin` once the session
   cookie is set; sidebar gated by session (`admin-sidebar` testid present only
   when authed). Demo creds: `admin@glowngrace.in` / `admin123`. Login/logout
-  force a full-page reload so layout and page stay in sync.
+  force a full-page reload so layout and page stay in sync. Record CRUD lives on
+  list pages (products/jobs/partners/candidates) with rows + Edit / Hide / Hold /
+  Delete controls; add flows are reached from each combined list page ("Add
+  Product/Job/Partner"). Form save buttons: "Save Product", "Save Job",
+  "Save Partner" (candidate edit uses "Save Changes"). `tests/admin-actions.spec.ts`
+  covers the full product/job/partner/candidate lifecycle.
 - Checkout: `checkout-next`, `place-order`, `order-summary`, `order-confirmation`,
   `order-id`. **Gotcha:** on the cart-review step `checkout-next` advances
   without validating (fields mount on step 2); getByLabel on step-2 fields only

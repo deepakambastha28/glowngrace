@@ -9,16 +9,27 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   const [ok, setOk] = useState<boolean | null>(null);
 
   useEffect(() => {
-    adminSession()
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5_000);
+    let disposed = false;
+    adminSession(controller.signal)
       .then((res) => {
+        if (disposed) return;
         const authed = Boolean(res.data?.authed);
         setOk(authed);
         if (!authed) router.replace("/admin");
       })
       .catch(() => {
+        if (disposed) return;
         setOk(false);
         router.replace("/admin");
-      });
+      })
+      .finally(() => clearTimeout(timer));
+    return () => {
+      disposed = true;
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [router]);
 
   if (ok === null) {

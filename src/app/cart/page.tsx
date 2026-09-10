@@ -4,10 +4,11 @@ import Link from "next/link";
 import {
   Minus, Plus, Trash2, ShoppingBag, ArrowRight, Heart, ShoppingCart,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useCartStore } from "@/lib/store";
-import { products } from "@/lib/data";
+import type { Product } from "@/lib/data";
+import { fetchProducts } from "@/lib/api";
 import { money, cn } from "@/lib/utils";
 
 const FREE_SHIPPING_THRESHOLD = 999;
@@ -17,12 +18,24 @@ function WishlistSection() {
   const wishlist = useCartStore((state) => state.wishlist);
   const addItem = useCartStore((state) => state.addItem);
   const toggleWishlist = useCartStore((state) => state.toggleWishlist);
+  const [catalog, setCatalog] = useState<Product[]>([]);
 
-  const wishlistProducts = products.filter((p) => wishlist.includes(p.id));
+  useEffect(() => {
+    let active = true;
+    fetchProducts().then((res) => {
+      if (!active) return;
+      if (res.data?.items?.length) setCatalog(res.data.items);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const wishlistProducts = catalog.filter((p) => wishlist.includes(p.id));
   const isInCart = (id: string) => items.some((i) => i.product.id === id);
 
   const handleAdd = (id: string) => {
-    const product = products.find((p) => p.id === id);
+    const product = catalog.find((p) => p.id === id);
     if (!product || isInCart(id)) return;
     addItem(product);
     toast.success(`${product.name} added to cart 🛍️`);

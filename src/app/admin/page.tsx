@@ -56,11 +56,28 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    adminSession().then((res) => {
-      setAuthed(Boolean(res.data?.authed));
-      setChecking(false);
-      if (res.data?.authed) loadDashboard();
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5_000);
+    let disposed = false;
+    adminSession(controller.signal)
+      .then((res) => {
+        if (disposed) return;
+        setAuthed(Boolean(res.data?.authed));
+        if (res.data?.authed) loadDashboard();
+      })
+      .catch(() => {
+        if (disposed) return;
+        setAuthed(false);
+      })
+      .finally(() => {
+        clearTimeout(timer);
+        if (!disposed) setChecking(false);
+      });
+    return () => {
+      disposed = true;
+      clearTimeout(timer);
+      controller.abort();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

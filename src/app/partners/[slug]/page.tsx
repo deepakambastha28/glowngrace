@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { toast } from "sonner";
-import { partners } from "@/lib/data";
+import type { Partner } from "@/lib/data";
+import { fetchPartners } from "@/lib/api";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { cn } from "@/lib/utils";
 
@@ -13,13 +14,24 @@ interface PartnerDetailPageProps {
 }
 
 export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
-  const partner = partners.find((p) => p.slug === params.slug);
-
-  if (!partner) {
-    notFound();
-  }
-
+  const [status, setStatus] = useState<"loading" | "ready">("loading");
+  const [partner, setPartner] = useState<Partner | undefined>(undefined);
   const [lbIndex, setLbIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetchPartners().then((res) => {
+      if (!active) return;
+      const items = res.data?.items;
+      if (items?.length) {
+        setPartner(items.find((p) => p.slug === params.slug));
+      }
+      setStatus("ready");
+    });
+    return () => {
+      active = false;
+    };
+  }, [params.slug]);
 
   const openLightbox = useCallback((i: number) => setLbIndex(i), []);
   const closeLightbox = useCallback(() => setLbIndex(null), []);
@@ -28,7 +40,7 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
       setLbIndex((prev) =>
         prev === null
           ? null
-          : (prev + d + partner!.gallery.length) % partner!.gallery.length
+          : (prev + d + (partner?.gallery.length ?? 1)) % (partner?.gallery.length ?? 1)
       ),
     [partner]
   );
@@ -44,8 +56,12 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
     return () => document.removeEventListener("keydown", handler);
   }, [lbIndex, closeLightbox, lbStep]);
 
+  if (status === "ready" && !partner) {
+    notFound();
+  }
+
   if (!partner) {
-    return null;
+    return <div className="py-32 text-center text-muted">Loading partner…</div>;
   }
 
   return (

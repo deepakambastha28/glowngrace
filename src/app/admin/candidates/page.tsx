@@ -1,27 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AdminGuard } from "@/components/admin/admin-guard";
 import { AdminPageHead } from "@/components/admin/page-head";
-import { adminFetchCandidates, adminDeleteCandidate } from "@/lib/api";
-import { Trash2, Eye } from "lucide-react";
+import { adminFetchCandidates, adminDeleteCandidate, updateAdminCandidate, type CandidateRecord } from "@/lib/api";
+import { Trash2, Eye, Pencil, Pause, Play, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
-interface Candidate {
-  id: string;
-  fullName: string;
-  email: string;
-  city: string;
-  experience: string;
-  specialization: string;
-  status: string;
-  gallery: string[];
-  createdAt: string;
-}
+const statusPill = (status: string) => {
+  const key = (status || "").toLowerCase();
+  const cls = key === "active" ? "green" : key === "on hold" ? "amber" : "grey";
+  return <span className={`p-pill ${cls}`}>{status}</span>;
+};
 
 function CandidatesContent() {
-  const [items, setItems] = useState<Candidate[]>([]);
-  const [viewing, setViewing] = useState<Candidate | null>(null);
+  const router = useRouter();
+  const [items, setItems] = useState<CandidateRecord[]>([]);
+  const [viewing, setViewing] = useState<CandidateRecord | null>(null);
 
   const load = () => {
     adminFetchCandidates().then((res) => {
@@ -31,14 +27,30 @@ function CandidatesContent() {
 
   useEffect(() => { load(); }, []);
 
-  const handleDelete = async (id: string) => {
+  const patchStatus = async (c: CandidateRecord, status: string) => {
+    const res = await updateAdminCandidate(c.id, { status });
+    if (res.ok) {
+      toast.success(`Candidate ${status === "On Hold" ? "put on hold" : status === "Hidden" ? "hidden" : "activated"}`);
+      load();
+    } else {
+      toast.error("Could not update candidate");
+    }
+  };
+
+  const handleDelete = async (c: CandidateRecord) => {
     if (!confirm("Delete this candidate profile?")) return;
-    const res = await adminDeleteCandidate(Number(id));
+    const res = await adminDeleteCandidate(Number(c.id));
     if (res.ok) {
       toast.success("Candidate deleted");
       load();
+    } else {
+      toast.error("Could not delete candidate");
     }
   };
+
+  const status = (c: CandidateRecord) => c.status || "Active";
+  const isOnHold = (c: CandidateRecord) => status(c) === "On Hold";
+  const isHidden = (c: CandidateRecord) => status(c) === "Hidden";
 
   return (
     <div>
@@ -66,7 +78,7 @@ function CandidatesContent() {
             <div><span className="text-muted">City:</span> <b>{viewing.city}</b></div>
             <div><span className="text-muted">Experience:</span> <b>{viewing.experience || "N/A"}</b></div>
             <div><span className="text-muted">Specialization:</span> <b>{viewing.specialization || "N/A"}</b></div>
-            <div><span className="text-muted">Status:</span> <span className="p-pill green">{viewing.status}</span></div>
+            <div><span className="text-muted">Status:</span> {statusPill(viewing.status)}</div>
           </div>
           {viewing.gallery.length > 0 && (
             <div className="mt-4">
@@ -92,6 +104,7 @@ function CandidatesContent() {
                 <th>Experience</th>
                 <th>Specialization</th>
                 <th>Gallery</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -114,6 +127,7 @@ function CandidatesContent() {
                     <td>{c.experience || "—"}</td>
                     <td>{c.specialization || "—"}</td>
                     <td>{c.gallery.length} img(s)</td>
+                    <td>{statusPill(status(c))}</td>
                     <td>
                       <div className="flex gap-2">
                         <button
@@ -123,8 +137,31 @@ function CandidatesContent() {
                         >
                           <Eye className="h-4 w-4" />
                         </button>
+                        {!isHidden(c) && (
+                          <button
+                            onClick={() => patchStatus(c, isOnHold(c) ? "Active" : "On Hold")}
+                            className="grid h-8 w-8 place-items-center rounded-lg bg-[#fdf3e3] text-[#c98a3b] hover:bg-[#c98a3b] hover:text-white transition-colors"
+                            title={isOnHold(c) ? "Activate" : "Hold"}
+                          >
+                            {isOnHold(c) ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+                          </button>
+                        )}
                         <button
-                          onClick={() => handleDelete(c.id)}
+                          onClick={() => patchStatus(c, isHidden(c) ? "Active" : "Hidden")}
+                          className="grid h-8 w-8 place-items-center rounded-lg bg-[#f1f1f4] text-muted hover:bg-muted hover:text-white transition-colors"
+                          title={isHidden(c) ? "Unhide" : "Hide"}
+                        >
+                          {isHidden(c) ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        </button>
+                        <button
+                          onClick={() => router.push(`/admin/candidates/${c.id}/edit`)}
+                          className="grid h-8 w-8 place-items-center rounded-lg bg-[#e9f1fa] text-[#3b82c9] hover:bg-[#3b82c9] hover:text-white transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(c)}
                           className="grid h-8 w-8 place-items-center rounded-lg bg-[#fdeaea] text-red hover:bg-red hover:text-white transition-colors"
                           title="Delete"
                         >
@@ -136,7 +173,7 @@ function CandidatesContent() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="text-center text-muted py-10">
+                  <td colSpan={7} className="text-center text-muted py-10">
                     No candidate profiles yet.
                   </td>
                 </tr>
