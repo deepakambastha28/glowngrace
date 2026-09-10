@@ -4,6 +4,8 @@ import type {
   PartnerPayload,
   CandidatePayload,
 } from "@/lib/schemas";
+import type { Product } from "@/lib/data";
+import type { Partner } from "@/lib/data";
 
 interface ApiResponse<T = unknown> {
   ok: boolean;
@@ -144,6 +146,16 @@ export function fetchCartSnapshot(
   });
 }
 
+/** GET /api/products — storefront catalogue: curated products merged with admin-created products. */
+export function fetchProducts(): Promise<ApiResponse<{ items: Product[] }>> {
+  return request<{ items: Product[] }>("/api/products");
+}
+
+/** GET /api/partners — storefront directory: curated partners merged with admin-created partners. */
+export function fetchPartners(): Promise<ApiResponse<{ items: Partner[] }>> {
+  return request<{ items: Partner[] }>("/api/partners");
+}
+
 // ---------------------------------------------------------------
 // Admin
 // ---------------------------------------------------------------
@@ -157,6 +169,7 @@ export type AdminLoginResponse = {
 export type AdminProductResponse = { persisted: boolean; id?: number };
 export type AdminJobResponse = { persisted: boolean; id?: number };
 export type AdminReviewResponse = { persisted: boolean; id?: number };
+export type AdminPartnerResponse = { persisted: boolean; id?: number; slug?: string };
 
 export function adminLogin(
   email: string,
@@ -174,8 +187,13 @@ export function adminLogout(): Promise<ApiResponse<AdminSessionResponse>> {
   });
 }
 
-export function adminSession(): Promise<ApiResponse<AdminSessionResponse>> {
-  return request<AdminSessionResponse>("/api/admin/session");
+export function adminSession(
+  signal?: AbortSignal
+): Promise<ApiResponse<AdminSessionResponse>> {
+  return request<AdminSessionResponse>(
+    "/api/admin/session",
+    signal ? { signal } : {}
+  );
 }
 
 export function createAdminProduct(
@@ -202,6 +220,159 @@ export function createAdminReview(
   return request<AdminReviewResponse>("/api/admin/reviews", {
     method: "POST",
     ...body(review),
+  });
+}
+
+export function createAdminPartner(
+  partner: unknown
+): Promise<ApiResponse<AdminPartnerResponse>> {
+  return request<AdminPartnerResponse>("/api/admin/partners", {
+    method: "POST",
+    ...body(partner),
+  });
+}
+
+export type AdminProductRecord = {
+  id: string;
+  slug: string;
+  emoji: string;
+  brand: string;
+  name: string;
+  category: string;
+  price: number;
+  oldPrice: number;
+  stock: number;
+  status: string;
+  description: string;
+  descriptionHtml: string;
+  features: string[];
+  tags: string[];
+  imageData: string | null;
+  shade: string;
+  size: string;
+  finish: string;
+  ingredients: string;
+  isNew: boolean;
+  hidden: boolean;
+  createdAt: string;
+};
+
+export type AdminJobRecord = {
+  id: string;
+  slug: string;
+  title: string;
+  salon: string;
+  location: string;
+  type: string;
+  salaryMin: number;
+  salaryMax: number;
+  salaryText: string;
+  experience: string;
+  openings: number;
+  description: string;
+  requirements: string[];
+  status: string;
+  hidden: boolean;
+  createdAt: string;
+};
+
+export type AdminPartnerRecord = {
+  id: string;
+  slug: string;
+  name: string;
+  type: string;
+  loc: string;
+  emoji: string;
+  gradient: string;
+  rating: number;
+  reviews: number;
+  estd: number;
+  staff: number;
+  services: number;
+  description: string;
+  tags: string[];
+  status: string;
+  createdAt: string;
+};
+
+/** GET /api/admin/products — list or fetch one product (by id). */
+export function fetchAdminProducts(
+  id?: string
+): Promise<ApiResponse<{ persisted: boolean; items: AdminProductRecord[]; item: AdminProductRecord | null }>> {
+  return request(`/api/admin/products${id ? `?id=${encodeURIComponent(id)}` : ""}`);
+}
+
+/** PATCH /api/admin/products?id=... — update a product (or toggle its hidden flag). */
+export function updateAdminProduct(
+  id: string,
+  patch: unknown
+): Promise<ApiResponse<{ persisted: boolean }>> {
+  return request<{ persisted: boolean }>(`/api/admin/products?id=${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    ...body(patch),
+  });
+}
+
+/** DELETE /api/admin/products?id=... — delete an admin-created product. */
+export function deleteAdminProduct(
+  id: string
+): Promise<ApiResponse<{ deleted: boolean }>> {
+  return request<{ deleted: boolean }>(`/api/admin/products?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+/** GET /api/admin/jobs — list or fetch one job (by id). */
+export function fetchAdminJobs(
+  id?: string
+): Promise<ApiResponse<{ persisted: boolean; items: AdminJobRecord[]; item: AdminJobRecord | null }>> {
+  return request(`/api/admin/jobs${id ? `?id=${encodeURIComponent(id)}` : ""}`);
+}
+
+/** PATCH /api/admin/jobs?id=... — update a job (or toggle its hidden flag). */
+export function updateAdminJob(
+  id: string,
+  patch: unknown
+): Promise<ApiResponse<{ persisted: boolean }>> {
+  return request<{ persisted: boolean }>(`/api/admin/jobs?id=${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    ...body(patch),
+  });
+}
+
+/** DELETE /api/admin/jobs?id=... — delete an admin-created job. */
+export function deleteAdminJob(
+  id: string
+): Promise<ApiResponse<{ deleted: boolean }>> {
+  return request<{ deleted: boolean }>(`/api/admin/jobs?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+/** GET /api/admin/partners — list or fetch one partner (by id). */
+export function fetchAdminPartners(
+  id?: string
+): Promise<ApiResponse<{ persisted: boolean; items: AdminPartnerRecord[]; item: AdminPartnerRecord | null }>> {
+  return request(`/api/admin/partners${id ? `?id=${encodeURIComponent(id)}` : ""}`);
+}
+
+/** PATCH /api/admin/partners?id=... — update a partner (or its status). */
+export function updateAdminPartner(
+  id: string,
+  patch: unknown
+): Promise<ApiResponse<{ persisted: boolean }>> {
+  return request<{ persisted: boolean }>(`/api/admin/partners?id=${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    ...body(patch),
+  });
+}
+
+/** DELETE /api/admin/partners?id=... — delete an admin-created partner. */
+export function deleteAdminPartner(
+  id: string
+): Promise<ApiResponse<{ deleted: boolean }>> {
+  return request<{ deleted: boolean }>(`/api/admin/partners?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
   });
 }
 
@@ -267,5 +438,23 @@ export function adminDeleteCandidate(
 ): Promise<ApiResponse<{ deleted: boolean }>> {
   return request<{ deleted: boolean }>(`/api/admin/candidates?id=${id}`, {
     method: "DELETE",
+  });
+}
+
+/** GET /api/admin/candidates?id=... — fetch one candidate by id (admin). */
+export function fetchAdminCandidate(
+  id: string
+): Promise<ApiResponse<{ persisted: boolean; item: CandidateRecord | null }>> {
+  return request(`/api/admin/candidates?id=${encodeURIComponent(id)}`);
+}
+
+/** PATCH /api/admin/candidates?id=... — update a candidate profile or status (admin). */
+export function updateAdminCandidate(
+  id: string,
+  patch: unknown
+): Promise<ApiResponse<{ persisted: boolean }>> {
+  return request<{ persisted: boolean }>(`/api/admin/candidates?id=${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    ...body(patch),
   });
 }

@@ -1,6 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
+import * as dotenv from "dotenv";
+import * as path from "path";
 
-const PORT = 3000;
+dotenv.config({ path: path.resolve(__dirname, ".env.local") });
+
+const BASE_URL = process.env.BASE_URL || "https://glowngrace-dev.vercel.app";
 
 export default defineConfig({
   testDir: "./tests",
@@ -10,24 +14,21 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
   use: {
-    baseURL: `http://localhost:${PORT}`,
+    baseURL: BASE_URL,
+    headless: false,
     trace: "on-first-retry",
-    actionTimeout: 5000,
-    navigationTimeout: 5000,
+    screenshot: "on",
+    video: "on-first-retry",
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
+  },
+  expect: {
+    timeout: 30_000,
   },
   projects: [
     {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      name: "chromium-headed",
+      use: { ...devices["Desktop Chrome"], headless: false },
     },
   ],
-  webServer: {
-    command: "npm run build && npm run start",
-    url: `http://localhost:${PORT}`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-    // Keep E2E deterministic and DB-independent: persistence is verified
-    // separately (see postgres-testing skill), not in the browser tests.
-    env: { DATABASE_URL: "" },
-  },
 });

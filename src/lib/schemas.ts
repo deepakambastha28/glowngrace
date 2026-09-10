@@ -190,9 +190,12 @@ export const adminProductSchema = z.object({
   finish: z.string().default(""),
   ingredients: z.string().default(""),
   isNew: z.boolean().default(false),
+  hidden: z.boolean().optional(),
 });
 
 export type AdminProductFormData = z.infer<typeof adminProductSchema>;
+export const adminProductPatchSchema = adminProductSchema.partial();
+export type AdminProductPatch = z.infer<typeof adminProductPatchSchema>;
 
 export const adminJobSchema = z.object({
   title: z.string().min(1, "Please enter a position title"),
@@ -206,9 +209,12 @@ export const adminJobSchema = z.object({
   openings: z.coerce.number().int().positive().default(1),
   description: z.string().default(""),
   requirements: z.array(z.string()).default([]),
+  hidden: z.boolean().optional(),
 });
 
 export type AdminJobFormData = z.infer<typeof adminJobSchema>;
+export const adminJobPatchSchema = adminJobSchema.partial();
+export type AdminJobPatch = z.infer<typeof adminJobPatchSchema>;
 
 export const adminReviewSchema = z.object({
   author: z.string().min(1, "Please enter a name"),
@@ -221,6 +227,46 @@ export const adminReviewSchema = z.object({
 });
 
 export type AdminReviewFormData = z.infer<typeof adminReviewSchema>;
+
+export const adminPartnerSchema = z.object({
+  name: z.string().min(1, "Please enter a partner name"),
+  type: z.string().default("Beauty Parlour"),
+  loc: z.string().default(""),
+  emoji: z.string().default("💄"),
+  gradient: z.string().default(""),
+  rating: z.coerce.number().min(0).max(5).default(4.5),
+  reviews: z.coerce.number().int().nonnegative().default(0),
+  estd: z.coerce.number().int().nonnegative().default(2024),
+  staff: z.coerce.number().int().nonnegative().default(1),
+  services: z.coerce.number().int().nonnegative().default(1),
+  description: z.string().default(""),
+  tags: z.array(z.string()).default([]),
+  status: z.enum(["Active", "On Hold", "Hidden"]).default("Active"),
+});
+
+export type AdminPartnerFormData = z.infer<typeof adminPartnerSchema>;
+export const adminPartnerPatchSchema = adminPartnerSchema.partial();
+export type AdminPartnerPatch = z.infer<typeof adminPartnerPatchSchema>;
+
+export const adminCandidatePatchSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters").optional(),
+  phone: z
+    .string()
+    .min(10, "Phone must be at least 10 digits")
+    .max(15, "Phone must be at most 15 digits")
+    .optional(),
+  email: z.string().email("Invalid email address").optional(),
+  city: z.string().min(2, "Please enter your city").optional(),
+  experience: z.string().optional(),
+  specialization: z.string().optional(),
+  qualification: z.string().optional(),
+  bio: z.string().max(600, "Bio must be at most 600 characters").optional(),
+  skills: z.array(z.string()).optional(),
+  resumeName: z.string().optional(),
+  status: z.enum(["Active", "On Hold", "Hidden"]).optional(),
+});
+
+export type AdminCandidatePatch = z.infer<typeof adminCandidatePatchSchema>;
 
 // ---------------------------------------------------------------
 // Candidate Profile

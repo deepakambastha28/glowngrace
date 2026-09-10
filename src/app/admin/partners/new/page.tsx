@@ -1,12 +1,12 @@
 "use client";
 
 import { AdminGuard } from "@/components/admin/admin-guard";
-import { ProductForm } from "@/components/admin/product-form";
+import { PartnerForm } from "@/components/admin/partner-form";
 
-export default function AddProductPage() {
+export default function AddPartnerPage() {
   return (
     <AdminGuard>
-      <ProductForm />
+      <PartnerForm />
     </AdminGuard>
   );
 }

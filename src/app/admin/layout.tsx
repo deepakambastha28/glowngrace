@@ -3,18 +3,22 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, Briefcase, MessageSquare, Users, Plus, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, Briefcase, MessageSquare, Users, LogOut, type LucideIcon } from "lucide-react";
 import { adminLogout, adminSession } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-const navGroups = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  exact?: boolean;
+};
+
+const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: "Main",
     items: [
       { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-      { href: "/admin/products/new", label: "Add Product", icon: Plus },
-      { href: "/admin/jobs/new", label: "Add Job", icon: Plus },
-      { href: "/admin/reviews/new", label: "Add Review", icon: Plus },
     ],
   },
   {
@@ -23,6 +27,7 @@ const navGroups = [
       { href: "/admin/products", label: "Products", icon: Package },
       { href: "/admin/jobs", label: "Jobs", icon: Briefcase },
       { href: "/admin/reviews", label: "Reviews", icon: MessageSquare },
+      { href: "/admin/partners", label: "Partners", icon: Users },
       { href: "/admin/candidates", label: "Candidates", icon: Users },
     ],
   },
@@ -33,7 +38,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [authed, setAuthed] = useState<boolean | null>(null);
 
   useEffect(() => {
-    adminSession().then((res) => setAuthed(Boolean(res.data?.authed)));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5_000);
+    let disposed = false;
+    adminSession(controller.signal)
+      .then((res) => {
+        if (disposed) return;
+        setAuthed(Boolean(res.data?.authed));
+      })
+      .catch(() => {
+        if (disposed) return;
+        setAuthed(false);
+      })
+      .finally(() => clearTimeout(timer));
+    return () => {
+      disposed = true;
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, []);
 
   const handleLogout = async () => {
