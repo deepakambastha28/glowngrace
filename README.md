@@ -24,6 +24,7 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 
 - **`/`** — Hero (+ rotating DB-backed product circle), stats, trust badges, categories, bestsellers, job vacancies, CTA banner, testimonials, newsletter, footer
 - **`/admin`** — Authenticated admin console (dashboard + products/jobs/events/partners/candidates with create / edit / hide / hold / delete). Signed-in sessions gate the sidebar; `/admin` hides storefront chrome.
+- **`/recruiter`** — Role-gated recruiter portal with a single top-nav (Home, Shop, Candidates, Careers, Events). Browse & hire candidates (`/recruiter/candidates`), manage job openings (`/recruiter/jobs`), update profile (`/recruiter/profile`), and publish workshops to the storefront event calendar (`/recruiter/events`). Recruiters sign in with the `recruiter` account type; logout always returns to the home page.
 - **`/products`** — Filter by category, sort by price/rating, live search. Catalog is **admin-DB driven** (`/api/products`), no static seed.
 - **`/products/[slug]`** — Gallery + thumbnails, price + % saved, qty stepper, Add to Cart, features, delivery info, tabs (Description / Info / Reviews). Unknown slugs → custom 404.
 - **`/cart`** — Editable quantity, remove, promo code (`GLOW10` for 10% off), summary (subtotal + free-shipping logic + 5% GST + total), empty state, DB-backed wishlist section.
@@ -111,14 +112,15 @@ src/
 │   ├── layout.tsx            # Fonts, metadata/SEO, Navbar/Footer/Toaster
 │   ├── globals.css           # Design tokens + component classes
 │   ├── page.tsx              # Home
-│   ├── admin/                # Admin console (dashboard + products/jobs/events/partners/candidates)
+│   ├── admin/                # Admin console (dashboard + products/jobs/events/partners/candidates/recruiters)
+│   ├── recruiter/            # Recruiter portal (dashboard, candidates, jobs, profile, events)
 │   ├── products/             # List + [slug] detail (DB-driven storefront)
 │   ├── cart/ checkout/       # Cart + 3-step checkout wizard + success
 │   ├── careers/              # List, [slug], [slug]/apply
 │   ├── partners/ events/     # Partner directory + event gallery
 │   ├── shopper/ candidate/   # Role-based account profiles
 │   ├── login/ signup/
-│   ├── api/                  # Route handlers (products/partners/events/jobs storefront + admin CRUD)
+│   ├── api/                  # Route handlers (storefront + admin CRUD + recruiter APIs)
 │   └── not-found.tsx
 ├── components/
 │   ├── layout/               # navbar, footer, logo
@@ -140,6 +142,13 @@ src/
   `gg_admin_partners`, `gg_admin_candidates`, `gg_admin_reviews`. `/api/products`,
   `/api/partners`, `/api/events`, and `/api/jobs` expose non-hidden rows to the
   storefront with `admin-`-prefixed ids.
+- Recruiter tables: `gg_recruiters`, `gg_recruiter_hires`. `/api/recruiters`,
+  `/api/recruiters/candidates`, `/api/recruiters/hire`, `/api/recruiters/hired`
+  back the portal; `/api/admin/recruiters` is the admin console. Recruiters
+  publish events into `gg_admin_events`, so they appear on the storefront.
+- API reads that must reflect DB changes immediately (e.g. `/api/products`,
+  `/api/events`, `/api/recruiters/candidates`) call `noStore()` from
+  `next/cache` so their response is never baked into the build.
 - E2E specs seed admin records through `tests/helpers.ts`
   (`seedProduct` / `deleteSeededProduct`, `seedEvent` / `deleteSeededEvent`,
   `seedJob` / `deleteSeededJob`) so the storefront is exercised against real data.

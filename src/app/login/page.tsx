@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Heart, Briefcase, ShoppingBag, ShieldCheck, Flower2, Sparkles } from "lucide-react";
+import { Mail, Lock, Heart, Briefcase, ShoppingBag, ShieldCheck, Flower2, Sparkles, UserSearch } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -15,18 +15,21 @@ const DEMO_USERS = [
   { email: "shopper@glowngrace.in", password: "shopper123", name: "Priya (Shopper)", role: "user" as const },
   { email: "candidate@glowngrace.in", password: "candidate123", name: "Ananya (Candidate)", role: "candidate" as const },
   { email: "admin@glowngrace.in", password: "admin123", name: "Deepak (Admin)", role: "admin" as const },
+  { email: "recruiter@glowngrace.in", password: "recruiter123", name: "Rahul (Recruiter)", role: "recruiter" as const },
 ];
 
 const roleRedirect: Record<string, string> = {
   candidate: "/candidate",
   user: "/shopper",
   admin: "/admin",
+  recruiter: "/recruiter",
 };
 
 const roleIcon: Record<string, React.ReactNode> = {
   user: <ShoppingBag className="h-4 w-4 mt-0.5 text-gold shrink-0" />,
   candidate: <Briefcase className="h-4 w-4 mt-0.5 text-rose shrink-0" />,
   admin: <ShieldCheck className="h-4 w-4 mt-0.5 text-[#3b82c9] shrink-0" />,
+  recruiter: <UserSearch className="h-4 w-4 mt-0.5 text-[#2e9e6b] shrink-0" />,
 };
 
 export default function LoginPage() {

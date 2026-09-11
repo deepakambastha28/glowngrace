@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   User, Mail, Lock, Phone, Sparkles, Shield, Briefcase,
-  ShoppingBag, ChevronRight, Check,
+  ShoppingBag, ChevronRight, Check, UserSearch,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,6 +52,19 @@ const accountTypes = [
     activeBg: "bg-[#e9f1fa]/40",
     iconBg: "bg-[#e9f1fa] text-[#3b82c9]",
     iconActiveBg: "bg-[#3b82c9] text-white",
+  },
+  {
+    value: "recruiter" as const,
+    label: "Recruiter",
+    icon: UserSearch,
+    description: "Browse candidate profiles, contact and hire talent for your salon or agency.",
+    features: ["View candidate profiles", "Contact & shortlist talent", "Hire & manage placements"],
+    gradient: "from-emerald/5 to-[#eaf7f0]/60",
+    border: "border-emerald/20",
+    activeBorder: "border-emerald",
+    activeBg: "bg-[#eaf7f0]/40",
+    iconBg: "bg-[#eaf7f0] text-emerald",
+    iconActiveBg: "bg-emerald text-white",
   },
 ];
 

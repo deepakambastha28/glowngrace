@@ -150,7 +150,7 @@ export const signupSchema = z
       .max(15, "Phone must be at most 15 digits"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string(),
-    accountType: z.enum(["user", "candidate", "admin"], {
+    accountType: z.enum(["user", "candidate", "admin", "recruiter"], {
       errorMap: () => ({ message: "Please select an account type" }),
     }),
   })
@@ -328,3 +328,52 @@ export const candidatePayloadSchema = z.object({
 });
 
 export type CandidatePayload = z.infer<typeof candidatePayloadSchema>;
+
+// ---------------------------------------------------------------
+// Recruiter
+// ---------------------------------------------------------------
+
+export const recruiterProfileSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  phone: z
+    .string()
+    .min(10, "Phone must be at least 10 digits")
+    .max(15, "Phone must be at most 15 digits"),
+  email: z.string().email("Invalid email address"),
+  company: z.string().min(2, "Company name must be at least 2 characters"),
+  designation: z.string().default(""),
+  city: z.string().min(2, "Please enter your city"),
+  bio: z.string().max(600, "Bio must be at most 600 characters").default(""),
+});
+
+export type RecruiterProfileFormData = z.infer<typeof recruiterProfileSchema>;
+
+export const recruiterProfilePayloadSchema = z.object({
+  fullName: z.string(),
+  phone: z.string(),
+  email: z.string().email(),
+  company: z.string(),
+  designation: z.string(),
+  city: z.string(),
+  bio: z.string(),
+});
+
+export type RecruiterProfilePayload = z.infer<typeof recruiterProfilePayloadSchema>;
+
+export const adminRecruiterSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  phone: z
+    .string()
+    .min(10, "Phone must be at least 10 digits")
+    .max(15, "Phone must be at most 15 digits"),
+  email: z.string().email("Invalid email address"),
+  company: z.string().min(2, "Company name must be at least 2 characters"),
+  designation: z.string().default(""),
+  city: z.string().min(2, "Please enter your city"),
+  bio: z.string().max(600, "Bio must be at most 600 characters").default(""),
+  status: z.enum(["Active", "On Hold", "Hidden"]).default("Active"),
+});
+
+export type AdminRecruiterFormData = z.infer<typeof adminRecruiterSchema>;
+export const adminRecruiterPatchSchema = adminRecruiterSchema.partial();
+export type AdminRecruiterPatch = z.infer<typeof adminRecruiterPatchSchema>;

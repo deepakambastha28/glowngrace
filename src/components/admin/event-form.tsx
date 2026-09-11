@@ -18,7 +18,15 @@ const gradients = [
 
 const LOCATIONS = ["Hazratganj", "Gomti Nagar", "Aliganj", "Indira Nagar", "Vibhuti Khand", "Mahanagar"];
 
-export function EventForm({ id }: { id?: string }) {
+export function EventForm({
+  id,
+  backPath = "/admin/events",
+  cancelPath = "/admin",
+}: {
+  id?: string;
+  backPath?: string;
+  cancelPath?: string;
+}) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
 
@@ -125,7 +133,7 @@ export function EventForm({ id }: { id?: string }) {
             : "Event saved successfully ✓"
           : "Event saved (database not configured — demo only)"
       );
-      router.push("/admin/events");
+      router.push(backPath);
     } else {
       toast.error("Could not save event");
     }
@@ -158,6 +166,7 @@ export function EventForm({ id }: { id?: string }) {
                     Event Title <span className="text-rose">*</span>
                   </label>
                   <input
+                    data-testid="event-title-input"
                     className={`field-input ${errors.title ? "!border-red" : ""}`}
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
@@ -197,6 +206,7 @@ export function EventForm({ id }: { id?: string }) {
                     Date <span className="text-rose">*</span>
                   </label>
                   <input
+                    data-testid="event-date-input"
                     type="date"
                     className={`field-input ${errors.date ? "!border-red" : ""}`}
                     value={date}
@@ -376,7 +386,7 @@ export function EventForm({ id }: { id?: string }) {
               )}
 
               <div className="mt-6 flex gap-3">
-                <button type="button" onClick={() => router.push("/admin")} className="btn-outline flex-1 text-sm">
+                <button type="button" onClick={() => router.push(cancelPath)} className="btn-outline flex-1 text-sm">
                   Cancel
                 </button>
                 <button type="submit" disabled={saving} className="btn-primary flex-1 text-sm">

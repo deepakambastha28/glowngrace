@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Package, Briefcase, MessageSquare, Users,
-  CalendarDays, LogOut, Menu, Search, Bell,
+  CalendarDays, LogOut, Menu, Search, Bell, UserSearch,
   type LucideIcon,
 } from "lucide-react";
 import { adminLogout, adminSession } from "@/lib/api";
@@ -35,6 +35,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
       { href: "/admin/reviews", label: "Reviews", icon: MessageSquare },
       { href: "/admin/partners", label: "Partners", icon: Users },
       { href: "/admin/candidates", label: "Candidates", icon: Users },
+      { href: "/admin/recruiters", label: "Recruiters", icon: UserSearch },
     ],
   },
 ];

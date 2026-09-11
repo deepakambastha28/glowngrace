@@ -44,6 +44,8 @@ preview-2.log
 preview3.log
 server-err.log
 server-out.log
+server-v*-out.log
+server-v*-err.log
 gg-actions-dev.log
 server.err
 server.log

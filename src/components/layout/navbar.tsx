@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   Search,
@@ -30,7 +29,6 @@ const navLinks = [
 ];
 
 export function Navbar() {
-  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const hydrated = usePersistReady();
@@ -45,10 +43,11 @@ export function Navbar() {
     signOut();
     setAccountOpen(false);
     setMobileOpen(false);
-    router.push("/");
+    window.location.href = "/";
   };
 
-  const profileHref = user?.role === "admin" ? "/admin" : user?.role === "candidate" ? "/candidate" : "/shopper";
+  const profileHref =
+    user?.role === "admin" ? "/admin" : user?.role === "candidate" ? "/candidate" : user?.role === "recruiter" ? "/recruiter" : "/shopper";
 
   return (
     <header
