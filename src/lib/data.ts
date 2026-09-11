@@ -4,7 +4,7 @@ export interface Product {
   emoji: string;
   brand: string;
   name: string;
-  category: "Makeup" | "Skincare" | "Nail Care" | "Fragrances";
+  category: string;
   price: number;
   oldPrice: number;
   rating: number;
@@ -15,6 +15,7 @@ export interface Product {
   features: string[];
   inStock: boolean;
   imageData?: string | null;
+  gallery?: string[];
 }
 
 export interface Job {

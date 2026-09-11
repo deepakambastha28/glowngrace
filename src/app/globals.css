@@ -167,12 +167,15 @@
 
   /* ---- Product card (mirrors design reference) ---- */
   .prod-img {
+    width: 266px;
     height: 200px;
+    margin: 0 auto;
     background: linear-gradient(135deg, var(--blush), #fbe0ea);
     display: grid;
     place-items: center;
     font-size: 4.5rem;
     position: relative;
+    border-radius: 18px;
   }
   .prod-tag {
     position: absolute;

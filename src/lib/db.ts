@@ -163,6 +163,7 @@ const SCHEMA_STATEMENTS: string[] = [
     updated_at TIMESTAMPTZ DEFAULT now()
   )`,
   `ALTER TABLE gg_admin_products ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT false`,
+  `ALTER TABLE gg_admin_products ADD COLUMN IF NOT EXISTS gallery JSONB NOT NULL DEFAULT '[]'::jsonb`,
   `ALTER TABLE gg_admin_jobs ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT false`,
   `CREATE TABLE IF NOT EXISTS gg_admin_events (
     id SERIAL PRIMARY KEY,

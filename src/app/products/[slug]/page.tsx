@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingBag, Zap, Heart, Truck, RefreshCcw, ShieldCheck } from "lucide-react";
+import { Minus, Plus, ShoppingBag, Zap, Heart, Truck, RefreshCcw, ShieldCheck, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import type { Product, Review } from "@/lib/data";
-import { fetchProducts } from "@/lib/api";
+import { fetchProducts, fetchProductReviews } from "@/lib/api";
 import { useCartStore } from "@/lib/store";
 import { money, calculateDiscount, cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,11 +32,15 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+  const [activeTab, setActiveTab] = useState("description");
+  const [productReviews, setProductReviews] = useState<Review[]>([]);
   const addItem = useCartStore((state) => state.addItem);
   const toggleWishlist = useCartStore((state) => state.toggleWishlist);
   const isWishlisted = useCartStore((state) =>
     product ? state.wishlist.includes(product.id) : false
   );
+
+  const productName = product?.name;
 
   useEffect(() => {
     let active = true;
@@ -46,6 +50,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       if (items?.length) {
         setAllProducts(items);
         setProduct(items.find((p) => p.slug === params.slug));
+        setActiveImage(0);
       }
       setStatus("ready");
     });
@@ -53,6 +58,23 @@ export default function ProductPage({ params }: ProductPageProps) {
       active = false;
     };
   }, [params.slug]);
+
+  useEffect(() => {
+    let active = true;
+    if (!productName) {
+      setProductReviews([]);
+      return () => {
+        active = false;
+      };
+    }
+    fetchProductReviews(productName).then((res) => {
+      if (!active) return;
+      setProductReviews(Array.isArray(res.data?.items) ? res.data!.items : []);
+    });
+    return () => {
+      active = false;
+    };
+  }, [productName]);
 
   if (status === "ready" && !product) {
     notFound();
@@ -63,6 +85,13 @@ export default function ProductPage({ params }: ProductPageProps) {
   }
 
   const discount = calculateDiscount(product.price, product.oldPrice);
+  const images =
+    product.gallery && product.gallery.length
+      ? product.gallery
+      : product.imageData
+        ? [product.imageData]
+        : [];
+  const galleryThumbs = images.length ? images.slice(0, 4) : galleryShadows;
   const related = allProducts
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4);
@@ -82,7 +111,12 @@ export default function ProductPage({ params }: ProductPageProps) {
     toast.success(isWishlisted ? "Removed from wishlist 💔" : "Added to wishlist 💖");
   };
 
-  const productReviews: Review[] = [];
+  const reviewRating =
+    productReviews.length > 0
+      ? productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length
+      : product.rating;
+  const shownReviewsCount =
+    productReviews.length > 0 ? productReviews.length : product.reviewsCount;
 
   return (
     <div className="pb-16">
@@ -104,19 +138,20 @@ export default function ProductPage({ params }: ProductPageProps) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-screen-xl px-6 pt-12 grid lg:grid-cols-2 gap-12 lg:gap-14">
+      <div className="mx-auto max-w-screen-xl px-6 pt-12 grid lg:grid-cols-[440px_minmax(0,1fr)] gap-8 lg:gap-10">
         {/* Gallery */}
-        <div>
+        <div data-testid="gallery-column" className="flex flex-col">
           <div
+            data-testid="product-gallery"
             className={cn(
-              "relative grid aspect-square place-items-center rounded-[18px] border border-line bg-gradient-to-br overflow-hidden",
-              galleryShadows[activeImage]
+              "relative grid aspect-[440/460] w-full max-w-[440px] place-items-center rounded-[18px] border border-line bg-gradient-to-br overflow-hidden",
+              galleryShadows[activeImage % galleryShadows.length]
             )}
           >
-            {product.imageData ? (
+            {images.length ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={product.imageData}
+                src={images[activeImage % images.length]}
                 alt={product.name}
                 className="h-full w-full object-cover"
               />
@@ -136,45 +171,79 @@ export default function ProductPage({ params }: ProductPageProps) {
             )}
           </div>
           <div className="mt-4 flex gap-3">
-            {galleryShadows.map((shadow, i) => (
+            {galleryThumbs.map((src, i) => (
               <button
                 key={i}
-                onClick={() => setActiveImage(i)}
+                onClick={() => setActiveImage(images.length ? i : 0)}
                 className={cn(
                   "grid h-20 w-20 place-items-center rounded-2xl bg-gradient-to-br border border-line transition-all cursor-pointer overflow-hidden",
-                  shadow,
-                  activeImage === i
+                  galleryShadows[i % galleryShadows.length],
+                  activeImage === (images.length ? i : 0)
                     ? "ring-2 ring-rose ring-offset-2 scale-105 shadow-soft"
                     : "opacity-60 hover:opacity-100"
                 )}
                 aria-label={`Image ${i + 1}`}
               >
-                {product.imageData ? (
+                {images.length ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={product.imageData} alt="" className="h-full w-full object-cover" />
+                  <img src={src} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-3xl">{product.emoji}</span>
                 )}
               </button>
             ))}
           </div>
+          <div className="mt-auto pt-8">
+            <div
+              data-testid="trust-badges"
+              className="space-y-3 rounded-[16px] border border-line bg-white p-6"
+            >
+              {[
+                { icon: Truck, text: "Free shipping across Lucknow on orders above ₹999" },
+                { icon: RefreshCcw, text: "7-day easy returns & exchange" },
+                { icon: ShieldCheck, text: "100% authentic, quality assured" },
+              ].map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-3 text-[0.9rem] text-charcoal/70">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-rose-blush text-rose">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  {text}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Info */}
-        <div>
+        <div data-testid="info-column">
           <span className="text-[0.8rem] font-bold uppercase tracking-[1.2px] text-gold">
             {product.brand}
           </span>
           <h1 className="mt-2 text-[2.2rem] font-bold leading-tight">{product.name}</h1>
           <div className="flex items-center gap-2 mt-3">
-            <RatingStars rating={product.rating} size={18} />
+            <RatingStars rating={reviewRating} size={18} />
             <span className="text-[0.9rem] text-muted">
-              {product.rating} · {product.reviewsCount} reviews
+              {Number.isInteger(reviewRating) ? reviewRating : reviewRating.toFixed(1)} · {shownReviewsCount} reviews
             </span>
           </div>
-          <p className="mt-4 text-[0.98rem] text-charcoal/70 leading-relaxed">
+          <p
+            data-testid="main-description"
+            className="mt-4 text-[0.98rem] text-charcoal/70 leading-relaxed line-clamp-5"
+          >
             {product.description}
           </p>
+          <button
+            data-testid="read-more"
+            onClick={() => {
+              setActiveTab("description");
+              document
+                .getElementById("product-details")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+            className="mt-3 inline-flex items-center gap-1 text-[0.9rem] font-semibold text-rose hover:text-rose-dark transition-colors cursor-pointer"
+          >
+            Read more <ChevronDown className="h-4 w-4" />
+          </button>
 
           <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2">
             <span className="text-[2.2rem] font-extrabold text-rose">{money(product.price)}</span>
@@ -246,35 +315,19 @@ export default function ProductPage({ params }: ProductPageProps) {
               <Heart className={cn("h-5 w-5", isWishlisted && "fill-current")} />
             </button>
           </div>
-
-          {/* Meta */}
-          <div className="mt-8 space-y-3 rounded-[16px] border border-line bg-white p-6">
-            {[
-              { icon: Truck, text: "Free shipping across Lucknow on orders above ₹999" },
-              { icon: RefreshCcw, text: "7-day easy returns & exchange" },
-              { icon: ShieldCheck, text: "100% authentic, quality assured" },
-            ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-3 text-[0.9rem] text-charcoal/70">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-rose-blush text-rose">
-                  <Icon className="h-4 w-4" />
-                </span>
-                {text}
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
       {/* Details tabs */}
-      <div className="mx-auto max-w-screen-xl px-6 mt-16">
-        <Tabs defaultValue="description">
+      <div id="product-details" className="mx-auto max-w-screen-xl px-6 mt-16 scroll-mt-24">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="description">Description</TabsTrigger>
             <TabsTrigger value="info">More Info</TabsTrigger>
             <TabsTrigger value="reviews">Reviews ({productReviews.length})</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="description" className="rounded-[16px] border border-line bg-white p-7">
+          <TabsContent value="description" data-testid="description-tab" className="rounded-[16px] border border-line bg-white p-7">
             <h3 className="text-xl font-bold mb-4">Product Description</h3>
             <p className="text-charcoal/70 leading-relaxed">{product.description}</p>
             <h4 className="text-lg font-bold mt-6 mb-3">Key Features</h4>
@@ -304,25 +357,29 @@ export default function ProductPage({ params }: ProductPageProps) {
 
           <TabsContent value="reviews" className="rounded-[16px] border border-line bg-white p-7">
             <h3 className="text-xl font-bold mb-4">Customer Reviews</h3>
-            <div className="space-y-6">
-              {productReviews.map((review) => (
-                <div key={review.id} className="border-b border-line pb-4 last:border-0 flex gap-3">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-rose-gradient font-bold text-white">
-                    {review.initial}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <p className="font-bold text-charcoal">{review.author}</p>
-                      <span className="text-xs text-muted">{review.date}</span>
+            {productReviews.length > 0 ? (
+              <div className="space-y-6">
+                {productReviews.map((review) => (
+                  <div key={review.id} className="border-b border-line pb-4 last:border-0 flex gap-3">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-rose-gradient font-bold text-white">
+                      {review.initial || review.author.charAt(0).toUpperCase()}
                     </div>
-                    <div className="mt-1">
-                      <RatingStars rating={review.rating} size={14} />
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <p className="font-bold text-charcoal">{review.author}</p>
+                        <span className="text-xs text-muted">{review.date}</span>
+                      </div>
+                      <div className="mt-1">
+                        <RatingStars rating={review.rating} size={14} />
+                      </div>
+                      <p className="mt-2 text-sm text-charcoal/70">{review.comment}</p>
                     </div>
-                    <p className="mt-2 text-sm text-charcoal/70">{review.comment}</p>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted">No reviews yet. Be the first to review this product!</p>
+            )}
           </TabsContent>
         </Tabs>
       </div>

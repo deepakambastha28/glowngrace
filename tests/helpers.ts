@@ -6,7 +6,11 @@ interface StorefrontProduct {
   id: string;
 }
 
-export async function seedProduct(request: APIRequestContext, name: string): Promise<string> {
+export async function seedProduct(
+  request: APIRequestContext,
+  name: string,
+  description = "Test product for the storefront catalog."
+): Promise<string> {
   const res = await request.post("/api/admin/products", {
     data: {
       emoji: "🧴",
@@ -16,7 +20,7 @@ export async function seedProduct(request: APIRequestContext, name: string): Pro
       price: 499,
       oldPrice: 0,
       stock: 25,
-      description: "Test product for the storefront catalog.",
+      description,
       descriptionHtml: "",
       features: ["Catalog sync"],
       tags: ["e2e"],
@@ -96,4 +100,39 @@ export async function deleteSeededJob(request: APIRequestContext, slug: string):
   const row = items.find((j) => j.slug === slug);
   if (!row) return;
   await request.delete(`/api/admin/jobs?id=${row.id}`);
+}
+
+export async function seedReview(
+  request: APIRequestContext,
+  review: {
+    author: string;
+    product: string;
+    rating: number;
+    comment: string;
+    status?: string;
+    location?: string;
+  }
+): Promise<string> {
+  const res = await request.post("/api/admin/reviews", {
+    data: {
+      author: review.author,
+      initial: review.author.trim().charAt(0).toUpperCase(),
+      product: review.product,
+      rating: review.rating,
+      comment: review.comment,
+      location: review.location ?? "",
+      status: review.status ?? "Approved",
+    },
+  });
+  expect(res.ok()).toBe(true);
+  const body = (await res.json()) as { id?: number };
+  expect(body.id, `seeded review should return an id`).toBeTruthy();
+  return String(body.id);
+}
+
+export async function deleteSeededReview(
+  request: APIRequestContext,
+  id: string
+): Promise<void> {
+  await request.delete(`/api/admin/reviews?id=${id}`);
 }
