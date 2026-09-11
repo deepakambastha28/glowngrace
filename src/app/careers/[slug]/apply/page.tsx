@@ -1,13 +1,14 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { notFound, useRouter, useSearchParams } from "next/navigation";
 import { useForm, type UseFormRegister, type UseFormSetValue, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FileText, UploadCloud, CheckCircle2, ChevronLeft, MapPin, PartyPopper, Heart } from "lucide-react";
 import { toast } from "sonner";
-import { jobs, type Job } from "@/lib/data";
+import type { Job } from "@/lib/data";
+import { fetchJobs } from "@/lib/api";
 import { applyJobSchema, type ApplyJobFormData } from "@/lib/schemas";
 import { submitApplication } from "@/lib/api";
 import {
@@ -304,7 +305,19 @@ function ApplicantForm({
 
 export default function ApplyPage({ params }: ApplyPageProps) {
   const router = useRouter();
-  const job = jobs.find((j) => j.slug === params.slug);
+  const [job, setJob] = useState<Job | undefined>(undefined);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetchJobs().then((res) => {
+      if (!active) return;
+      const items = res.data?.items || [];
+      setJob(items.find((j: Job) => j.slug === params.slug));
+      setLoaded(true);
+    }).catch(() => setLoaded(true));
+    return () => { active = false; };
+  }, [params.slug]);
 
   const [resume, setResume] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -319,8 +332,12 @@ export default function ApplyPage({ params }: ApplyPageProps) {
     resolver: zodResolver(applyJobSchema),
   });
 
-  if (!job) {
+  if (loaded && !job) {
     notFound();
+  }
+
+  if (!job) {
+    return <div className="py-32 text-center text-muted">Loading job…</div>;
   }
 
   const handleOnSubmit = async (data: ApplyJobFormData) => {

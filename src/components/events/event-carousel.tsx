@@ -3,22 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { events } from "@/lib/data";
+import type { EventItem } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -28,12 +18,21 @@ function formatDate(iso: string) {
 }
 
 export function EventCarousel() {
+  const [allEvents, setAllEvents] = useState<EventItem[]>([]);
+
+  useEffect(() => {
+    fetch("/api/events")
+      .then((r) => r.json())
+      .then((d) => { if (d.items) setAllEvents(d.items); })
+      .catch(() => {});
+  }, []);
+
   const featured = useMemo(
     () =>
-      [...events]
+      [...allEvents]
         .sort((a, b) => a.date.localeCompare(b.date))
         .slice(0, 4),
-    []
+    [allEvents]
   );
 
   const count = featured.length;
@@ -50,10 +49,12 @@ export function EventCarousel() {
   );
 
   useEffect(() => {
-    if (paused) return;
+    if (paused || count === 0) return;
     const t = setInterval(next, 4000);
     return () => clearInterval(t);
-  }, [paused, next]);
+  }, [paused, next, count]);
+
+  if (count === 0) return null;
 
   return (
     <div
@@ -74,15 +75,17 @@ export function EventCarousel() {
             aria-hidden={i !== index}
             tabIndex={i === index ? 0 : -1}
           >
-            <span className="ec-emoji">{e.emoji}</span>
-            <span className="ec-info">
-              <span className="ec-cat">{e.category}</span>
-              <span className="ec-title">{e.title}</span>
-              <span className="ec-date">
-                🗓️ {formatDate(e.date)} · {e.time}
+            <div className="ec-inner">
+              <span className="ec-emoji">{e.emoji}</span>
+              <span className="ec-info">
+                <span className="ec-cat">{e.category}</span>
+                <span className="ec-title">{e.title}</span>
+                <span className="ec-date">
+                  🗓️ {formatDate(e.date)} · {e.time}
+                </span>
+                <span className="ec-cta">View Details →</span>
               </span>
-              <span className="ec-cta">View Details →</span>
-            </span>
+            </div>
           </Link>
         ))}
       </div>

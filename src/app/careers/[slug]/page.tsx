@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MapPin, Clock, Briefcase, Users, Check, Heart } from "lucide-react";
 import { toast } from "sonner";
-import { jobs } from "@/lib/data";
+import type { Job } from "@/lib/data";
+import { fetchJobs } from "@/lib/api";
 import { money, jobLocation } from "@/lib/utils";
 
 interface JobDetailPageProps {
@@ -12,10 +14,26 @@ interface JobDetailPageProps {
 }
 
 export default function JobDetailPage({ params }: JobDetailPageProps) {
-  const job = jobs.find((j) => j.slug === params.slug);
+  const [job, setJob] = useState<Job | undefined>(undefined);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetchJobs().then((res) => {
+      if (!active) return;
+      const items = res.data?.items || [];
+      setJob(items.find((j: Job) => j.slug === params.slug));
+      setLoaded(true);
+    }).catch(() => setLoaded(true));
+    return () => { active = false; };
+  }, [params.slug]);
+
+  if (loaded && !job) {
+    notFound();
+  }
 
   if (!job) {
-    notFound();
+    return <div className="py-32 text-center text-muted">Loading job…</div>;
   }
 
   const infoPills = [
