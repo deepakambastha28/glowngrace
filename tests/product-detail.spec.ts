@@ -139,4 +139,40 @@ test.describe("Product detail", () => {
     await deleteSeededReview(request, approvedId);
     await deleteSeededReview(request, pendingId);
   });
+
+  test("trust badges pin to the bottom of the image tile with a wider info column", async ({ page, request }) => {
+    const name = `E2E Detail Badges ${Date.now()}`;
+    const slug = await seedProduct(request, name);
+    seededSlugs.push(slug);
+
+    await page.goto(`/products/${slug}`);
+
+    const gallery = page.getByTestId("product-gallery");
+    await expect(gallery).toBeVisible();
+
+    const galleryCol = page.getByTestId("gallery-column");
+    const infoCol = page.getByTestId("info-column");
+    const badges = page.getByTestId("trust-badges");
+    await expect(badges).toBeVisible();
+
+    await expect(galleryCol.getByTestId("trust-badges")).toBeVisible();
+    await expect(
+      badges.getByText("Free shipping across Lucknow on orders above ₹999")
+    ).toBeVisible();
+    await expect(badges.getByText("7-day easy returns & exchange")).toBeVisible();
+    await expect(badges.getByText("100% authentic, quality assured")).toBeVisible();
+
+    const gColBox = (await galleryCol.boundingBox())!;
+    const iColBox = (await infoCol.boundingBox())!;
+    const bBox = (await badges.boundingBox())!;
+    expect(Math.abs(gColBox.height - iColBox.height)).toBeLessThanOrEqual(2);
+    expect(bBox.y + bBox.height).toBeGreaterThanOrEqual(gColBox.y + gColBox.height - 8);
+
+    const gBox = (await gallery.boundingBox())!;
+    const h1Box = (await page.locator("h1").boundingBox())!;
+    const gap = h1Box.x - (gBox.x + gBox.width);
+    expect(gap).toBeGreaterThanOrEqual(16);
+    expect(gap).toBeLessThan(48);
+    expect(h1Box.width).toBeGreaterThan(620);
+  });
 });

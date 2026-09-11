@@ -138,9 +138,9 @@ export default function ProductPage({ params }: ProductPageProps) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-screen-xl px-6 pt-12 grid lg:grid-cols-2 gap-12 lg:gap-14">
+      <div className="mx-auto max-w-screen-xl px-6 pt-12 grid lg:grid-cols-[440px_minmax(0,1fr)] gap-8 lg:gap-10">
         {/* Gallery */}
-        <div>
+        <div data-testid="gallery-column" className="flex flex-col">
           <div
             data-testid="product-gallery"
             className={cn(
@@ -193,10 +193,29 @@ export default function ProductPage({ params }: ProductPageProps) {
               </button>
             ))}
           </div>
+          <div className="mt-auto pt-8">
+            <div
+              data-testid="trust-badges"
+              className="space-y-3 rounded-[16px] border border-line bg-white p-6"
+            >
+              {[
+                { icon: Truck, text: "Free shipping across Lucknow on orders above ₹999" },
+                { icon: RefreshCcw, text: "7-day easy returns & exchange" },
+                { icon: ShieldCheck, text: "100% authentic, quality assured" },
+              ].map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-3 text-[0.9rem] text-charcoal/70">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-rose-blush text-rose">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  {text}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Info */}
-        <div>
+        <div data-testid="info-column">
           <span className="text-[0.8rem] font-bold uppercase tracking-[1.2px] text-gold">
             {product.brand}
           </span>
@@ -295,22 +314,6 @@ export default function ProductPage({ params }: ProductPageProps) {
             >
               <Heart className={cn("h-5 w-5", isWishlisted && "fill-current")} />
             </button>
-          </div>
-
-          {/* Meta */}
-          <div className="mt-8 space-y-3 rounded-[16px] border border-line bg-white p-6">
-            {[
-              { icon: Truck, text: "Free shipping across Lucknow on orders above ₹999" },
-              { icon: RefreshCcw, text: "7-day easy returns & exchange" },
-              { icon: ShieldCheck, text: "100% authentic, quality assured" },
-            ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-3 text-[0.9rem] text-charcoal/70">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-rose-blush text-rose">
-                  <Icon className="h-4 w-4" />
-                </span>
-                {text}
-              </div>
-            ))}
           </div>
         </div>
       </div>
