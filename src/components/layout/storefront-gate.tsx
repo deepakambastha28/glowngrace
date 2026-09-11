@@ -7,7 +7,7 @@ import { Navbar } from "./navbar";
 export function StorefrontGate() {
   const pathname = usePathname();
 
-  if (pathname?.startsWith("/admin")) {
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/recruiter")) {
     return null;
   }
 
