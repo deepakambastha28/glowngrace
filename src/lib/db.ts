@@ -184,6 +184,28 @@ const SCHEMA_STATEMENTS: string[] = [
     hidden BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
+  `CREATE TABLE IF NOT EXISTS gg_recruiters (
+    id SERIAL PRIMARY KEY,
+    user_email TEXT NOT NULL,
+    full_name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    email TEXT NOT NULL,
+    company TEXT NOT NULL DEFAULT '',
+    designation TEXT NOT NULL DEFAULT '',
+    city TEXT NOT NULL DEFAULT '',
+    bio TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'Active',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+  )`,
+  `CREATE TABLE IF NOT EXISTS gg_recruiter_hires (
+    id SERIAL PRIMARY KEY,
+    recruiter_email TEXT NOT NULL,
+    candidate_id INT NOT NULL,
+    candidate_name TEXT NOT NULL,
+    candidate_email TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+  )`,
 ];
 
 export function getDb(): SqlQuery | null {

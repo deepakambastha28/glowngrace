@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 const statusPill = (status: string) => {
   const key = (status || "").toLowerCase();
-  const cls = key === "active" ? "green" : key === "on hold" ? "amber" : "grey";
+  const cls = key === "active" || key === "hired" ? "green" : key === "on hold" ? "amber" : "grey";
   return <span className={`p-pill ${cls}`}>{status}</span>;
 };
 

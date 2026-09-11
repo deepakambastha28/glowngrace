@@ -526,3 +526,99 @@ export function deleteAdminEvent(
     method: "DELETE",
   });
 }
+
+// ---------------------------------------------------------------
+// Recruiter Profile
+// ---------------------------------------------------------------
+
+export type RecruiterResponse = { persisted: boolean; id?: number };
+export type RecruiterRecord = {
+  id: string;
+  userEmail: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  company: string;
+  designation: string;
+  city: string;
+  bio: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+};
+export type RecruiterListResponse = { persisted: boolean; items: RecruiterRecord[] };
+
+/** GET /api/recruiters?email=... — fetch a recruiter profile by email. */
+export function fetchRecruiter(
+  email: string
+): Promise<ApiResponse<{ persisted: boolean; recruiter: RecruiterRecord | null }>> {
+  return request(`/api/recruiters?email=${encodeURIComponent(email)}`);
+}
+
+/** POST /api/recruiters — create or update a recruiter profile. */
+export function saveRecruiter(
+  profile: { userEmail: string } & Record<string, unknown>
+): Promise<ApiResponse<RecruiterResponse>> {
+  return request<RecruiterResponse>("/api/recruiters", {
+    method: "POST",
+    ...body(profile),
+  });
+}
+
+/** GET /api/recruiters/candidates — list all active candidates for recruiters. */
+export function fetchRecruiterCandidates(): Promise<ApiResponse<CandidateListResponse>> {
+  return request<CandidateListResponse>("/api/recruiters/candidates");
+}
+
+/** POST /api/recruiters/hire — mark a candidate as hired by a recruiter. */
+export function hireCandidate(
+  payload: {
+    candidateId: string;
+    recruiterEmail: string;
+    candidateName: string;
+    candidateEmail: string;
+  }
+): Promise<ApiResponse<{ hired: boolean; alreadyHired?: boolean; id?: number; error?: string }>> {
+  return request<{ hired: boolean; alreadyHired?: boolean; id?: number; error?: string }>("/api/recruiters/hire", {
+    method: "POST",
+    ...body(payload),
+  });
+}
+
+/** GET /api/recruiters/hired — list candidates hired by a recruiter. */
+export function fetchHiredCandidates(
+  email: string
+): Promise<ApiResponse<{ persisted: boolean; items: CandidateRecord[] }>> {
+  return request(`/api/recruiters/hired?email=${encodeURIComponent(email)}`);
+}
+
+// ---------------------------------------------------------------
+// Admin Recruiters
+// ---------------------------------------------------------------
+
+/** GET /api/admin/recruiters — list or fetch one recruiter (by id). */
+export function fetchAdminRecruiters(
+  id?: string
+): Promise<ApiResponse<{ persisted: boolean; items: RecruiterRecord[]; item: RecruiterRecord | null }>> {
+  return request(`/api/admin/recruiters${id ? `?id=${encodeURIComponent(id)}` : ""}`);
+}
+
+/** PATCH /api/admin/recruiters?id=... — update a recruiter. */
+export function updateAdminRecruiter(
+  id: string,
+  patch: unknown
+): Promise<ApiResponse<{ persisted: boolean }>> {
+  return request<{ persisted: boolean }>(`/api/admin/recruiters?id=${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    ...body(patch),
+  });
+}
+
+/** DELETE /api/admin/recruiters?id=... — delete a recruiter. */
+export function deleteAdminRecruiter(
+  id: string
+): Promise<ApiResponse<{ deleted: boolean }>> {
+  return request<{ deleted: boolean }>(`/api/admin/recruiters?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
