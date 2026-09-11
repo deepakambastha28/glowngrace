@@ -34,6 +34,25 @@ test.describe("Home page", () => {
     await expect(page).toHaveTitle(/Glow & Grace/);
   });
 
+  test("home page product tile image keeps 200px height and fills card width", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const img = page.getByTestId("product-card-image").first();
+    await expect(img).toBeVisible();
+
+    const box = await img.boundingBox();
+    expect(box!.height).toBe(200);
+
+    const cardBox = await page.getByTestId("product-card").first().boundingBox();
+    expect(Math.abs(cardBox!.width - box!.width)).toBeLessThan(4);
+
+    const borderRadius = await img.evaluate(
+      (el) => getComputedStyle(el).borderRadius
+    );
+    expect(borderRadius).not.toBe("0px");
+  });
+
   test("hero CTA navigates to the shop", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("hero-shop").click();

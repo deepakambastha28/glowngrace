@@ -34,6 +34,29 @@ test.describe("Shop (product listing)", () => {
       .toBeLessThan(before);
   });
 
+  test("product tile image keeps 200px height and fills card width", async ({
+    page,
+    request,
+  }) => {
+    const slug = await seedProduct(request, `E2E Size Test ${Date.now()}`);
+    seededSlugs.push(slug);
+
+    await page.goto("/products");
+    const img = page.getByTestId("product-card-image").first();
+    await expect(img).toBeVisible();
+
+    const box = await img.boundingBox();
+    expect(box!.height).toBe(200);
+
+    const cardBox = await page.getByTestId("product-card").first().boundingBox();
+    expect(Math.abs(cardBox!.width - box!.width)).toBeLessThan(4);
+
+    const borderRadius = await img.evaluate(
+      (el) => getComputedStyle(el).borderRadius
+    );
+    expect(borderRadius).not.toBe("0px");
+  });
+
   test("clicking a product opens its detail page", async ({ page }) => {
     await page.goto("/products");
 
