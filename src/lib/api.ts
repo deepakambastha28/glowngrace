@@ -255,6 +255,7 @@ export type AdminProductRecord = {
   features: string[];
   tags: string[];
   imageData: string | null;
+  gallery: string[];
   shade: string;
   size: string;
   finish: string;

@@ -6,10 +6,33 @@ import { toast } from "sonner";
 import { createAdminProduct, fetchAdminProducts, updateAdminProduct } from "@/lib/api";
 import { ImageUp } from "lucide-react";
 
-const categories = ["Makeup", "Skincare", "Nail Care", "Fragrances"];
 const emojis = ["💄", "💋", "🧴", "✨", "🌸", "💅", "👁️", "🧼", "💆"];
 
 const money = (n: number) => "₹" + (n || 0).toLocaleString("en-IN");
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Could not load image"));
+    img.src = src;
+  });
+}
+
+function coverCrop(img: HTMLImageElement, w: number, h: number): string {
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return img.src;
+  const scale = Math.max(w / img.width, h / img.height);
+  const srcW = w / scale;
+  const srcH = h / scale;
+  const srcX = (img.width - srcW) / 2;
+  const srcY = (img.height - srcH) / 2;
+  ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, w, h);
+  return canvas.toDataURL("image/jpeg", 0.85);
+}
 
 function RichTextEditor({ html, onChange }: { html: string; onChange: (html: string, text: string) => void }) {
   const [focused, setFocused] = useState(false);
@@ -167,7 +190,7 @@ export function ProductForm({ id }: { id?: string }) {
 
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [files, setFiles] = useState<string[]>([]);
+  const [files, setFiles] = useState<{ tile: string; detail: string }[]>([]);
 
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(!!id);
@@ -196,7 +219,17 @@ export function ProductForm({ id }: { id?: string }) {
         setIngredients(it.ingredients || "");
         setFeaturesText(Array.isArray(it.features) ? it.features.join("\n") : "");
         setTags(Array.isArray(it.tags) ? it.tags : []);
-        if (it.imageData) setFiles([it.imageData]);
+        const gallery = Array.isArray(it.gallery) ? it.gallery : [];
+        if (gallery.length) {
+          setFiles(
+            gallery.map((detail, i) => ({
+              tile: i === 0 && it.imageData ? it.imageData : detail,
+              detail,
+            }))
+          );
+        } else if (it.imageData) {
+          setFiles([{ tile: it.imageData, detail: it.imageData }]);
+        }
       })
       .catch(() => {})
       .finally(() => {
@@ -218,21 +251,34 @@ export function ProductForm({ id }: { id?: string }) {
     setTagInput("");
   };
 
-  const handleFiles = (list: FileList | null) => {
+  const handleFiles = async (list: FileList | null) => {
     if (!list) return;
-    Array.from(list).forEach((file) => {
+    for (const file of Array.from(list)) {
       if (!file.type.startsWith("image/")) {
         toast.warning("Only image files are allowed");
-        return;
+        continue;
       }
       if (file.size > 5 * 1024 * 1024) {
         toast.warning(`${file.name} exceeds 5MB`);
-        return;
+        continue;
       }
-      const reader = new FileReader();
-      reader.onload = (e) => setFiles((prev) => [...prev, String(e.target?.result)]);
-      reader.readAsDataURL(file);
-    });
+      const src = await new Promise<string | null>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(String(e.target?.result));
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+      if (!src) continue;
+      const img = await loadImage(src).catch(() => null);
+      if (!img) continue;
+      setFiles((prev) => [
+        ...prev,
+        {
+          tile: coverCrop(img, 266, 200),
+          detail: coverCrop(img, 440, 460),
+        },
+      ]);
+    }
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -240,6 +286,7 @@ export function ProductForm({ id }: { id?: string }) {
     const next: Record<string, boolean> = {
       name: !name.trim(),
       brand: !brand.trim(),
+      category: !category.trim(),
       price: parseInt(price) <= 0,
     };
     setErrors(next);
@@ -266,7 +313,8 @@ export function ProductForm({ id }: { id?: string }) {
       descriptionHtml: descHtml,
       features,
       tags,
-      imageData: files[0] || null,
+      gallery: files.map((f) => f.detail),
+      imageData: files[0]?.tile || null,
       shade,
       size,
       finish,
@@ -342,27 +390,45 @@ export function ProductForm({ id }: { id?: string }) {
                 </div>
               </div>
               <div>
-                <label className="field-label">
+                <label className="field-label" htmlFor="product-category">
                   Category <span className="text-rose">*</span>
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setCategory(c)}
-                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                        category === c
-                          ? "border-transparent bg-gradient-to-br from-rose to-rose-dark text-white"
-                          : "border-line text-muted hover:border-rose-soft"
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
+                <input
+                  id="product-category"
+                  list="product-category-suggestions"
+                  className={`field-input ${errors.category ? "!border-red" : ""}`}
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder="e.g. Makeup, Skincare, Bath & Body..."
+                />
+                <datalist id="product-category-suggestions">
+                  <option value="Makeup" />
+                  <option value="Skincare" />
+                  <option value="Nail Care" />
+                  <option value="Fragrances" />
+                  <option value="Bath & Body" />
+                  <option value="Hair Care" />
+                </datalist>
+                {errors.category && (
+                  <p className="mt-1 text-sm text-red">Please enter a category.</p>
+                )}
               </div>
             </div>
+          </div>
+
+          {/* Description */}
+          <div className="card !shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-1">📝 Product Description</h3>
+            <p className="mb-4 text-sm text-muted">
+              Describe the product, benefits and key ingredients for the storefront.
+            </p>
+            <RichTextEditor
+              html={descHtml}
+              onChange={(html, text) => {
+                setDescHtml(html);
+                setDescText(text);
+              }}
+            />
           </div>
 
           {/* Product details */}
@@ -464,10 +530,10 @@ export function ProductForm({ id }: { id?: string }) {
 
             {files.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-3">
-                {files.map((src, i) => (
+                {files.map((f, i) => (
                   <div key={i} className="relative h-[88px] w-[88px] overflow-hidden rounded-[12px] border border-line bg-white">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt="" className="h-full w-full object-cover" />
+                    <img src={f.tile} alt="" className="h-full w-full object-cover" />
                     {i === 0 && (
                       <div className="absolute bottom-0 left-0 right-0 bg-rose text-[0.6rem] font-bold text-center text-white py-0.5">
                         MAIN
@@ -517,7 +583,7 @@ export function ProductForm({ id }: { id?: string }) {
             <div className="rounded-[14px] bg-gradient-to-br from-blush to-[#fbe0ea] p-6 text-center">
               {files[0] ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={files[0]} alt="" className="mx-auto h-24 w-24 rounded-[14px] object-cover shadow-lg" />
+                <img src={files[0].tile} alt="" className="mx-auto h-24 w-24 rounded-[14px] object-cover shadow-lg" />
               ) : (
                 <div className="text-[3.4rem]">{emoji}</div>
               )}

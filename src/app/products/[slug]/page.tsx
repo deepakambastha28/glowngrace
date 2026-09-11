@@ -46,6 +46,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       if (items?.length) {
         setAllProducts(items);
         setProduct(items.find((p) => p.slug === params.slug));
+        setActiveImage(0);
       }
       setStatus("ready");
     });
@@ -63,6 +64,13 @@ export default function ProductPage({ params }: ProductPageProps) {
   }
 
   const discount = calculateDiscount(product.price, product.oldPrice);
+  const images =
+    product.gallery && product.gallery.length
+      ? product.gallery
+      : product.imageData
+        ? [product.imageData]
+        : [];
+  const galleryThumbs = images.length ? images.slice(0, 4) : galleryShadows;
   const related = allProducts
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4);
@@ -108,15 +116,16 @@ export default function ProductPage({ params }: ProductPageProps) {
         {/* Gallery */}
         <div>
           <div
+            data-testid="product-gallery"
             className={cn(
-              "relative grid aspect-square place-items-center rounded-[18px] border border-line bg-gradient-to-br overflow-hidden",
-              galleryShadows[activeImage]
+              "relative grid aspect-[440/460] w-full max-w-[440px] place-items-center rounded-[18px] border border-line bg-gradient-to-br overflow-hidden",
+              galleryShadows[activeImage % galleryShadows.length]
             )}
           >
-            {product.imageData ? (
+            {images.length ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={product.imageData}
+                src={images[activeImage % images.length]}
                 alt={product.name}
                 className="h-full w-full object-cover"
               />
@@ -136,22 +145,22 @@ export default function ProductPage({ params }: ProductPageProps) {
             )}
           </div>
           <div className="mt-4 flex gap-3">
-            {galleryShadows.map((shadow, i) => (
+            {galleryThumbs.map((src, i) => (
               <button
                 key={i}
-                onClick={() => setActiveImage(i)}
+                onClick={() => setActiveImage(images.length ? i : 0)}
                 className={cn(
                   "grid h-20 w-20 place-items-center rounded-2xl bg-gradient-to-br border border-line transition-all cursor-pointer overflow-hidden",
-                  shadow,
-                  activeImage === i
+                  galleryShadows[i % galleryShadows.length],
+                  activeImage === (images.length ? i : 0)
                     ? "ring-2 ring-rose ring-offset-2 scale-105 shadow-soft"
                     : "opacity-60 hover:opacity-100"
                 )}
                 aria-label={`Image ${i + 1}`}
               >
-                {product.imageData ? (
+                {images.length ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={product.imageData} alt="" className="h-full w-full object-cover" />
+                  <img src={src} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-3xl">{product.emoji}</span>
                 )}

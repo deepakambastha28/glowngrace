@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { categories } from "@/lib/data";
 import type { Product } from "@/lib/data";
 import { fetchProducts } from "@/lib/api";
 import { ProductCard } from "@/components/shop/product-card";
@@ -11,13 +10,19 @@ import { cn } from "@/lib/utils";
 
 type SortOption = "trending" | "price-asc" | "price-desc" | "rating";
 
-const categoryOptions = ["All", ...categories.map((c) => c.name)];
-
 export default function ProductsPage() {
   const [items, setItems] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("All");
   const [sort, setSort] = useState<SortOption>("trending");
+
+  const categoryOptions = useMemo(
+    () => [
+      "All",
+      ...Array.from(new Set(items.map((p) => p.category).filter(Boolean))),
+    ],
+    [items]
+  );
 
   useEffect(() => {
     let active = true;

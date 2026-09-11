@@ -33,6 +33,7 @@ function toItem(r: Record<string, unknown>) {
     features: r.features,
     tags: r.tags,
     imageData: r.image_data,
+    gallery: Array.isArray(r.gallery) ? (r.gallery as string[]) : [],
     shade: r.shade,
     size: r.size,
     finish: r.finish,
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
     const rows = await query(
       `SELECT id, slug, emoji, brand, name, category, price, old_price, stock,
          status, description, description_html, features, tags, image_data,
-         shade, size, finish, ingredients, is_new, hidden, created_at
+         gallery, shade, size, finish, ingredients, is_new, hidden, created_at
        FROM gg_admin_products WHERE id = $1 LIMIT 1`,
       [Number(id)]
     );
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
   const rows = await query(
     `SELECT id, slug, emoji, brand, name, category, price, old_price, stock,
        status, description, description_html, features, tags, image_data,
-       shade, size, finish, ingredients, is_new, hidden, created_at
+       gallery, shade, size, finish, ingredients, is_new, hidden, created_at
      FROM gg_admin_products ORDER BY created_at DESC`
   );
   const items = (rows ?? []).map(toItem);
@@ -98,9 +99,9 @@ export async function POST(request: Request) {
     const rows = await query(
       `INSERT INTO gg_admin_products
         (slug, emoji, brand, name, category, price, old_price, stock, status,
-         description, description_html, features, tags, image_data,
+         description, description_html, features, tags, image_data, gallery,
          shade, size, finish, ingredients, is_new)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13::jsonb,$14,$15,$16,$17,$18,$19)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13::jsonb,$14,$15::jsonb,$16,$17,$18,$19,$20)
        RETURNING id`,
       [
         slug,
@@ -116,7 +117,8 @@ export async function POST(request: Request) {
         d.descriptionHtml,
         JSON.stringify(d.features),
         JSON.stringify(d.tags),
-        d.imageData || null,
+        d.imageData || d.gallery?.[0] || null,
+        JSON.stringify(d.gallery),
         d.shade,
         d.size,
         d.finish,
@@ -174,9 +176,10 @@ export async function PATCH(request: NextRequest) {
       : `UPDATE gg_admin_products
            SET emoji=$1, brand=$2, name=$3, category=$4, price=$5, old_price=$6,
                stock=$7, status=$8, description=$9, description_html=$10,
-               features=$11::jsonb, tags=$12::jsonb, image_data=$13, shade=$14,
-               size=$15, finish=$16, ingredients=$17, is_new=$18
-         WHERE id=$19`;
+               features=$11::jsonb, tags=$12::jsonb, image_data=$13,
+               gallery=$14::jsonb, shade=$15, size=$16, finish=$17,
+               ingredients=$18, is_new=$19
+         WHERE id=$20`;
     const params = onlyHidden
       ? [d.hidden, Number(id)]
       : [
@@ -186,13 +189,14 @@ export async function PATCH(request: NextRequest) {
           d.category,
           d.price,
           d.oldPrice,
-d.stock,
-            statusFor(d.stock ?? 0),
+          d.stock,
+          statusFor(d.stock ?? 0),
           d.description,
           d.descriptionHtml,
           JSON.stringify(d.features),
           JSON.stringify(d.tags),
-          d.imageData || null,
+          d.imageData || d.gallery?.[0] || null,
+          JSON.stringify(d.gallery ?? []),
           d.shade,
           d.size,
           d.finish,
