@@ -46,10 +46,19 @@ Invoke-RestMethod http://localhost:3000/api/health
 ```
 Expect `database: "connected"`. First write auto-creates the tables
 (`gg_orders`, `gg_job_applications`, `gg_newsletter_subscribers`,
-`gg_cart_snapshots`) and the admin tables (`gg_admin_products`,
+`gg_cart_snapshots`), the admin tables (`gg_admin_products`,
 `gg_admin_jobs`, `gg_admin_events`, `gg_admin_partners`, `gg_admin_candidates`,
-`gg_admin_reviews`, `gg_admin_sessions`). See
+`gg_admin_reviews`, `gg_admin_sessions`), and the recruiter tables
+(`gg_recruiters`, `gg_recruiter_hires`). See
 `.opencode/skills/postgres-testing/SKILL.md`.
+
+Demo accounts (logged in from the `demo` link on `/login`):
+| Role        | Email                    | Password     |
+| ----------- | ------------------------ | ------------ |
+| Shopper     | `shopper@glowngrace.in`  | `shopper123` |
+| Candidate   | `candidate@glowngrace.in`| `candidate123` |
+| Recruiter   | `recruiter@glowngrace.in`| `recruiter123` |
+| Admin       | `admin@glowngrace.in`    | `admin123`   |
 
 ## 6. Tests
 ```bash
