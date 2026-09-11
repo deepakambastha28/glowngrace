@@ -34,7 +34,7 @@ test.describe("Home page", () => {
     await expect(page).toHaveTitle(/Glow & Grace/);
   });
 
-  test("home page product tile image keeps 200px height and fills card width", async ({
+  test("home page product tile image is strictly 266×200 with rounded corners", async ({
     page,
   }) => {
     await page.goto("/");
@@ -42,10 +42,8 @@ test.describe("Home page", () => {
     await expect(img).toBeVisible();
 
     const box = await img.boundingBox();
+    expect(box!.width).toBe(266);
     expect(box!.height).toBe(200);
-
-    const cardBox = await page.getByTestId("product-card").first().boundingBox();
-    expect(Math.abs(cardBox!.width - box!.width)).toBeLessThan(4);
 
     const borderRadius = await img.evaluate(
       (el) => getComputedStyle(el).borderRadius

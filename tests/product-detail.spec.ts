@@ -48,4 +48,18 @@ test.describe("Product detail", () => {
     await wish.click();
     await expect(wish).not.toHaveClass(/bg-rose/);
   });
+
+  test("detail page gallery hero is strictly 440×460", async ({ page, request }) => {
+    const name = `E2E Detail Hero ${Date.now()}`;
+    const slug = await seedProduct(request, name);
+    seededSlugs.push(slug);
+
+    await page.goto(`/products/${slug}`);
+    const hero = page.getByTestId("product-gallery");
+    await expect(hero).toBeVisible();
+
+    const box = await hero.boundingBox();
+    expect(box!.width).toBe(440);
+    expect(box!.height).toBe(460);
+  });
 });
