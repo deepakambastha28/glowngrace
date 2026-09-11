@@ -10,6 +10,11 @@ lands on a short-lived branch and merges via a Pull Request.
 
 ## Hard rule (user policy)
 
+- **Never push code automatically. Always stop and ask the user for explicit
+  confirmation before any `git push`, before opening a PR, and before merging.**
+  When the work is ready, present a short summary of what will be pushed
+  (branch, commits, PR impact) and WAIT for the user's go-ahead. Do not push
+  as part of finishing a task, even after a green build/test run.
 - **Never create a new branch while any PR is open.** If an open PR exists,
   finish/merge it first (or cancel it) before branching again.
 - Work is **verified before merge**, not after: build + lint green, headless
@@ -45,7 +50,8 @@ lands on a short-lived branch and merges via a Pull Request.
 3. Commit stage-wise with the repo's `<type>: <summary>` style:
    - `feat:` new capability, `fix:` bug, `style:` visual/layout, `chore:` tooling/deps, `docs:` docs only
    - Mirror the repo voice used so far, e.g. "feat: add typed API layer for pins/orders/applications"
-4. Push the branch and surface a PR **only after verification**.
+4. Push the branch and surface a PR **only after the user explicitly confirms
+   the push**. Do not push to conclude a task — always ask first.
 5. Create the PR with a proper description:
    - `gh pr create -t "<title>" -b "<body>"`
    - Body must include: What changed (bulleted, per area), Why (design source:

@@ -69,6 +69,10 @@ pill buttons) when touching UI.
 ## Git workflow policy (user-mandated)
 - Trunk-based. `main` is the only long-lived branch; work lands via a short
   branch + PR.
+- **Never push automatically. Always ask the user for explicit confirmation
+  before any `git push`, before opening a PR, and before merging.** When work
+  is ready, summarize what would be pushed and wait for the go-ahead — do not
+  push as part of concluding a task.
 - **Never commit or push directly to `main`** — all work is committed on a
   feature branch and shipped through a PR reviewed by the user.
 - **Never create a branch while a PR is open.**
