@@ -70,3 +70,19 @@ export async function POST(request: Request) {
     );
   }
 }
+
+/** DELETE /api/admin/reviews?id=... — delete a review. */
+export async function DELETE(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  if (!id) {
+    return NextResponse.json(
+      { deleted: false, error: "ID is required" },
+      { status: 400 }
+    );
+  }
+  if (isDbConfigured()) {
+    await query(`DELETE FROM gg_admin_reviews WHERE id = $1`, [Number(id)]);
+  }
+  return NextResponse.json({ deleted: true });
+}

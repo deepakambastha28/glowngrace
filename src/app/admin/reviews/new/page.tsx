@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AdminGuard } from "@/components/admin/admin-guard";
 import { createAdminReview } from "@/lib/api";
 
-const products = [
+const FALLBACK_PRODUCTS = [
   "Luxe Liquid Lipstick",
   "Vitamin C Face Serum",
   "Radiance Highlighter",
@@ -27,8 +27,28 @@ function ReviewForm() {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [status, setStatus] = useState("Approved");
+  const [products, setProducts] = useState<string[]>(FALLBACK_PRODUCTS);
 
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!active) return;
+        const names = (Array.isArray(d.items) ? d.items : [])
+          .map((p: { name?: string }) => (p?.name ?? "").trim())
+          .filter(Boolean);
+        if (names.length) setProducts(names);
+      })
+      .catch(() => {
+        /* keep fallback list */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

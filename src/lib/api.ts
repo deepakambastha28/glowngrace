@@ -7,6 +7,7 @@ import type {
 import type { Product } from "@/lib/data";
 import type { Partner } from "@/lib/data";
 import type { Job } from "@/lib/data";
+import type { Review } from "@/lib/data";
 
 interface ApiResponse<T = unknown> {
   ok: boolean;
@@ -150,6 +151,15 @@ export function fetchCartSnapshot(
 /** GET /api/products — storefront catalogue: curated products merged with admin-created products. */
 export function fetchProducts(): Promise<ApiResponse<{ items: Product[] }>> {
   return request<{ items: Product[] }>("/api/products");
+}
+
+/** GET /api/reviews?product=... — approved customer reviews for a product (by name). */
+export function fetchProductReviews(
+  product: string
+): Promise<ApiResponse<{ items: Review[] }>> {
+  return request<{ items: Review[] }>(
+    `/api/reviews?product=${encodeURIComponent(product)}`
+  );
 }
 
 /** GET /api/partners — storefront directory: curated partners merged with admin-created partners. */
