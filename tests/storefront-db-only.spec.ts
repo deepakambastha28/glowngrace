@@ -4,6 +4,16 @@ import { seedProduct, deleteSeededProduct } from "./helpers";
 test.describe("Storefront syncs with the admin DB only (no static catalog)", () => {
   const seededSlugs: string[] = [];
 
+  test.beforeAll(async ({ request }) => {
+    const adminList = await request.get("/api/admin/partners");
+    if (adminList.ok()) {
+      const items = ((await adminList.json()).items ?? []) as Array<{ id: number }>;
+      for (const item of items) {
+        await request.delete(`/api/admin/partners?id=${item.id}`);
+      }
+    }
+  });
+
   test.afterAll(async ({ request }) => {
     for (const slug of seededSlugs) {
       await deleteSeededProduct(request, slug);

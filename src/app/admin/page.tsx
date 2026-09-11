@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  Eye, EyeOff, Heart, Wallet, ShoppingBag, Users, Briefcase, Lock,
+  Heart, Wallet, ShoppingBag, Users, Briefcase,
   TrendingUp, TrendingDown,
 } from "lucide-react";
-import { adminLogin, adminSession, adminLogout } from "@/lib/api";
 
 interface DashboardData {
   persisted: boolean;
@@ -22,9 +21,6 @@ interface DashboardData {
     date: string;
   }[];
 }
-
-const DEMO_EMAIL = "admin@glowngrace.in";
-const DEMO_PASS = "admin123";
 
 const money = (n: number) => "₹" + (n || 0).toLocaleString("en-IN");
 
@@ -44,42 +40,7 @@ const chartData = [
 ];
 
 export default function AdminPage() {
-  const [checking, setChecking] = useState(true);
-  const [authed, setAuthed] = useState(false);
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [err, setErr] = useState("");
-
   const [data, setData] = useState<DashboardData | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5_000);
-    let disposed = false;
-    adminSession(controller.signal)
-      .then((res) => {
-        if (disposed) return;
-        setAuthed(Boolean(res.data?.authed));
-        if (res.data?.authed) loadDashboard();
-      })
-      .catch(() => {
-        if (disposed) return;
-        setAuthed(false);
-      })
-      .finally(() => {
-        clearTimeout(timer);
-        if (!disposed) setChecking(false);
-      });
-    return () => {
-      disposed = true;
-      clearTimeout(timer);
-      controller.abort();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const loadDashboard = useCallback(() => {
     fetch("/api/admin/dashboard")
@@ -88,104 +49,9 @@ export default function AdminPage() {
       .catch(() => {/* ignore */});
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErr("");
-    setSaving(true);
-    const res = await adminLogin(email, password);
-    setSaving(false);
-    if (res.data?.authed) {
-      window.location.reload();
-      return;
-    }
-    setErr(res.data?.error || "Invalid credentials. Try the demo login.");
-  };
-
-  const handleLogout = async () => {
-    await adminLogout();
-    window.location.assign("/admin");
-  };
-
-  if (checking) {
-    return (
-      <div className="grid min-h-[60vh] place-items-center text-muted">Loading…</div>
-    );
-  }
-
-  if (!authed) {
-    return (
-      <div className="mx-auto max-w-md px-6 py-16">
-        <div className="text-center mb-8">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-rose to-rose-dark text-white shadow-lg shadow-rose/30">
-            <Lock className="h-7 w-7" />
-          </div>
-          <h1 className="mt-4 text-3xl font-bold">
-            Welcome <span className="text-rose italic">Back</span>
-          </h1>
-          <p className="mt-2 text-muted">Sign in to your admin dashboard.</p>
-        </div>
-
-        {err && (
-          <div className="mb-5 flex items-center gap-2 rounded-[12px] bg-rose/10 px-4 py-3 text-sm text-red">
-            <span>⚠️</span> {err}
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="card !rounded-[20px] p-7 space-y-5">
-          <div>
-            <label className="field-label" htmlFor="adm-email">Email Address</label>
-            <div className="relative mt-1.5">
-              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-rose" />
-              <input
-                id="adm-email"
-                type="email"
-                className="field-input !rounded-full !pl-11"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@glowngrace.in"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="field-label" htmlFor="adm-pass">Password</label>
-            <div className="relative mt-1.5">
-              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-rose" />
-              <input
-                id="adm-pass"
-                type={showPass ? "text" : "password"}
-                className="field-input !rounded-full !pl-11 !pr-11"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-              />
-              <button
-                type="button"
-                aria-label="Toggle password"
-                onClick={() => setShowPass(!showPass)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted"
-              >
-                {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="btn-primary w-full"
-            disabled={saving}
-          >
-            {saving ? "Signing in…" : "Sign In"}
-          </button>
-        </form>
-
-        <div className="mt-6 rounded-[14px] border border-dashed border-rose-soft bg-blush px-4 py-3 text-center text-sm text-muted">
-          Demo login → <b className="text-rose">{DEMO_EMAIL}</b> /{" "}
-          <b className="text-rose">{DEMO_PASS}</b>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
 
   const stats = [
     { icon: Wallet, cls: "bg-blush text-rose", trend: "up", label: "Total Revenue", value: data ? money(data.revenue) : "₹0", trendText: "▲ 12.5%" },
@@ -202,9 +68,6 @@ export default function AdminPage() {
           <p className="mt-1 text-muted">Welcome back, Deepak — here&apos;s your store overview.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={handleLogout} className="btn-outline !py-2.5 !px-5 text-sm">
-            Sign out
-          </button>
           <Heart className="h-5 w-5 text-rose" />
         </div>
       </div>

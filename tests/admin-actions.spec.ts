@@ -4,8 +4,8 @@ const DEMO_EMAIL = "admin@glowngrace.in";
 const DEMO_PASS = "admin123";
 
 async function signIn(page: Page) {
-  await page.goto("/admin");
-  await page.getByLabel("Email Address").fill(DEMO_EMAIL);
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(DEMO_EMAIL);
   await page.getByLabel("Password", { exact: true }).fill(DEMO_PASS);
   await page.getByRole("button", { name: "Sign In" }).click();
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({ timeout: 30_000 });
