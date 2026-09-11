@@ -1,44 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { adminSession } from "@/lib/api";
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const router = useRouter();
-  const [ok, setOk] = useState<boolean | null>(null);
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5_000);
-    let disposed = false;
-    adminSession(controller.signal)
-      .then((res) => {
-        if (disposed) return;
-        const authed = Boolean(res.data?.authed);
-        setOk(authed);
-        if (!authed) router.replace("/admin");
-      })
-      .catch(() => {
-        if (disposed) return;
-        setOk(false);
-        router.replace("/admin");
-      })
-      .finally(() => clearTimeout(timer));
-    return () => {
-      disposed = true;
-      clearTimeout(timer);
-      controller.abort();
-    };
-  }, [router]);
+    adminSession().then((res) => {
+      if (res.ok && res.data?.authed) {
+        setChecked(true);
+      } else {
+        router.replace("/login");
+      }
+    });
+  }, [pathname, router]);
 
-  if (ok === null) {
+  if (!checked) {
     return (
-      <div className="grid min-h-[60vh] place-items-center text-muted">
-        Loading…
+      <div className="grid min-h-screen place-items-center bg-[#faf5f8]">
+        <div className="text-sm text-muted">Checking session…</div>
       </div>
     );
   }
 
-  return <>{ok ? children : null}</>;
+  return <>{children}</>;
 }
