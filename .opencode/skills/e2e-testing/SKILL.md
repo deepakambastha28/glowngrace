@@ -6,14 +6,18 @@ description: Use when writing or running Playwright end-to-end tests for the Glo
 # Playwright E2E Testing (Glow & Grace)
 
 The project uses `@playwright/test` with a single Chromium project. Tests live in
-`tests/` and run against a production build served on `http://localhost:3000`.
+`tests/` and run against `BASE_URL`.
 
 ## Setup (already in place)
 
 - Deps: `@playwright/test` (devDependency) in `package.json`.
-- Scripts: `npm run test:e2e` (headless) and `npm run test:e2e:ui` (headed UI mode).
-- `playwright.config.ts`: `webServer` runs `npm run build && npm run start` on
-  port 3000; `trace: "on-first-retry"`; 5s action/expect timeouts.
+- Scripts: `npm run test:e2e` (headed, serial) and `npm run test:e2e:ui`
+  (headed UI mode).
+- `playwright.config.ts`: single Chromium project, **headed by default**,
+  `workers: 1` (every spec mutates the same Neon DB, so parallel runs would
+  interfere), `trace: "on-first-retry"`, screenshots on, 15s action / 30s
+  expectation timeouts. There is **no `webServer`** — the base URL comes from
+  the `BASE_URL` env var and defaults to `https://glowngrace-dev.vercel.app`.
 - Browsers: run `npx playwright install chromium` once on a fresh machine. On
   Windows this installs to `%USERPROFILE%\AppData\Local\ms-playwright`.
 
@@ -21,32 +25,45 @@ The project uses `@playwright/test` with a single Chromium project. Tests live i
 
 ```bash
 npx playwright install chromium   # one-time browser install
-npm run test:e2e                  # headless CI-style run
-npm run test:e2e:ui               # headed mode — watch the browser as it runs
+npm run test:e2e                  # full suite (headed, serial) — set BASE_URL first
+npm run test:e2e:ui               # headed UI mode — watch the browser
 npx playwright test tests/home.spec.ts            # single file
-npx playwright test --ui                          # interactive UI runner
 npx playwright test --reporter=list               # verbose failure output
 npx playwright show-report                        # open the HTML report
 ```
 
-Headed mode (`test:e2e:ui`) still launches its own server via `webServer`; do not
-start a separate `npm run start`.
+Because the base URL defaults to the **deployed** `glowngrace-dev.vercel.app`,
+to test your own working tree run it against a local production build:
+
+```bash
+npm run build && npm run start     # serve on http://localhost:3000
+$env:BASE_URL="http://localhost:3000"; npm run test:e2e
+```
+
+Headed mode pops up real Chromium windows while the suite runs — that run IS the
+UI pass, so interactive repair is usually unnecessary.
 
 ## DB-only storefront (important!)
 
-- The storefront catalog comes **only from the admin DB**. `/api/products` and
-  `/api/partners` return `{ items: [...] }` and never merge static data from
-  `src/lib/data.ts`. Old static slugs like `luxe-liquid-lipstick` **404** now.
+- The storefront catalog comes **only from the admin DB**. `/api/products`,
+  `/api/partners`, `/api/events`, and `/api/jobs` return `{ items: [...] }` and
+  never merge static data from `src/lib/data.ts`. Old static slugs like
+  `luxe-liquid-lipstick` **404** now.
 - Home hero circle + Bestsellers + partner preview are client-fetched from those
   APIs, so the DOM needs a beat to hydrate/populate. Assert with
   `toBeVisible({ timeout: 30_000 })` after navigation; never count cards
   immediately after `goto` (the grid is client-side).
 - To test storefront flows you must have admin records. Use the helpers in
-  `tests/helpers.ts`: `seedProduct(request, name)` returns the created slug; add
-  cleanup via `deleteSeededProduct(request, slug)` in `afterAll`/`afterEach`
-  (keeps the DB tidy for repeated runs). See `tests/storefront-db-only.spec.ts`
-  and `tests/home.spec.ts` for the pattern.
+  `tests/helpers.ts`: `seedProduct(request, name)` returns the created slug;
+  add cleanup via `deleteSeededProduct(request, slug)` in `afterAll`/`afterEach`
+  (keeps the DB tidy for repeated runs). The same helpers exist for events
+  (`seedEvent` / `deleteSeededEvent`) and jobs (`seedJob` / `deleteSeededJob`).
+  See `tests/storefront-db-only.spec.ts`, `tests/home.spec.ts`,
+  `tests/events.spec.ts` and `tests/careers.spec.ts` for the pattern.
 - Admin record specs self-clean the records they create (products/partners/candidates).
+- The whole suite is serial (`workers: 1`) because the specs share one live Neon
+  DB — never bump the worker count, left-over rows from a cancelled parallel run
+  can break storefront specs (e.g. the partners preview on home).
 
 ## Selector conventions
 
@@ -80,7 +97,11 @@ mirrors the reference design and changes.
   Delete controls; add flows are reached from each combined list page ("Add
   Product/Job/Partner"). Form save buttons: "Save Product", "Save Job",
   "Save Partner" (candidate edit uses "Save Changes"). `tests/admin-actions.spec.ts`
-  covers the full product/job/partner/candidate lifecycle.
+  covers the full product/job/partner/candidate lifecycle. Events CRUD lives on
+  `/admin/events` (list with rows + Edit / Hide / Delete, "Add Event" →
+  `/admin/events/new`, form save button "Save Event"); event visibility
+  (`hidden`) drives the storefront `/api/events`, so a hidden event drops off
+  `/events`. `tests/events.spec.ts` seeds events through the API.
 - Checkout: `checkout-next`, `place-order`, `order-summary`, `order-confirmation`,
   `order-id`. **Gotcha:** on the cart-review step `checkout-next` advances
   without validating (fields mount on step 2); getByLabel on step-2 fields only

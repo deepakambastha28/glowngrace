@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { toast } from "sonner";
-import { events } from "@/lib/data";
+import type { EventItem } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 interface EventDetailPageProps {
@@ -41,9 +41,22 @@ function formatDate(iso: string) {
 }
 
 export default function EventDetailPage({ params }: EventDetailPageProps) {
-  const event = events.find((e) => e.slug === params.slug);
+  const [allEvents, setAllEvents] = useState<EventItem[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
-  if (!event) {
+  useEffect(() => {
+    fetch("/api/events")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.items) setAllEvents(d.items);
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
+  }, []);
+
+  const event = allEvents.find((e) => e.slug === params.slug);
+
+  if (loaded && !event) {
     notFound();
   }
 
@@ -56,7 +69,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
       setLbIndex((prev) =>
         prev === null
           ? null
-          : (prev + d + event!.gallery.length) % event!.gallery.length
+          : (prev + d + (event?.gallery.length ?? 0)) % (event?.gallery.length ?? 1)
       ),
     [event]
   );

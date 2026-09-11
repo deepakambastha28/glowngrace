@@ -40,11 +40,13 @@ pill buttons) when touching UI.
   in `src/app/login/page.tsx` (`shopper@...`, `candidate@...`, `admin@...`).
   Registered users stored in localStorage `glow-grace-registered-users`.
 - Data: `src/lib/data.ts` — static catalog was removed from the storefront:
-  `/api/products` and `/api/partners` are **admin-DB only** (products have
-  `reviewsCount` (not `reviews`) and `inStock` (not `available`) — grep it
-  before coding against a shape). `data.ts` still backs jobs/careers,
-  testimonials, and events. Storefront E2E specs seed admin records via
-  `tests/helpers.ts` (`seedProduct` / `deleteSeededProduct`).
+  `/api/products`, `/api/partners`, `/api/events`, and `/api/jobs` are
+  **admin-DB only** (products have `reviewsCount` (not `reviews`) and inStock
+  (not `available`) — grep it before coding against a shape). `data.ts` now
+  backs only home static content (testimonials); jobs and events come from
+  `gg_admin_jobs` / `gg_admin_events`. Storefront E2E specs seed admin records
+  via `tests/helpers.ts` (`seedProduct` / `deleteSeededProduct`,
+  `seedEvent` / `deleteSeededEvent`, `seedJob` / `deleteSeededJob`).
 
 ## Conventions
 - Commit style (used on main): lowercase type + summary —
@@ -60,8 +62,9 @@ pill buttons) when touching UI.
 ## Verification (always before shipping)
 - `npm run lint`
 - `npm run build`
-- `npm run test:e2e` (headless) after a server is available
-- Headed `npm run test:e2e:ui` with the user for UI review.
+- `npm run test:e2e` (headed, serial) against a local build
+  (`npm run start` + `$env:BASE_URL="http://localhost:3000"`) — this run IS the
+  UI pass since the browser is on screen.
 
 ## Git workflow policy (user-mandated)
 - Trunk-based. `main` is the only long-lived branch; work lands via a short

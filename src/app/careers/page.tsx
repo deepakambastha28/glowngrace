@@ -1,11 +1,23 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MapPin, Clock, Briefcase, ArrowRight } from "lucide-react";
-import { jobs } from "@/lib/data";
+import type { Job } from "@/lib/data";
+import { fetchJobs } from "@/lib/api";
 import { jobLocation } from "@/lib/utils";
 
 export default function CareersPage() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetchJobs().then((res) => {
+      if (!active) return;
+      if (res.data?.items?.length) setJobs(res.data.items);
+    });
+    return () => { active = false; };
+  }, []);
   return (
     <div className="pb-16">
       <div className="breadcrumb">

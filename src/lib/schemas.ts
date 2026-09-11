@@ -248,6 +248,28 @@ export type AdminPartnerFormData = z.infer<typeof adminPartnerSchema>;
 export const adminPartnerPatchSchema = adminPartnerSchema.partial();
 export type AdminPartnerPatch = z.infer<typeof adminPartnerPatchSchema>;
 
+export const adminEventSchema = z.object({
+  title: z.string().min(1, "Please enter an event title"),
+  category: z.string().default("Workshop"),
+  emoji: z.string().default("🎉"),
+  gradient: z.string().default("linear-gradient(135deg,#d6336c,#f4a6c0)"),
+  date: z.string().min(1, "Please select a date"),
+  time: z.string().default("10:00 AM"),
+  loc: z.string().default(""),
+  venue: z.string().default(""),
+  price: z.string().default("Free"),
+  capacity: z.coerce.number().int().positive().default(50),
+  spotsLeft: z.coerce.number().int().nonnegative().default(50),
+  description: z.string().default(""),
+  agenda: z.array(z.string()).default([]),
+  tags: z.array(z.string()).default([]),
+  hidden: z.boolean().optional(),
+});
+
+export type AdminEventFormData = z.infer<typeof adminEventSchema>;
+export const adminEventPatchSchema = adminEventSchema.partial();
+export type AdminEventPatch = z.infer<typeof adminEventPatchSchema>;
+
 export const adminCandidatePatchSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").optional(),
   phone: z

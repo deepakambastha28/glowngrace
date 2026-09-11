@@ -11,9 +11,9 @@ import {
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/auth";
 import { usePersistReady } from "@/lib/use-persist-ready";
-import { saveCandidate, fetchCandidate, deleteCandidate, fetchApplications } from "@/lib/api";
+import { saveCandidate, fetchCandidate, deleteCandidate, fetchApplications, fetchJobs } from "@/lib/api";
 import type { ApplicationRecord } from "@/lib/api";
-import { jobs } from "@/lib/data";
+import type { Job } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 const experienceOptions = [
@@ -72,6 +72,7 @@ export default function CandidatePage() {
 
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [appsLoading, setAppsLoading] = useState(false);
+  const [allJobs, setAllJobs] = useState<Job[]>([]);
 
   useEffect(() => {
     if (persistReady && !user) router.replace("/login");
@@ -111,6 +112,12 @@ export default function CandidatePage() {
       setAppsLoading(false);
     });
   }, [tab, user]);
+
+  useEffect(() => {
+    fetchJobs().then((res) => {
+      if (res.data?.items?.length) setAllJobs(res.data.items);
+    });
+  }, []);
 
   const addSkill = () => {
     const v = skillInput.trim();
@@ -209,11 +216,11 @@ export default function CandidatePage() {
   const hasProfile = Boolean(fullName.trim() || phone.trim() || city.trim() || skills.length || gallery.length);
 
   const recommendedJobs = specialization
-    ? jobs.filter((j) => {
+    ? allJobs.filter((j) => {
         const matched = specializationJobMap[specialization];
         return matched?.includes(j.slug);
       })
-    : jobs.slice(0, 3);
+    : allJobs.slice(0, 3);
 
   const tabButton = (t: Tab, icon: React.ReactNode, label: string) => (
     <button

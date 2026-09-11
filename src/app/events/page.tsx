@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, CalendarDays, MapPin } from "lucide-react";
-import { events } from "@/lib/data";
+import type { EventItem } from "@/lib/data";
 import { EventCard } from "@/components/events/event-card";
 import { EventCarousel } from "@/components/events/event-carousel";
 
@@ -32,23 +32,33 @@ export default function EventsPage() {
   const [month, setMonth] = useState("");
   const [loc, setLoc] = useState("");
   const [sort, setSort] = useState<"soonest" | "name">("soonest");
+  const [allEvents, setAllEvents] = useState<EventItem[]>([]);
+
+  useEffect(() => {
+    fetch("/api/events")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.items) setAllEvents(d.items);
+      })
+      .catch(() => {});
+  }, []);
 
   const allMonths = useMemo(
     () =>
       Array.from(
-        new Set(events.map((e) => monthLabel(e.date)))
+        new Set(allEvents.map((e) => monthLabel(e.date)))
       ).sort(),
-    []
+    [allEvents]
   );
 
   const allLocs = useMemo(
-    () => Array.from(new Set(events.map((e) => e.loc))).sort(),
-    []
+    () => Array.from(new Set(allEvents.map((e) => e.loc))).sort(),
+    [allEvents]
   );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let list = events.filter((e) => {
+    let list = allEvents.filter((e) => {
       const matchesQ =
         !q ||
         e.title.toLowerCase().includes(q) ||
@@ -65,7 +75,7 @@ export default function EventsPage() {
       list.sort((a, b) => a.title.localeCompare(b.title));
     }
     return list;
-  }, [query, month, loc, sort]);
+  }, [query, month, loc, sort, allEvents]);
 
   const hasFilters = Boolean(query || month || loc);
 
@@ -157,7 +167,7 @@ export default function EventsPage() {
 
           <div className="event-count">
             <span data-testid="event-count">
-              Showing <b>{filtered.length}</b> of {events.length} events
+              Showing <b>{filtered.length}</b> of {allEvents.length} events
             </span>
             {hasFilters && (
               <span className="active-chips">

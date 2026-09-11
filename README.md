@@ -18,20 +18,20 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 | Fonts          | Playfair Display (headings) + Inter (body) via next/font |
 | Animation      | Framer Motion                                          |
 | Toasts         | sonner                                                 |
-| E2E            | Playwright (@playwright/test) — headless + UI runner   |
+| E2E            | Playwright (@playwright/test) — headed/serial suite + UI runner |
 
 ## Pages
 
 - **`/`** — Hero (+ rotating DB-backed product circle), stats, trust badges, categories, bestsellers, job vacancies, CTA banner, testimonials, newsletter, footer
-- **`/admin`** — Authenticated admin console (dashboard + products/jobs/partners/candidates with create / edit / hide / hold / delete). Signed-in sessions gate the sidebar; `/admin` hides storefront chrome.
+- **`/admin`** — Authenticated admin console (dashboard + products/jobs/events/partners/candidates with create / edit / hide / hold / delete). Signed-in sessions gate the sidebar; `/admin` hides storefront chrome.
 - **`/products`** — Filter by category, sort by price/rating, live search. Catalog is **admin-DB driven** (`/api/products`), no static seed.
 - **`/products/[slug]`** — Gallery + thumbnails, price + % saved, qty stepper, Add to Cart, features, delivery info, tabs (Description / Info / Reviews). Unknown slugs → custom 404.
 - **`/cart`** — Editable quantity, remove, promo code (`GLOW10` for 10% off), summary (subtotal + free-shipping logic + 5% GST + total), empty state, DB-backed wishlist section.
 - **`/checkout`** — 3-step wizard (Cart → Shipping & Payment → Confirmation) with live order summary; payment: Card / UPI / NetBanking / COD. Place Order clears the cart and shows order ID.
 - **`/checkout/success`** — Order confirmation with `#GG-2026-XXXXX`
 - **`/partners`** — Partner directory driven by admin DB (`/api/partners`), hidden on home when empty
-- **`/events`** — Static event tiles, filters, detail with gallery + lightbox, carousel banner
-- **`/careers`** — Job cards (type, title, salon, location, salary, experience)
+- **`/events`** — Admin-DB event tiles (created in `/admin/events`, exposed via `/api/events`), search + date/location filters, detail with gallery + lightbox, carousel banner
+- **`/careers`** — Job cards (type, title, salon, location, salary, experience) driven by `/api/jobs` (admin DB)
 - **`/careers/[slug]`** — Job header + tags, responsibilities, requirements, perks, sticky Apply box
 - **`/careers/[slug]/apply`** — Validated application form with drag-drop PDF/DOC resume upload, T&C, success screen
 - **`/shopper`** & **`/candidate`** — Role-based profiles with Edit Profile / orders / password / address / contact tabs
@@ -56,8 +56,8 @@ npm run dev
 # 4. Production build + verify
 npm run build && npm start
 npm run lint
-npm run test:e2e        # headless Playwright
-npm run test:e2e:ui     # headed UI runner
+npm run test:e2e        # Playwright E2E (headed, serial) against BASE_URL
+npm run test:e2e:ui     # Playwright UI mode (watch + debug)
 ```
 
 ## Deploy to Vercel (zero config)
@@ -91,10 +91,11 @@ Alternatively use the CLI: `npm i -g vercel && vercel` (then `vercel --prod`).
 
 ### Ecommerce Notes
 
-- **Catalog source:** products and partners on the storefront come **only from the
-  admin database** (`gg_admin_products`, `gg_admin_partners`) via `/api/products`
-  and `/api/partners` — there is no static fallback. `hidden`/`hold` products are
-  excluded from the storefront.
+- **Catalog source:** products, partners, events, and jobs on the storefront come
+  **only from the admin database** (`gg_admin_products`, `gg_admin_partners`,
+  `gg_admin_events`, `gg_admin_jobs`) via `/api/products`, `/api/partners`,
+  `/api/events`, and `/api/jobs` — there is no static fallback. `hidden`/`hold`
+  records are excluded from the storefront.
 - **Totals:** `total = subtotal + 5% GST + shipping (FREE over ₹999) − promo`
 - **Cart/wishlist:** persisted to `localStorage` (Zustand `persist` middleware);
   the cart-page wishlist resolves product details from `/api/products`
@@ -110,23 +111,23 @@ src/
 │   ├── layout.tsx            # Fonts, metadata/SEO, Navbar/Footer/Toaster
 │   ├── globals.css           # Design tokens + component classes
 │   ├── page.tsx              # Home
-│   ├── admin/                # Admin console (dashboard + products/jobs/partners/candidates)
+│   ├── admin/                # Admin console (dashboard + products/jobs/events/partners/candidates)
 │   ├── products/             # List + [slug] detail (DB-driven storefront)
 │   ├── cart/ checkout/       # Cart + 3-step checkout wizard + success
 │   ├── careers/              # List, [slug], [slug]/apply
 │   ├── partners/ events/     # Partner directory + event gallery
 │   ├── shopper/ candidate/   # Role-based account profiles
 │   ├── login/ signup/
-│   ├── api/                  # Route handlers (products/partners storefront + admin CRUD)
+│   ├── api/                  # Route handlers (products/partners/events/jobs storefront + admin CRUD)
 │   └── not-found.tsx
 ├── components/
 │   ├── layout/               # navbar, footer, logo
 │   ├── home/                 # hero, hero circle, bestsellers, partner preview, CTAs
 │   ├── shop/                 # product-card
-│   ├── admin/                # product/job/partner forms + admin-guard
+│   ├── admin/                # product/job/event/partner forms + admin-guard
 │   ├── partners/ ui/         # partner-card + shadcn/ui primitives
 └── lib/
-    ├── data.ts               # static content (jobs, testimonials, events); NOT storefront products/partners
+    ├── data.ts               # home static content (testimonials); NOT storefront products/partners/events/jobs
     ├── store.ts              # Zustand cart + wishlist store
     ├── schemas.ts            # Zod schemas (checkout, apply, auth, admin records)
     └── utils.ts              # cn, formatPrice, discount helpers
@@ -135,8 +136,11 @@ src/
 ## Persistence
 
 - Neon Postgres via `src/lib/db.ts` (graceful no-op when `DATABASE_URL` is unset).
-- Admin tables: `gg_admin_products`, `gg_admin_jobs`, `gg_admin_partners`,
-  `gg_admin_candidates`, `gg_admin_reviews`. `/api/products` and `/api/partners`
-  expose non-hidden rows to the storefront with `admin-`-prefixed ids.
+- Admin tables: `gg_admin_products`, `gg_admin_jobs`, `gg_admin_events`,
+  `gg_admin_partners`, `gg_admin_candidates`, `gg_admin_reviews`. `/api/products`,
+  `/api/partners`, `/api/events`, and `/api/jobs` expose non-hidden rows to the
+  storefront with `admin-`-prefixed ids.
 - E2E specs seed admin records through `tests/helpers.ts`
-  (`seedProduct` / `deleteSeededProduct`) so the catalog is exercised against real data.
+  (`seedProduct` / `deleteSeededProduct`, `seedEvent` / `deleteSeededEvent`,
+  `seedJob` / `deleteSeededJob`) so the storefront is exercised against real data.
+  The suite runs serially (`workers: 1`) because every spec shares one Neon DB.

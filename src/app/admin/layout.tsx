@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, Briefcase, MessageSquare, Users, LogOut, type LucideIcon } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  LayoutDashboard, Package, Briefcase, MessageSquare, Users,
+  CalendarDays, LogOut, Menu, Search, Bell,
+  type LucideIcon,
+} from "lucide-react";
 import { adminLogout, adminSession } from "@/lib/api";
+import { useAuthStore } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -26,6 +31,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { href: "/admin/products", label: "Products", icon: Package },
       { href: "/admin/jobs", label: "Jobs", icon: Briefcase },
+      { href: "/admin/events", label: "Events", icon: CalendarDays },
       { href: "/admin/reviews", label: "Reviews", icon: MessageSquare },
       { href: "/admin/partners", label: "Partners", icon: Users },
       { href: "/admin/candidates", label: "Candidates", icon: Users },
@@ -33,51 +39,58 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   },
 ];
 
+const SESSION_MS = 60 * 15 * 1000;
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5_000);
-    let disposed = false;
-    adminSession(controller.signal)
-      .then((res) => {
-        if (disposed) return;
-        setAuthed(Boolean(res.data?.authed));
-      })
-      .catch(() => {
-        if (disposed) return;
-        setAuthed(false);
-      })
-      .finally(() => clearTimeout(timer));
-    return () => {
-      disposed = true;
-      clearTimeout(timer);
-      controller.abort();
-    };
-  }, []);
+    adminSession().then((res) => {
+      const ok = !!(res.ok && res.data?.authed);
+      setAuthed(ok);
+      if (ok) {
+        scheduleLogout();
+      } else {
+        router.replace("/login");
+      }
+    });
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [pathname, router]);
 
-  const handleLogout = async () => {
-    await adminLogout();
-    window.location.assign("/admin");
+  const scheduleLogout = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(async () => {
+      await adminLogout();
+      useAuthStore.getState().signOut();
+      window.location.href = "/";
+    }, SESSION_MS);
   };
 
-  if (authed === null) {
+  const handleLogout = async () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    await adminLogout();
+    useAuthStore.getState().signOut();
+    window.location.href = "/";
+  };
+
+  if (authed === null || !authed) {
     return (
-      <div className="grid min-h-screen place-items-center p-8 text-muted">
-        Loading…
+      <div className="grid min-h-screen place-items-center bg-[#faf5f8]">
+        <div className="text-sm text-muted">Loading…</div>
       </div>
     );
   }
 
-  if (!authed) {
-    return <div className="min-h-screen py-10">{children}</div>;
-  }
-
   return (
     <div className="admin-shell">
-      <aside className="admin-sidebar px-4 py-6" data-testid="admin-sidebar">
+      <aside
+        className={cn("admin-sidebar px-4 py-6", sidebarOpen && "open")}
+        data-testid="admin-sidebar"
+      >
         <div className="px-3 pb-5 border-b border-white/10 mb-4">
           <div className="font-heading text-xl font-bold text-white">
             Glow<span className="text-gold">&amp;</span>Grace
@@ -101,6 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => setSidebarOpen(false)}
                     className={cn("admin-nav-item", isActive && "active")}
                   >
                     <item.icon className="h-[18px] w-[18px]" />
@@ -112,26 +126,51 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
 
-        <div className="border-t border-white/10 px-3 py-4 flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-rose-soft to-rose text-white font-bold">
+        <div className="admin-sidefoot">
+          <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-rose-soft to-rose text-white font-bold shrink-0">
             DK
           </div>
-          <div className="flex-1">
-            <div className="text-sm text-white font-semibold leading-tight">Deepak Kumar</div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm text-white font-semibold leading-tight truncate">Deepak Kumar</div>
             <div className="text-[0.72rem] text-[#9a8fa0]">Store Administrator</div>
           </div>
           <button
             onClick={handleLogout}
             title="Sign out"
-            className="text-[#9a8fa0] hover:text-white transition-colors"
             aria-label="Sign out"
+            className="grid h-9 w-9 place-items-center rounded-lg text-[#9a8fa0] hover:text-white hover:bg-white/10 transition-colors"
           >
-            <LogOut className="h-5 w-5" />
+            <LogOut className="h-[18px] w-[18px]" />
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0 px-6 md:px-8 py-8">{children}</main>
+      <div className="admin-main">
+        <header className="admin-topbar">
+          <button
+            className="menu-btn"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="Toggle menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+
+          <div className="admin-search">
+            <Search className="h-4 w-4 text-rose" />
+            <input placeholder="Search…" aria-label="Search" />
+          </div>
+
+          <div className="admin-actions">
+            <span className="t-ic" title="Notifications">
+              <Bell className="h-5 w-5" />
+              <span className="dot" />
+            </span>
+            <div className="admin-av">DK</div>
+          </div>
+        </header>
+
+        <main className="admin-content">{children}</main>
+      </div>
     </div>
   );
 }

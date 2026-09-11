@@ -49,4 +49,18 @@ test.describe("Auth pages", () => {
     await page.getByRole("link", { name: "Sign up" }).click();
     await expect(page).toHaveURL(/\/signup/);
   });
+
+  test("login page renders a two-column split with a brand panel left of the form", async ({ page }) => {
+    await page.goto("/login");
+
+    const brand = page.getByTestId("login-brand-panel");
+    const form = page.getByTestId("login-form-panel");
+
+    await expect(brand).toBeVisible();
+    await expect(form).toBeVisible();
+
+    const brandBox = await brand.boundingBox();
+    const formBox = await form.boundingBox();
+    expect(brandBox!.x).toBeLessThan(formBox!.x);
+  });
 });

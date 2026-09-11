@@ -16,6 +16,7 @@ import {
 import { Logo } from "./logo";
 import { useCartStore } from "@/lib/store";
 import { useAuthStore } from "@/lib/auth";
+import { adminLogout } from "@/lib/api";
 import { usePersistReady } from "@/lib/use-persist-ready";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +38,10 @@ export function Navbar() {
   const user = useAuthStore((state) => state.user);
   const signOut = useAuthStore((state) => state.signOut);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (user?.role === "admin") {
+      await adminLogout();
+    }
     signOut();
     setAccountOpen(false);
     setMobileOpen(false);

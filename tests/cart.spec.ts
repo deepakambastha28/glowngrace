@@ -53,7 +53,9 @@ test.describe("Cart", () => {
     await expect(page.getByTestId("checkout-next")).toBeVisible();
   });
 
-  test("shows a wishlisted product on the cart page even when the cart is empty", async ({ page }) => {
+  test("shows a wishlisted product on the cart page even when the cart is empty", async ({ page, request }) => {
+    const slug = await seedProduct(request, `E2E Wishlist ${Date.now()}`);
+    seededSlugs.push(slug);
     await page.goto("/products");
     await page.getByTestId("product-card").first().getByTestId("wishlist-button").click();
 
@@ -63,7 +65,9 @@ test.describe("Cart", () => {
     await expect(page.getByTestId("empty-cart")).toBeVisible();
   });
 
-  test("adds a wishlist item to the cart from the cart page", async ({ page }) => {
+  test("adds a wishlist item to the cart from the cart page", async ({ page, request }) => {
+    const slug = await seedProduct(request, `E2E Wishlist ${Date.now()}`);
+    seededSlugs.push(slug);
     await page.goto("/products");
     const card = page.getByTestId("product-card").first();
     await card.getByTestId("wishlist-button").click();
@@ -79,7 +83,9 @@ test.describe("Cart", () => {
     await expect(wishlistItem.getByTestId("wishlist-add-to-cart")).toHaveText(/In Cart/);
   });
 
-  test("removes a wishlist item from the cart page", async ({ page }) => {
+  test("removes a wishlist item from the cart page", async ({ page, request }) => {
+    const slug = await seedProduct(request, `E2E Wishlist ${Date.now()}`);
+    seededSlugs.push(slug);
     await page.goto("/products");
     await page.getByTestId("product-card").first().getByTestId("wishlist-button").click();
 

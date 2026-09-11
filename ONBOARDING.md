@@ -46,17 +46,24 @@ Invoke-RestMethod http://localhost:3000/api/health
 ```
 Expect `database: "connected"`. First write auto-creates the tables
 (`gg_orders`, `gg_job_applications`, `gg_newsletter_subscribers`,
-`gg_cart_snapshots`). See `.opencode/skills/postgres-testing/SKILL.md`.
+`gg_cart_snapshots`) and the admin tables (`gg_admin_products`,
+`gg_admin_jobs`, `gg_admin_events`, `gg_admin_partners`, `gg_admin_candidates`,
+`gg_admin_reviews`, `gg_admin_sessions`). See
+`.opencode/skills/postgres-testing/SKILL.md`.
 
 ## 6. Tests
 ```bash
 npm run lint          # eslint
 npm run build         # typecheck + compile
-npm run test:e2e      # headless Playwright (boots its own server)
-npm run test:e2e:ui   # headed UI runner — watch the browser
+npm run test:e2e      # Playwright E2E — headed, serial (1 worker)
+npm run test:e2e:ui   # Playwright UI mode — watch + debug
 ```
-Playwright boots `npm run build && npm run start` on :3000 itself; don't start
-a second server. See `.opencode/skills/e2e-testing/SKILL.md`.
+The suite is headed and serial because every spec shares one Neon DB. The base
+URL comes from `BASE_URL` (defaults to the deployed
+`https://glowngrace-dev.vercel.app`); to test your local build first run
+`npm run start` (after `npm run build`), then run
+`$env:BASE_URL="http://localhost:3000"; npm run test:e2e`.
+See `.opencode/skills/e2e-testing/SKILL.md`.
 
 ## 7. Common gotchas
 - **Empty cart → checkout redirects to /cart.** Always add an item first.

@@ -1,8 +1,19 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { jobs } from "@/lib/data";
+import type { Job } from "@/lib/data";
+import { fetchJobs } from "@/lib/api";
 import { jobLocation } from "@/lib/utils";
 
 export function JobVacancies() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+
+  useEffect(() => {
+    fetchJobs().then((res) => {
+      if (res.data?.items?.length) setJobs(res.data.items);
+    });
+  }, []);
   return (
     <section className="section bg-rose-blush" id="jobs" data-testid="jobs-section">
       <div className="mx-auto max-w-screen-xl px-6">

@@ -29,6 +29,7 @@ function toStorefrontProduct(row: Record<string, unknown>): Product | null {
     description: String(row.description ?? ""),
     features: Array.isArray(row.features) ? (row.features as string[]) : [],
     inStock: stock > 0,
+    imageData: row.image_data ? String(row.image_data) : null,
   };
 }
 
@@ -39,7 +40,7 @@ export async function GET() {
   if (isDbConfigured()) {
     const rows = await query(
       `SELECT id, slug, emoji, brand, name, category, price, old_price,
-              stock, description, features, is_new, created_at
+              stock, description, features, is_new, image_data, created_at
        FROM gg_admin_products WHERE hidden = false ORDER BY created_at DESC`
     );
     items = (rows ?? [])

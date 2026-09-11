@@ -18,7 +18,9 @@ commit it, never print the DATABASE_URL value in command output.
 - Build is green and `npm run start` (or `dev`) is running → DATABASE_URL is
   set from `.env.local`.
 - API routes: `/api/orders`, `/api/newsletter`, `/api/applications`,
-  `/api/cart`, `/api/health`.
+  `/api/cart`, `/api/health`, plus the storefront catalog routes
+  (`/api/products`, `/api/partners`, `/api/events`, `/api/jobs`) and the admin
+  CRUD routes (`/api/admin/*`).
 
 ## Health check first
 
@@ -47,6 +49,13 @@ Tables created with `CREATE TABLE IF NOT EXISTS` in `src/lib/db.ts`
 | `gg_job_applications` | job_slug, job_title, full_name, phone, email, city, experience, specialization, qualification, cover_note, resume_name |
 | `gg_newsletter_subscribers` | email (unique) |
 | `gg_cart_snapshots` | device_id (unique), items(jsonb), wishlist(jsonb) |
+| `gg_admin_products` | slug (unique), brand, name, price, stock, feature/jsonb, tags/jsonb, is_new, hidden |
+| `gg_admin_jobs` | slug (unique), title, salon, location, type, salary_text, requirements(jsonb), status, hidden |
+| `gg_admin_events` | slug (unique), title, category, date, time, loc, venue, price, capacity, spots_left, agenda(jsonb), tags(jsonb), hidden |
+| `gg_admin_partners` | slug (unique), name, type, loc, rating, reviews, tags(jsonb), status |
+| `gg_admin_candidates` | user_email, full_name, phone, email, skills(jsonb), gallery(jsonb), status |
+| `gg_admin_reviews` | author, product, rating, comment, status |
+| `gg_admin_sessions` | token (unique), email |
 
 ## Verifying rows after creating data
 

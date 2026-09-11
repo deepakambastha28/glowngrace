@@ -21,7 +21,7 @@ export async function GET() {
       query(
         `SELECT COALESCE(SUM(total), 0) AS revenue, COUNT(*) AS orders FROM gg_orders`
       ),
-      query(`SELECT COALESCE(COUNT(*), 0) AS customers FROM gg_newsletter_subscribers`),
+      query(`SELECT COALESCE(COUNT(DISTINCT customer_name), 0) AS customers FROM gg_orders`),
       query(
         `SELECT COALESCE(COUNT(*), 0) AS active_jobs FROM gg_admin_jobs WHERE status = 'Open'`
       ),

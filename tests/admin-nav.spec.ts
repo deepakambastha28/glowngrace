@@ -4,8 +4,8 @@ test.describe("Admin sidebar navigation stays authenticated", () => {
   test("sidebar offers one combined menu per section (no separate Add* links), incl. Partners", async ({ page }) => {
     test.setTimeout(120_000);
 
-    await page.goto("/admin");
-    await page.getByLabel("Email Address").fill("admin@glowngrace.in");
+    await page.goto("/login");
+    await page.getByLabel("Email").fill("admin@glowngrace.in");
     await page.getByLabel("Password", { exact: true }).fill("admin123");
     await page.getByRole("button", { name: "Sign In" }).click();
 
@@ -39,8 +39,8 @@ test.describe("Admin sidebar navigation stays authenticated", () => {
   test("add flows stay reachable from each combined list page", async ({ page }) => {
     test.setTimeout(120_000);
 
-    await page.goto("/admin");
-    await page.getByLabel("Email Address").fill("admin@glowngrace.in");
+    await page.goto("/login");
+    await page.getByLabel("Email").fill("admin@glowngrace.in");
     await page.getByLabel("Password", { exact: true }).fill("admin123");
     await page.getByRole("button", { name: "Sign In" }).click();
 
