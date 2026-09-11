@@ -64,7 +64,7 @@ export function Footer() {
                 <span>📍</span> Hazratganj, Lucknow, UP 226001
               </li>
               <li className="flex gap-2.5 items-start">
-                <span>📞</span> +91 98765 43210
+                <span>📞</span> +91 89718 21213
               </li>
               <li className="flex gap-2.5 items-start">
                 <span>✉️</span> hello@glowandgrace.in

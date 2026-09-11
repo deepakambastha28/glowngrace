@@ -5,8 +5,7 @@ import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import { Minus, Plus, ShoppingBag, Zap, Heart, Truck, RefreshCcw, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import { reviews } from "@/lib/data";
-import type { Product } from "@/lib/data";
+import type { Product, Review } from "@/lib/data";
 import { fetchProducts } from "@/lib/api";
 import { useCartStore } from "@/lib/store";
 import { money, calculateDiscount, cn } from "@/lib/utils";
@@ -83,7 +82,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     toast.success(isWishlisted ? "Removed from wishlist 💔" : "Added to wishlist 💖");
   };
 
-  const productReviews = reviews.slice(0, 3);
+  const productReviews: Review[] = [];
 
   return (
     <div className="pb-16">
@@ -114,7 +113,16 @@ export default function ProductPage({ params }: ProductPageProps) {
               galleryShadows[activeImage]
             )}
           >
-            <span className="text-[10rem]">{product.emoji}</span>
+            {product.imageData ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={product.imageData}
+                alt={product.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="text-[10rem]">{product.emoji}</span>
+            )}
             {discount > 0 && (
               <span className="absolute top-5 right-5 rounded-full bg-emerald px-4 py-1.5 text-[0.85rem] font-bold text-white shadow-soft">
                 Save {discount}% on MRP
@@ -133,7 +141,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 key={i}
                 onClick={() => setActiveImage(i)}
                 className={cn(
-                  "grid h-20 w-20 place-items-center rounded-2xl bg-gradient-to-br border border-line transition-all cursor-pointer",
+                  "grid h-20 w-20 place-items-center rounded-2xl bg-gradient-to-br border border-line transition-all cursor-pointer overflow-hidden",
                   shadow,
                   activeImage === i
                     ? "ring-2 ring-rose ring-offset-2 scale-105 shadow-soft"
@@ -141,7 +149,12 @@ export default function ProductPage({ params }: ProductPageProps) {
                 )}
                 aria-label={`Image ${i + 1}`}
               >
-                <span className="text-3xl">{product.emoji}</span>
+                {product.imageData ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={product.imageData} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-3xl">{product.emoji}</span>
+                )}
               </button>
             ))}
           </div>
