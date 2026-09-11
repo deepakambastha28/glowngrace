@@ -12,7 +12,7 @@ import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 type SqlQuery = NeonQueryFunction<boolean, boolean>;
 
 let sql: SqlQuery | null = null;
-let schemaReady = false;
+let schemaPromise: Promise<void> | null = null;
 
 const SCHEMA_STATEMENTS: string[] = [
   `CREATE TABLE IF NOT EXISTS gg_orders (
@@ -164,6 +164,26 @@ const SCHEMA_STATEMENTS: string[] = [
   )`,
   `ALTER TABLE gg_admin_products ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT false`,
   `ALTER TABLE gg_admin_jobs ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT false`,
+  `CREATE TABLE IF NOT EXISTS gg_admin_events (
+    id SERIAL PRIMARY KEY,
+    slug TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'Workshop',
+    emoji TEXT NOT NULL DEFAULT '🎉',
+    gradient TEXT NOT NULL DEFAULT 'linear-gradient(135deg,#d6336c,#f4a6c0)',
+    date TEXT NOT NULL,
+    time TEXT NOT NULL DEFAULT '10:00 AM',
+    loc TEXT NOT NULL DEFAULT '',
+    venue TEXT NOT NULL DEFAULT '',
+    price TEXT NOT NULL DEFAULT 'Free',
+    capacity INT NOT NULL DEFAULT 50,
+    spots_left INT NOT NULL DEFAULT 50,
+    description TEXT NOT NULL DEFAULT '',
+    agenda JSONB NOT NULL DEFAULT '[]'::jsonb,
+    tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+    hidden BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT now()
+  )`,
 ];
 
 export function getDb(): SqlQuery | null {
@@ -174,12 +194,13 @@ export function getDb(): SqlQuery | null {
   return sql;
 }
 
-async function ensureSchema(db: SqlQuery): Promise<void> {
-  if (schemaReady) return;
-  for (const statement of SCHEMA_STATEMENTS) {
-    await db.query(statement);
+function ensureSchema(db: SqlQuery): Promise<void> {
+  if (!schemaPromise) {
+    schemaPromise = Promise.all(SCHEMA_STATEMENTS.map((s) => db.query(s)))
+      .then(() => {})
+      .catch(() => {});
   }
-  schemaReady = true;
+  return schemaPromise;
 }
 
 export type DbResult = Record<string, unknown>[] | null;

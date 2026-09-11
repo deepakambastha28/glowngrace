@@ -6,6 +6,7 @@ import type {
 } from "@/lib/schemas";
 import type { Product } from "@/lib/data";
 import type { Partner } from "@/lib/data";
+import type { Job } from "@/lib/data";
 
 interface ApiResponse<T = unknown> {
   ok: boolean;
@@ -156,6 +157,11 @@ export function fetchPartners(): Promise<ApiResponse<{ items: Partner[] }>> {
   return request<{ items: Partner[] }>("/api/partners");
 }
 
+/** GET /api/jobs — storefront jobs: admin-created jobs only. */
+export function fetchJobs(): Promise<ApiResponse<{ items: Job[] }>> {
+  return request<{ items: Job[] }>("/api/jobs");
+}
+
 // ---------------------------------------------------------------
 // Admin
 // ---------------------------------------------------------------
@@ -170,6 +176,7 @@ export type AdminProductResponse = { persisted: boolean; id?: number };
 export type AdminJobResponse = { persisted: boolean; id?: number };
 export type AdminReviewResponse = { persisted: boolean; id?: number };
 export type AdminPartnerResponse = { persisted: boolean; id?: number; slug?: string };
+export type AdminEventResponse = { persisted: boolean; id?: number };
 
 export function adminLogin(
   email: string,
@@ -456,5 +463,66 @@ export function updateAdminCandidate(
   return request<{ persisted: boolean }>(`/api/admin/candidates?id=${encodeURIComponent(id)}`, {
     method: "PATCH",
     ...body(patch),
+  });
+}
+
+// ---------------------------------------------------------------
+// Admin Events
+// ---------------------------------------------------------------
+
+export type AdminEventRecord = {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  emoji: string;
+  gradient: string;
+  date: string;
+  time: string;
+  loc: string;
+  venue: string;
+  price: string;
+  capacity: number;
+  spotsLeft: number;
+  description: string;
+  agenda: string[];
+  tags: string[];
+  hidden: boolean;
+  createdAt: string;
+};
+
+export function createAdminEvent(
+  event: unknown
+): Promise<ApiResponse<AdminEventResponse>> {
+  return request<AdminEventResponse>("/api/admin/events", {
+    method: "POST",
+    ...body(event),
+  });
+}
+
+/** GET /api/admin/events — list or fetch one event (by id). */
+export function fetchAdminEvents(
+  id?: string
+): Promise<ApiResponse<{ persisted: boolean; items: AdminEventRecord[]; item: AdminEventRecord | null }>> {
+  return request(`/api/admin/events${id ? `?id=${encodeURIComponent(id)}` : ""}`);
+}
+
+/** PATCH /api/admin/events?id=... — update an event. */
+export function updateAdminEvent(
+  id: string,
+  patch: unknown
+): Promise<ApiResponse<{ persisted: boolean }>> {
+  return request<{ persisted: boolean }>(`/api/admin/events?id=${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    ...body(patch),
+  });
+}
+
+/** DELETE /api/admin/events?id=... — delete an event. */
+export function deleteAdminEvent(
+  id: string
+): Promise<ApiResponse<{ deleted: boolean }>> {
+  return request<{ deleted: boolean }>(`/api/admin/events?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
   });
 }
