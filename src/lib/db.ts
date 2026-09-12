@@ -207,6 +207,17 @@ const SCHEMA_STATEMENTS: string[] = [
     candidate_email TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
+  `CREATE TABLE IF NOT EXISTS gg_users (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    phone TEXT NOT NULL DEFAULT '',
+    role TEXT NOT NULL DEFAULT 'user',
+    status TEXT NOT NULL DEFAULT 'active',
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+  )`,
 ];
 
 export function getDb(): SqlQuery | null {
@@ -219,9 +230,16 @@ export function getDb(): SqlQuery | null {
 
 function ensureSchema(db: SqlQuery): Promise<void> {
   if (!schemaPromise) {
-    schemaPromise = Promise.all(SCHEMA_STATEMENTS.map((s) => db.query(s)))
-      .then(() => {})
-      .catch(() => {});
+    schemaPromise = (async () => {
+      for (const statement of SCHEMA_STATEMENTS) {
+        try {
+          await db.query(statement, []);
+        } catch {
+          // Ignore per-statement failures (the table may already exist or a
+          // cold Neon connection hiccuped); later queries still work.
+        }
+      }
+    })();
   }
   return schemaPromise;
 }
