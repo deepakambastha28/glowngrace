@@ -136,3 +136,39 @@ export async function deleteSeededReview(
 ): Promise<void> {
   await request.delete(`/api/admin/reviews?id=${id}`);
 }
+
+export interface AdminReviewRow {
+  id: string;
+  author: string;
+  product: string;
+  rating: number;
+  comment: string;
+  status: string;
+}
+
+/**
+ * Poll `/api/admin/reviews` until a matching row is visible. Neon can
+ * momentarily miss a just-committed row (cold pool / IPv6 route), so a single
+ * read is flaky; retry briefly before failing.
+ */
+export async function waitForAdminReview(
+  request: APIRequestContext,
+  match: (row: AdminReviewRow) => boolean,
+  description: string,
+  attempts = 8
+): Promise<AdminReviewRow> {
+  let row: AdminReviewRow | undefined;
+  for (let i = 0; i < attempts; i++) {
+    const list = await request.get("/api/admin/reviews");
+    if (list.ok()) {
+      const items = ((await list.json()).items ?? []) as AdminReviewRow[];
+      row = items.find(match);
+      if (row) return row;
+    }
+    if (i < attempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+  expect(row, description).toBeTruthy();
+  return row!;
+}
