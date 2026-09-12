@@ -25,16 +25,42 @@ const navLinks = [
   { href: "/careers", label: "Careers" },
   { href: "/partners", label: "Partners" },
   { href: "/events", label: "Events" },
-  { href: "/#testimonials", label: "Reviews" },
+];
+
+const adminMenuItems = [
+  { href: "/admin", label: "Dashboard" },
+  { href: "/admin/products", label: "Products" },
+  { href: "/admin/jobs", label: "Jobs" },
+  { href: "/admin/events", label: "Events" },
+  { href: "/admin/reviews", label: "Reviews" },
+  { href: "/admin/partners", label: "Partners" },
+  { href: "/admin/candidates", label: "Candidates" },
+  { href: "/admin/recruiters", label: "Recruiters" },
+];
+
+const recruiterMenuItems = [
+  { href: "/recruiter", label: "Dashboard" },
+  { href: "/recruiter/candidates", label: "Candidates" },
+  { href: "/recruiter/events", label: "Events" },
+  { href: "/recruiter/jobs", label: "Jobs" },
+  { href: "/recruiter/profile", label: "Profile" },
 ];
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const hydrated = usePersistReady();
   const itemCount = useCartStore((state) => state.getItemCount());
   const user = useAuthStore((state) => state.user);
   const signOut = useAuthStore((state) => state.signOut);
+
+  const roleMenu =
+    user?.role === "admin"
+      ? { label: "Admin", items: adminMenuItems }
+      : user?.role === "recruiter"
+        ? { label: "Recruiter", items: recruiterMenuItems }
+        : null;
 
   const handleLogout = async () => {
     if (user?.role === "admin") {
@@ -69,6 +95,44 @@ export function Navbar() {
                 </Link>
               </li>
             ))}
+            {roleMenu && (
+              <li className="relative">
+                <button
+                  onClick={() => setRoleMenuOpen(!roleMenuOpen)}
+                  aria-label={roleMenu.label}
+                  className="relative flex items-center gap-1 font-medium text-charcoal/80 hover:text-rose transition-colors text-[0.96rem]"
+                >
+                  {roleMenu.label}
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform",
+                      roleMenuOpen && "rotate-180"
+                    )}
+                  />
+                </button>
+                {roleMenuOpen && (
+                  <>
+                    <button
+                      className="fixed inset-0 z-40 cursor-default"
+                      aria-label="Close role menu"
+                      onClick={() => setRoleMenuOpen(false)}
+                    />
+                    <div className="card absolute right-0 z-50 mt-3 w-52 overflow-hidden !rounded-2xl p-1.5">
+                      {roleMenu.items.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setRoleMenuOpen(false)}
+                          className="flex w-full items-center rounded-xl px-3 py-2 text-sm font-medium text-charcoal/80 transition-colors hover:bg-rose-blush hover:text-rose"
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </li>
+            )}
           </ul>
 
           <div className="flex items-center gap-4">
@@ -186,6 +250,23 @@ export function Navbar() {
               {link.label}
             </Link>
           ))}
+          {roleMenu && (
+            <div className="rounded-xl bg-white px-4 py-2">
+              <p className="pt-1 text-[0.7rem] font-bold uppercase tracking-wider text-muted">
+                {roleMenu.label} menu
+              </p>
+              {roleMenu.items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="mt-0.5 flex w-full items-center rounded-lg px-1 py-1.5 text-sm font-medium text-charcoal/80 hover:text-rose"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          )}
           {user ? (
             <div className="rounded-xl bg-rose-blush px-4 py-2">
               <p className="truncate text-sm font-semibold text-rose">{user.name}</p>
