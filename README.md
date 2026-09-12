@@ -23,10 +23,10 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 ## Pages
 
 - **`/`** — Hero (+ rotating DB-backed product circle), stats, trust badges, categories, bestsellers, job vacancies, CTA banner, testimonials, newsletter, footer
-- **`/admin`** — Authenticated admin console (dashboard + products/jobs/events/partners/candidates with create / edit / hide / hold / delete). Signed-in sessions gate the sidebar; `/admin` hides storefront chrome.
-- **`/recruiter`** — Role-gated recruiter portal with a single top-nav (Home, Shop, Candidates, Careers, Events). Browse & hire candidates (`/recruiter/candidates`), manage job openings (`/recruiter/jobs`), update profile (`/recruiter/profile`), and publish workshops to the storefront event calendar (`/recruiter/events`). Recruiters sign in with the `recruiter` account type; logout always returns to the home page.
+- **`/admin`** — Authenticated admin console (dashboard + products/jobs/events/partners/candidates/recruiters with create / edit / hide / hold / delete, plus review moderation). Signed-in sessions (15-min expiry) gate the sidebar; `/admin` hides storefront chrome. Admins get an **Admin menu in the storefront top nav** once signed in.
+- **`/recruiter`** — Role-gated recruiter portal with a single top-nav (Home, Shop, Candidates, Careers, Events). Browse & hire candidates (`/recruiter/candidates`), manage job openings (`/recruiter/jobs`), update profile (`/recruiter/profile`), and publish workshops to the storefront event calendar (`/recruiter/events`). Recruiters sign in with the `recruiter` account type; logout always returns to the home page. Recruiters get a **Recruiter menu in the storefront top nav** once signed in.
 - **`/products`** — Filter by category, sort by price/rating, live search. Catalog is **admin-DB driven** (`/api/products`), no static seed.
-- **`/products/[slug]`** — Gallery + thumbnails, price + % saved, qty stepper, Add to Cart, features, delivery info, tabs (Description / Info / Reviews). Unknown slugs → custom 404.
+- **`/products/[slug]`** — Gallery + thumbnails, price + % saved, qty stepper, Add to Cart, features, delivery info, tabs (Description / Info / Reviews). **Tap a star** under the rating to open the rate-and-review popup (1–5 stars + comment); submissions start as **Pending** in `/admin/reviews` and only appear on the product once approved. Rating + review counts on the card and detail header are derived from approved reviews. Unknown slugs → custom 404.
 - **`/cart`** — Editable quantity, remove, promo code (`GLOW10` for 10% off), summary (subtotal + free-shipping logic + 5% GST + total), empty state, DB-backed wishlist section.
 - **`/checkout`** — 3-step wizard (Cart → Shipping & Payment → Confirmation) with live order summary; payment: Card / UPI / NetBanking / COD. Place Order clears the cart and shows order ID.
 - **`/checkout/success`** — Order confirmation with `#GG-2026-XXXXX`
@@ -36,7 +36,8 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 - **`/careers/[slug]`** — Job header + tags, responsibilities, requirements, perks, sticky Apply box
 - **`/careers/[slug]/apply`** — Validated application form with drag-drop PDF/DOC resume upload, T&C, success screen
 - **`/shopper`** & **`/candidate`** — Role-based profiles with Edit Profile / orders / password / address / contact tabs
-- **`/login`**, **`/signup`** — Zod-validated auth with `shopper` / `candidate` / `admin` account-type selector
+- **`/contact`** — Contact page with a **comment-only** review form (no star rating); submissions land in `/admin/reviews` as **Pending** for moderation
+- **`/login`**, **`/signup`** — Zod-validated auth with `shopper` / `candidate` / `admin` / `recruiter` account-type selector and demo credentials
 
 ## Getting Started
 
@@ -60,6 +61,9 @@ npm run lint
 npm run test:e2e        # Playwright E2E (headed, serial) against BASE_URL
 npm run test:e2e:ui     # Playwright UI mode (watch + debug)
 ```
+
+Run settings (in `playwright.config.ts`): headed Chromium, serial (`workers: 1`),
+`retries: 2`, action/navigation/expectation timeouts 30s, trace on first retry.
 
 ## Deploy to Vercel (zero config)
 
@@ -139,9 +143,14 @@ src/
 
 - Neon Postgres via `src/lib/db.ts` (graceful no-op when `DATABASE_URL` is unset).
 - Admin tables: `gg_admin_products`, `gg_admin_jobs`, `gg_admin_events`,
-  `gg_admin_partners`, `gg_admin_candidates`, `gg_admin_reviews`. `/api/products`,
+  `gg_admin_partners`, `gg_admin_candidates`, `gg_admin_reviews`,
+  `gg_admin_sessions`. `/api/products`,
   `/api/partners`, `/api/events`, and `/api/jobs` expose non-hidden rows to the
   storefront with `admin-`-prefixed ids.
+- Reviews: submitted from the product page (star popup) and the `/contact`
+  page land in `gg_admin_reviews` with status `Pending`; the admin console
+  approves/hides them (`PATCH /api/admin/reviews`), and only `Approved` rows
+  surface on product pages, `/api/products` aggregates, and home testimonials.
 - Recruiter tables: `gg_recruiters`, `gg_recruiter_hires`. `/api/recruiters`,
   `/api/recruiters/candidates`, `/api/recruiters/hire`, `/api/recruiters/hired`
   back the portal; `/api/admin/recruiters` is the admin console. Recruiters
@@ -151,5 +160,7 @@ src/
   `next/cache` so their response is never baked into the build.
 - E2E specs seed admin records through `tests/helpers.ts`
   (`seedProduct` / `deleteSeededProduct`, `seedEvent` / `deleteSeededEvent`,
-  `seedJob` / `deleteSeededJob`) so the storefront is exercised against real data.
+  `seedJob` / `deleteSeededJob`, `seedReview` / `deleteSeededReview`, plus the
+  `waitForAdminReview` polling helper that tolerates Neon read-after-write lag)
+  so the storefront is exercised against real data.
   The suite runs serially (`workers: 1`) because every spec shares one Neon DB.
