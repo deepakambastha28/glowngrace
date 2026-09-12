@@ -49,6 +49,10 @@ server-v*-err.log
 gg-actions-dev.log
 server.err
 server.log
+server-err.txt
+server-out.txt
+server-run-err.log
+server-run-out.log
 
 # design reference (never edit)
 design/

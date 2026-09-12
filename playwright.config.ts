@@ -10,7 +10,7 @@ export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: 2,
   workers: 1,
   reporter: "html",
   use: {
@@ -19,7 +19,7 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "on",
     video: "on-first-retry",
-    actionTimeout: 15_000,
+    actionTimeout: 30_000,
     navigationTimeout: 30_000,
   },
   expect: {

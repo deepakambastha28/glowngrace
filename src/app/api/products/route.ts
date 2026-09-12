@@ -45,8 +45,33 @@ export async function GET() {
               created_at
        FROM gg_admin_products WHERE hidden = false ORDER BY created_at DESC`
     );
+    const reviewRows = await query(
+      `SELECT product, rating FROM gg_admin_reviews WHERE status = 'Approved'`
+    );
+    const reviewsByProduct = new Map<
+      string,
+      { ratingTotal: number; ratingCount: number; count: number }
+    >();
+    for (const r of reviewRows ?? []) {
+      const name = String(r.product);
+      const agg = reviewsByProduct.get(name) ?? { ratingTotal: 0, ratingCount: 0, count: 0 };
+      agg.count += 1;
+      const rating = Number(r.rating);
+      if (rating > 0) {
+        agg.ratingTotal += rating;
+        agg.ratingCount += 1;
+      }
+      reviewsByProduct.set(name, agg);
+    }
     items = (rows ?? [])
-      .map(toStorefrontProduct)
+      .map((row) => {
+        const p = toStorefrontProduct(row);
+        if (!p) return null;
+        const agg = reviewsByProduct.get(p.name);
+        p.rating = agg && agg.ratingCount > 0 ? agg.ratingTotal / agg.ratingCount : 0;
+        p.reviewsCount = agg?.count ?? 0;
+        return p;
+      })
       .filter((p): p is Product => p !== null);
   }
 

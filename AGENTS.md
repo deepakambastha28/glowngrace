@@ -36,17 +36,23 @@ pill buttons) when touching UI.
 - Schemas: `src/lib/schemas.ts` (Zod) — checkout, order payload, application,
   newsletter, auth forms (login, signup with `accountType`), candidate profile.
 - Auth: Zustand (`src/lib/auth.ts`), persisted to localStorage
-  `glow-grace-user`. Roles: `user` | `candidate` | `admin`. Demo credentials
-  in `src/app/login/page.tsx` (`shopper@...`, `candidate@...`, `admin@...`).
+  `glow-grace-user`. Roles: `user` | `candidate` | `admin` | `recruiter`.
+  Demo credentials in `src/app/login/page.tsx` (`shopper@...`, `candidate@...`,
+  `admin@...`, `recruiter@...`).
   Registered users stored in localStorage `glow-grace-registered-users`.
 - Data: `src/lib/data.ts` — static catalog was removed from the storefront:
   `/api/products`, `/api/partners`, `/api/events`, and `/api/jobs` are
   **admin-DB only** (products have `reviewsCount` (not `reviews`) and inStock
   (not `available`) — grep it before coding against a shape). `data.ts` now
   backs only home static content (testimonials); jobs and events come from
-  `gg_admin_jobs` / `gg_admin_events`. Storefront E2E specs seed admin records
-  via `tests/helpers.ts` (`seedProduct` / `deleteSeededProduct`,
-  `seedEvent` / `deleteSeededEvent`, `seedJob` / `deleteSeededJob`).
+  `gg_admin_jobs` / `gg_admin_events`. Reviews flow: the product star popup and
+  the `/contact` page POST to `/api/reviews` → `gg_admin_reviews` (status
+  `Pending`), the admin console approves/hides them (`PATCH
+  /api/admin/reviews`), and only `Approved` rows surface on product pages, the
+  `/api/products` aggregates, and home testimonials. Storefront E2E specs seed
+  admin records via `tests/helpers.ts` (`seedProduct` / `deleteSeededProduct`,
+  `seedEvent` / `deleteSeededEvent`, `seedJob` / `deleteSeededJob`,
+  `seedReview` / `deleteSeededReview`, `waitForAdminReview`).
 
 ## Conventions
 - Commit style (used on main): lowercase type + summary —

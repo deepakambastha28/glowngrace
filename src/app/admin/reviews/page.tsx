@@ -38,6 +38,14 @@ function ReviewsContent() {
       .catch(() => {/* ignore */});
   }, []);
 
+  const updateStatus = async (id: string, status: string) => {
+    const res = await fetch(`/api/admin/reviews?id=${id}&status=${status}`, {
+      method: "PATCH",
+    });
+    if (!res.ok) return;
+    setItems((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+  };
+
   return (
     <div>
       <AdminPageHead
@@ -51,7 +59,7 @@ function ReviewsContent() {
           <table className="admin-table w-full">
             <thead>
               <tr>
-                <th>Customer</th><th>Product</th><th>Rating</th><th>Review</th><th>Status</th>
+                <th>Customer</th><th>Product</th><th>Rating</th><th>Review</th><th>Status</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -63,11 +71,29 @@ function ReviewsContent() {
                     <td className="star-gold">{stars(r.rating)}</td>
                     <td className="max-w-[260px] text-sm text-muted">{r.comment}</td>
                     <td>{statusPill(r.status)}</td>
+                    <td>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => updateStatus(r.id, "Approved")}
+                          disabled={r.status === "Approved"}
+                          className="rounded-full border border-emerald/40 px-3 py-1 text-xs font-semibold text-emerald hover:bg-emerald/10 disabled:opacity-40"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => updateStatus(r.id, "Hidden")}
+                          disabled={r.status === "Hidden"}
+                          className="rounded-full border border-red/40 px-3 py-1 text-xs font-semibold text-red hover:bg-red/10 disabled:opacity-40"
+                        >
+                          Deny
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="text-center text-muted py-10">
+                  <td colSpan={6} className="text-center text-muted py-10">
                     No reviews added yet.
                   </td>
                 </tr>

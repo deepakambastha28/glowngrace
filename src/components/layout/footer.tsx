@@ -60,6 +60,11 @@ export function Footer() {
           <div>
             <h4 className="text-white text-[1.05rem] mb-5">Contact Us</h4>
             <ul className="space-y-3 text-[0.9rem]">
+              <li>
+                <Link href="/contact" className="hover:text-rose-soft transition-colors">
+                  Contact Page
+                </Link>
+              </li>
               <li className="flex gap-2.5 items-start">
                 <span>📍</span> Hazratganj, Lucknow, UP 226001
               </li>

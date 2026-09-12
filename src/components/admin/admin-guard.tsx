@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { adminSession } from "@/lib/api";
+import { useAuthStore } from "@/lib/auth";
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -14,6 +15,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
       if (res.ok && res.data?.authed) {
         setChecked(true);
       } else {
+        useAuthStore.getState().signOut();
         router.replace("/login");
       }
     });

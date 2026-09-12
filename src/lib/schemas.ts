@@ -229,6 +229,16 @@ export const adminReviewSchema = z.object({
 
 export type AdminReviewFormData = z.infer<typeof adminReviewSchema>;
 
+export const contactReviewSchema = z.object({
+  name: z.string().min(2, "Please enter your name"),
+  email: z.string().email("Enter a valid email"),
+  product: z.string().default(""),
+  rating: z.coerce.number().int().min(1).max(5).optional(),
+  comment: z.string().min(10, "Please write at least 10 characters"),
+});
+
+export type ContactReviewFormData = z.infer<typeof contactReviewSchema>;
+
 export const adminPartnerSchema = z.object({
   name: z.string().min(1, "Please enter a partner name"),
   type: z.string().default("Beauty Parlour"),

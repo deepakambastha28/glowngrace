@@ -125,6 +125,15 @@ test.describe("Product detail", () => {
     });
     seededSlugs.push(slug);
 
+    const catalog = await request.get("/api/products");
+    const catalogItems = (catalog.ok()
+      ? ((await catalog.json()).items ?? [])
+      : []) as Array<{ name: string; reviewsCount: number; rating: number }>;
+    const catalogProduct = catalogItems.find((p) => p.name === name);
+    expect(catalogProduct, `catalog should include seeded product "${name}"`).toBeTruthy();
+    expect(catalogProduct!.reviewsCount).toBe(1);
+    expect(catalogProduct!.rating).toBe(5);
+
     await page.goto(`/products/${slug}`);
 
     const reviewsTab = page.getByRole("tab", { name: /Reviews/ });

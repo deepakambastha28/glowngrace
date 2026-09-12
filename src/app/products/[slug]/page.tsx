@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingBag, Zap, Heart, Truck, RefreshCcw, ShieldCheck, ChevronDown } from "lucide-react";
+import { Minus, Plus, ShoppingBag, Zap, Heart, Truck, RefreshCcw, ShieldCheck, ChevronDown, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Product, Review } from "@/lib/data";
 import { fetchProducts, fetchProductReviews } from "@/lib/api";
 import { useCartStore } from "@/lib/store";
+import { useAuthStore } from "@/lib/auth";
 import { money, calculateDiscount, cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RatingStars } from "@/components/ui/rating-stars";
@@ -24,6 +25,8 @@ const galleryShadows = [
   "from-rose/10 to-rose-soft/30",
 ];
 
+const starLabels = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
+
 export default function ProductPage({ params }: ProductPageProps) {
   const router = useRouter();
 
@@ -39,6 +42,14 @@ export default function ProductPage({ params }: ProductPageProps) {
   const isWishlisted = useCartStore((state) =>
     product ? state.wishlist.includes(product.id) : false
   );
+
+  const user = useAuthStore((state) => state.user);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewName, setReviewName] = useState("");
+  const [reviewEmail, setReviewEmail] = useState("");
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
   const productName = product?.name;
 
@@ -111,9 +122,48 @@ export default function ProductPage({ params }: ProductPageProps) {
     toast.success(isWishlisted ? "Removed from wishlist 💔" : "Added to wishlist 💖");
   };
 
-  const reviewRating =
-    productReviews.length > 0
-      ? productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length
+  const openReview = (stars: number) => {
+    setReviewRating(stars);
+    setReviewName(user?.name ?? "");
+    setReviewEmail(user?.email ?? "");
+    setReviewComment("");
+    setReviewOpen(true);
+  };
+
+  const submitReview = async (e: FormEvent) => {
+    e.preventDefault();
+    if (reviewRating < 1) {
+      toast.error("Please select a star rating.");
+      return;
+    }
+    setReviewSubmitting(true);
+    const res = await fetch("/api/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: reviewName,
+        email: reviewEmail,
+        product: productName,
+        rating: reviewRating,
+        comment: reviewComment,
+      }),
+    })
+      .then((r) => r.json())
+      .catch(() => null);
+    setReviewSubmitting(false);
+
+    if (!res || res.error) {
+      toast.error("Could not submit your review. Please try again.");
+      return;
+    }
+    toast.success("Thanks! Your review will appear after admin approval.");
+    setReviewOpen(false);
+  };
+
+  const ratedReviews = productReviews.filter((r) => r.rating > 0);
+  const averageRating =
+    ratedReviews.length > 0
+      ? ratedReviews.reduce((sum, r) => sum + r.rating, 0) / ratedReviews.length
       : product.rating;
   const shownReviewsCount =
     productReviews.length > 0 ? productReviews.length : product.reviewsCount;
@@ -221,10 +271,26 @@ export default function ProductPage({ params }: ProductPageProps) {
           </span>
           <h1 className="mt-2 text-[2.2rem] font-bold leading-tight">{product.name}</h1>
           <div className="flex items-center gap-2 mt-3">
-            <RatingStars rating={reviewRating} size={18} />
+            <RatingStars rating={averageRating} size={18} />
             <span className="text-[0.9rem] text-muted">
-              {Number.isInteger(reviewRating) ? reviewRating : reviewRating.toFixed(1)} · {shownReviewsCount} reviews
+              {Number.isInteger(averageRating) ? averageRating : averageRating.toFixed(1)} · {shownReviewsCount} reviews
             </span>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="text-[0.85rem] text-muted">Tap a star to rate &amp; review</span>
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  aria-label={`Rate ${n} stars`}
+                  onClick={() => openReview(n)}
+                  className="text-[1.35rem] leading-none text-[#d5c9d2] transition-colors cursor-pointer hover:text-gold focus:text-gold"
+                >
+                  ★
+                </button>
+              ))}
+            </div>
           </div>
           <p
             data-testid="main-description"
@@ -369,9 +435,11 @@ export default function ProductPage({ params }: ProductPageProps) {
                         <p className="font-bold text-charcoal">{review.author}</p>
                         <span className="text-xs text-muted">{review.date}</span>
                       </div>
-                      <div className="mt-1">
-                        <RatingStars rating={review.rating} size={14} />
-                      </div>
+                      {review.rating > 0 && (
+                        <div className="mt-1">
+                          <RatingStars rating={review.rating} size={14} />
+                        </div>
+                      )}
                       <p className="mt-2 text-sm text-charcoal/70">{review.comment}</p>
                     </div>
                   </div>
@@ -383,6 +451,121 @@ export default function ProductPage({ params }: ProductPageProps) {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Review popup */}
+      {reviewOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          data-testid="review-modal"
+        >
+          <button
+            type="button"
+            aria-label="Close review dialog"
+            onClick={() => setReviewOpen(false)}
+            className="fixed inset-0 z-0 cursor-default bg-charcoal/40 backdrop-blur-sm"
+          />
+          <form
+            onSubmit={submitReview}
+            className="card relative z-10 w-full max-w-md !rounded-[20px] p-7"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-charcoal">Rate &amp; Review</h3>
+                <p className="mt-1 text-sm text-muted">{product.name}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReviewOpen(false)}
+                className="text-muted transition-colors hover:text-rose cursor-pointer"
+                aria-label="Close review dialog"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-5">
+              <p className="text-[0.85rem] font-semibold text-charcoal">Your rating</p>
+              <div className="mt-1.5 flex gap-1.5">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    aria-label={`${n} stars`}
+                    onClick={() => setReviewRating(n)}
+                    className={cn(
+                      "text-[1.9rem] leading-none transition-colors cursor-pointer",
+                      n <= reviewRating
+                        ? "text-gold"
+                        : "text-[#d5c9d2] hover:text-gold/70"
+                    )}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1 text-[0.8rem] text-muted">
+                {reviewRating > 0 ? starLabels[reviewRating] : "Select a rating"}
+              </p>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="field-label" htmlFor="review-name">
+                  Your Name
+                </label>
+                <input
+                  id="review-name"
+                  className="field-input w-full"
+                  placeholder="Enter your name"
+                  value={reviewName}
+                  onChange={(e) => setReviewName(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="field-label" htmlFor="review-email">
+                  Email
+                </label>
+                <input
+                  id="review-email"
+                  type="email"
+                  className="field-input w-full"
+                  placeholder="you@example.com"
+                  value={reviewEmail}
+                  onChange={(e) => setReviewEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="field-label" htmlFor="review-comment">
+                  Your Review
+                </label>
+                <textarea
+                  id="review-comment"
+                  className="field-input w-full min-h-[110px]"
+                  placeholder="Share your experience with this product…"
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={reviewSubmitting}
+              className="btn-primary mt-5 w-full"
+            >
+              {reviewSubmitting ? "Submitting…" : "Submit Review"}
+            </button>
+            <p className="mt-3 text-center text-[0.8rem] text-muted">
+              Reviews appear after admin approval.
+            </p>
+          </form>
+        </div>
+      )}
 
       {/* Related */}
       {related.length > 0 && (

@@ -71,6 +71,26 @@ export async function POST(request: Request) {
   }
 }
 
+/** PATCH /api/admin/reviews?id=...&status=Approved|Pending|Hidden — approve or deny a review. */
+export async function PATCH(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  const status = searchParams.get("status");
+  if (!id || !["Approved", "Pending", "Hidden"].includes(status ?? "")) {
+    return NextResponse.json(
+      { updated: false, error: "id and a valid status are required" },
+      { status: 400 }
+    );
+  }
+  if (isDbConfigured()) {
+    await query(`UPDATE gg_admin_reviews SET status = $1 WHERE id = $2`, [
+      status,
+      Number(id),
+    ]);
+  }
+  return NextResponse.json({ updated: true });
+}
+
 /** DELETE /api/admin/reviews?id=... — delete a review. */
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);

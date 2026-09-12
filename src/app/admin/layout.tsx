@@ -56,6 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (ok) {
         scheduleLogout();
       } else {
+        useAuthStore.getState().signOut();
         router.replace("/login");
       }
     });
