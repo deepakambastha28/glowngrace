@@ -633,3 +633,94 @@ export function deleteAdminRecruiter(
     method: "DELETE",
   });
 }
+
+// ---------------------------------------------------------------
+// Storefront accounts
+// ---------------------------------------------------------------
+
+export type AdminUserRecord = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type StorefrontUserLoginResponse = {
+  found: boolean;
+  suspended?: boolean;
+  valid?: boolean;
+  user?: { id: string; name: string; email: string; role: string; status: string };
+};
+
+/** POST /api/users/login — authorise a storefront sign-in against gg_users. */
+export function loginStorefrontUser(
+  email: string,
+  password: string
+): Promise<ApiResponse<StorefrontUserLoginResponse>> {
+  return request<StorefrontUserLoginResponse>("/api/users/login", {
+    method: "POST",
+    ...body({ email, password }),
+  });
+}
+
+/** POST /api/users/register — create a storefront account (best-effort). */
+export function registerStorefrontUser(
+  user: { name: string; email: string; phone: string; role: string; password: string }
+): Promise<ApiResponse<{ registered: boolean; persisted: boolean; id?: number }>> {
+  return request("/api/users/register", {
+    method: "POST",
+    ...body(user),
+  });
+}
+
+// ---------------------------------------------------------------
+// Admin Users
+// ---------------------------------------------------------------
+
+/** GET /api/admin/users — list user accounts across all roles. */
+export function fetchAdminUsers(
+  params?: { role?: string; status?: string; q?: string }
+): Promise<ApiResponse<{ persisted: boolean; items: AdminUserRecord[] }>> {
+  const search = new URLSearchParams();
+  if (params?.role && params.role !== "all") search.set("role", params.role);
+  if (params?.status && params.status !== "all") search.set("status", params.status);
+  if (params?.q) search.set("q", params.q);
+  const qs = search.toString();
+  return request<{ persisted: boolean; items: AdminUserRecord[] }>(
+    `/api/admin/users${qs ? `?${qs}` : ""}`
+  );
+}
+
+/** POST /api/admin/users — create a user account. */
+export function createAdminUser(
+  user: { name: string; email: string; phone?: string; role: string; password: string }
+): Promise<ApiResponse<{ persisted: boolean; id?: number }>> {
+  return request<{ persisted: boolean; id?: number }>("/api/admin/users", {
+    method: "POST",
+    ...body(user),
+  });
+}
+
+/** PATCH /api/admin/users?id=... — activate/suspend, change role, or reset a password. */
+export function updateAdminUser(
+  id: string,
+  patch: unknown
+): Promise<ApiResponse<{ persisted: boolean }>> {
+  return request<{ persisted: boolean }>(`/api/admin/users?id=${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    ...body(patch),
+  });
+}
+
+/** DELETE /api/admin/users?id=... — delete a user account. */
+export function deleteAdminUser(
+  id: string
+): Promise<ApiResponse<{ deleted: boolean }>> {
+  return request<{ deleted: boolean }>(`/api/admin/users?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}

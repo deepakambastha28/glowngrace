@@ -8,8 +8,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { loginSchema, type LoginFormData } from "@/lib/schemas";
-import { useAuthStore, findRegisteredUser } from "@/lib/auth";
-import { adminLogin } from "@/lib/api";
+import { useAuthStore, findRegisteredUser, type UserRole } from "@/lib/auth";
+import { adminLogin, loginStorefrontUser } from "@/lib/api";
 
 const DEMO_USERS = [
   { email: "shopper@glowngrace.in", password: "shopper123", name: "Priya (Shopper)", role: "user" as const },
@@ -70,6 +70,29 @@ export default function LoginPage() {
       signIn({ name: demo.name, email: demo.email, role: demo.role });
       toast.success(`Welcome back, ${demo.name}! ✨`);
       router.push(roleRedirect[demo.role] || "/");
+      return;
+    }
+
+    // Check server-side accounts — admin suspensions and password resets take effect here.
+    const account = await loginStorefrontUser(data.email, data.password);
+    if (account.ok && account.data?.found) {
+      const info = account.data;
+      if (info.suspended) {
+        toast.error("Your account has been suspended. Please contact support.");
+        return;
+      }
+      if (!info.valid || !info.user) {
+        toast.error("Invalid email or password.");
+        return;
+      }
+      if (info.user.role === "admin") {
+        toast.error("Admin sign-in is limited to the store administrator account.");
+        return;
+      }
+      const role = info.user.role as UserRole;
+      signIn({ name: info.user.name, email: info.user.email, role });
+      toast.success(`Welcome back, ${info.user.name}! ✨`);
+      router.push(roleRedirect[role] || "/");
       return;
     }
 
