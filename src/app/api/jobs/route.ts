@@ -7,8 +7,14 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 function toStorefrontJob(row: Record<string, unknown>): Job {
+  const responsibilities = Array.isArray(row.responsibilities)
+    ? (row.responsibilities as string[])
+    : [];
   const requirements = Array.isArray(row.requirements)
     ? (row.requirements as string[])
+    : [];
+  const perks = Array.isArray(row.perks)
+    ? (row.perks as string[])
     : [];
   return {
     id: `admin-${String(row.id)}`,
@@ -22,9 +28,9 @@ function toStorefrontJob(row: Record<string, unknown>): Job {
     experience: String(row.experience ?? ""),
     openings: Number(row.openings ?? 1),
     description: String(row.description ?? ""),
-    responsibilities: [],
+    responsibilities,
     requirements,
-    perks: [],
+    perks,
   };
 }
 
@@ -35,7 +41,8 @@ export async function GET() {
   if (isDbConfigured()) {
     const rows = await query(
       `SELECT id, slug, title, salon, location, type, salary_min, salary_max,
-              salary_text, experience, openings, description, requirements
+              salary_text, experience, openings, description, responsibilities,
+              requirements, perks
        FROM gg_admin_jobs WHERE hidden = false AND status = 'Open' ORDER BY created_at DESC`
     );
     items = (rows ?? []).map(toStorefrontJob);

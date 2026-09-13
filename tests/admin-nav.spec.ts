@@ -48,7 +48,6 @@ test.describe("Admin sidebar navigation stays authenticated", () => {
 
     const targets = [
       { listHeading: "Products", addButton: "Add Product", addHeading: "Add New Product" },
-      { listHeading: "Jobs", addButton: "Add Job", addHeading: "Post a New Job" },
       { listHeading: "Reviews", addButton: "Add Review", addHeading: "Add a Review" },
     ];
 

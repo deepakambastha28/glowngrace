@@ -5,19 +5,31 @@ import { useRouter } from "next/navigation";
 import { AdminGuard } from "@/components/admin/admin-guard";
 import { AdminPageHead } from "@/components/admin/page-head";
 import { fetchAdminJobs, updateAdminJob, deleteAdminJob, type AdminJobRecord } from "@/lib/api";
-import { EyeOff, Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, X, CheckCircle2, Pause, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const statusPill = (status: string) => {
   const key = (status || "").toLowerCase();
-  const cls = key === "open" ? "green" : key === "closed" ? "red" : "grey";
+  const cls =
+    key === "open" ? "green"
+: key === "closed" || key === "rejected" ? "red"
+          : key.includes("pending") || key === "on hold" ? "amber"
+            : "grey";
   return <span className={`p-pill ${cls}`}>{status}</span>;
+};
+
+const formatDate = (iso: string) => {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 };
 
 function JobsContent() {
   const router = useRouter();
   const [items, setItems] = useState<AdminJobRecord[]>([]);
   const [count, setCount] = useState(0);
+  const [viewing, setViewing] = useState<AdminJobRecord | null>(null);
 
   const load = () => {
     fetchAdminJobs().then((res) => {
@@ -29,13 +41,18 @@ function JobsContent() {
 
   useEffect(() => { load(); }, []);
 
-  const toggleHide = async (j: AdminJobRecord) => {
-    const res = await updateAdminJob(j.id, { hidden: !j.hidden });
+  const patchStatus = async (j: AdminJobRecord, status: "Open" | "On Hold" | "Rejected") => {
+    const res = await updateAdminJob(j.id, { status });
     if (res.ok) {
-      toast.success(j.hidden ? "Job is now visible" : "Job hidden");
+      toast.success(
+        status === "Open" ? "Job accepted and published"
+          : status === "Rejected" ? "Job rejected"
+            : "Job put on hold"
+      );
+      setViewing(null);
       load();
     } else {
-      toast.error("Could not update visibility");
+      toast.error("Could not update job status");
     }
   };
 
@@ -54,10 +71,147 @@ function JobsContent() {
     <div>
       <AdminPageHead
         title="Jobs"
-        subtitle={`${count} active vacancies.`}
-        actionLabel="Add Job"
-        actionHref="/admin/jobs/new"
+        subtitle={`${count} vacancies from recruiters. Accept to publish, or put on hold.`}
       />
+
+      {viewing && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          data-testid="job-detail-modal"
+        >
+          <button
+            type="button"
+            aria-label="Close job details"
+            onClick={() => setViewing(null)}
+            className="fixed inset-0 z-0 cursor-default bg-charcoal/40 backdrop-blur-sm"
+          />
+          <div className="card relative z-10 max-h-[85vh] w-full max-w-2xl overflow-y-auto !rounded-[20px] p-7">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="job-type shrink-0">{viewing.type}</span>
+                  {statusPill(viewing.status)}
+                </div>
+                <h3 className="mt-2 text-xl font-bold text-charcoal leading-snug">{viewing.title}</h3>
+                <p className="mt-0.5 text-sm text-muted">🏢 {viewing.salon}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewing(null)}
+                className="text-muted transition-colors hover:text-rose cursor-pointer"
+                aria-label="Close job details"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+              <div className="flex items-center justify-between border-b border-line pb-2">
+                <span className="text-muted">Location</span>
+                <b>{viewing.location}</b>
+              </div>
+              <div className="flex items-center justify-between border-b border-line pb-2">
+                <span className="text-muted">Salary</span>
+                <b className="text-rose">{viewing.salaryText}/mo</b>
+              </div>
+              <div className="flex items-center justify-between border-b border-line pb-2">
+                <span className="text-muted">Experience</span>
+                <b>{viewing.experience}</b>
+              </div>
+              <div className="flex items-center justify-between border-b border-line pb-2">
+                <span className="text-muted">Openings</span>
+                <b>{viewing.openings} position(s)</b>
+              </div>
+              <div className="flex items-center justify-between border-b border-line pb-2">
+                <span className="text-muted">Posted</span>
+                <b>{formatDate(viewing.createdAt)}</b>
+              </div>
+              {viewing.hidden && (
+                <div className="flex items-center justify-between border-b border-line pb-2">
+                  <span className="text-muted">Visibility</span>
+                  <b>Hidden</b>
+                </div>
+              )}
+            </div>
+
+            {viewing.description && (
+              <div className="mt-5">
+                <p className="text-[0.85rem] font-semibold text-charcoal">Job Description</p>
+                <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-charcoal/75">
+                  {viewing.description}
+                </p>
+              </div>
+            )}
+
+            {Array.isArray(viewing.responsibilities) && viewing.responsibilities.length > 0 && (
+              <div className="mt-5">
+                <p className="text-[0.85rem] font-semibold text-charcoal">Responsibilities</p>
+                <ul className="mt-1.5 list-disc space-y-1 pl-5 text-sm text-charcoal/75">
+                  {viewing.responsibilities.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {Array.isArray(viewing.requirements) && viewing.requirements.length > 0 && (
+              <div className="mt-5">
+                <p className="text-[0.85rem] font-semibold text-charcoal">Key Requirements</p>
+                <ul className="mt-1.5 list-disc space-y-1 pl-5 text-sm text-charcoal/75">
+                  {viewing.requirements.map((req, i) => (
+                    <li key={i}>{req}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {Array.isArray(viewing.perks) && viewing.perks.length > 0 && (
+              <div className="mt-5">
+                <p className="text-[0.85rem] font-semibold text-charcoal">Perks &amp; Benefits</p>
+                <div className="mt-1.5 flex flex-wrap gap-2">
+                  {viewing.perks.map((perk, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-rose-blush px-3 py-1.5 text-sm text-charcoal/80"
+                    >
+                      <span className="text-rose">✦</span> {perk}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {viewing.status === "Pending Hold" && (
+              <div className="mt-5 rounded-xl bg-amber/10 px-4 py-3 text-sm text-amber">
+                Recruiter requested to put this job on hold. Approve to take it off
+                the website, or reject to keep it live.
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                onClick={() => patchStatus(viewing, viewing.status === "Pending Hold" ? "Open" : "Rejected")}
+                disabled={viewing.status === (viewing.status === "Pending Hold" ? "Open" : "Rejected")}
+                className="btn-outline flex flex-1 items-center justify-center gap-1.5 border-red text-red text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <X className="h-4 w-4" />
+                {viewing.status === "Pending Hold" ? "Reject Hold" : "Reject"}
+              </button>
+              <button
+                onClick={() => patchStatus(viewing, viewing.status === "Pending Hold" ? "On Hold" : "Open")}
+                disabled={viewing.status === (viewing.status === "Pending Hold" ? "On Hold" : "Open")}
+                className="btn-primary flex flex-1 items-center justify-center gap-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                {viewing.status === "Pending Hold" ? "Approve Hold" : "Accept"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="card !shadow-lg overflow-hidden !p-0">
         <div className="overflow-x-auto">
           <table className="admin-table w-full">
@@ -82,19 +236,37 @@ function JobsContent() {
                     <td>
                       <div className="flex gap-2">
                         <button
+                          onClick={() => setViewing(j)}
+                          className="grid h-8 w-8 place-items-center rounded-lg bg-[#e9f1fa] text-[#3b82c9] hover:bg-[#3b82c9] hover:text-white transition-colors"
+                          title="View details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
                           onClick={() => router.push(`/admin/jobs/${j.id}/edit`)}
                           className="grid h-8 w-8 place-items-center rounded-lg bg-[#e9f1fa] text-[#3b82c9] hover:bg-[#3b82c9] hover:text-white transition-colors"
                           title="Edit"
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
-                        <button
-                          onClick={() => toggleHide(j)}
-                          className="grid h-8 w-8 place-items-center rounded-lg bg-[#f1f1f4] text-muted hover:bg-muted hover:text-white transition-colors"
-                          title={j.hidden ? "Unhide" : "Hide"}
-                        >
-                          {j.hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                        </button>
+                        {j.status !== "Open" && (
+                          <button
+                            onClick={() => patchStatus(j, j.status === "Pending Hold" ? "On Hold" : "Open")}
+                            className="grid h-8 w-8 place-items-center rounded-lg bg-[#eaf7f0] text-[#2e9e6b] hover:bg-[#2e9e6b] hover:text-white transition-colors"
+                            title={j.status === "Pending Hold" ? "Approve hold request" : "Accept"}
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                          </button>
+                        )}
+                        {j.status !== "On Hold" && j.status !== "Pending Hold" && (
+                          <button
+                            onClick={() => patchStatus(j, "On Hold")}
+                            className="grid h-8 w-8 place-items-center rounded-lg bg-[#fdf3e3] text-[#c98a3b] hover:bg-[#c98a3b] hover:text-white transition-colors"
+                            title="Hold"
+                          >
+                            <Pause className="h-4 w-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDelete(j)}
                           className="grid h-8 w-8 place-items-center rounded-lg bg-[#fdeaea] text-red hover:bg-red hover:text-white transition-colors"
