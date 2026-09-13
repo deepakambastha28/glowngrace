@@ -26,6 +26,7 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 - **`/admin`** — Authenticated admin console (dashboard + products/jobs/events/partners/candidates/recruiters with create / edit / hide / hold / delete, plus review moderation). Signed-in sessions (15-min expiry) gate the sidebar; `/admin` hides storefront chrome. Admins get an **Admin menu in the storefront top nav** once signed in.
 - **`/admin/users`** — User-account management across every role (`user` / `candidate` / `recruiter` / `admin`): search + role/status filters, create accounts, activate/suspend, reset passwords, and delete. The seeded `admin@glowngrace.in` account is **protected** — it cannot be suspended, deleted, or have its password reset from the UI or API.
 - **`/recruiter`** — Role-gated recruiter portal with a single top-nav (Home, Shop, Candidates, Careers, Events). Browse & hire candidates (`/recruiter/candidates`), manage job openings (`/recruiter/jobs`), update profile (`/recruiter/profile`), and publish workshops to the storefront event calendar (`/recruiter/events`). Recruiters sign in with the `recruiter` account type; logout always returns to the home page. Recruiters get a **Recruiter menu in the storefront top nav** once signed in.
+- **Recruiter job review flow** (`/recruiter/jobs`) — Recruiters create, **edit**, and request a **hold** on vacancies. New and edited jobs are submitted as `Pending`; a hold request is submitted as `Pending Hold`. Each decision authorizes in the admin console (`/admin/jobs`): approving publishes (`Open`) or holds (`On Hold`), rejecting marks `Rejected` or keeps the job live — and only then does the change reflect on the website (`/careers`, `/api/jobs`).
 - **`/products`** — Filter by category, sort by price/rating, live search. Catalog is **admin-DB driven** (`/api/products`), no static seed.
 - **`/products/[slug]`** — Gallery + thumbnails, price + % saved, qty stepper, Add to Cart, features, delivery info, tabs (Description / Info / Reviews). **Tap a star** under the rating to open the rate-and-review popup (1–5 stars + comment); submissions start as **Pending** in `/admin/reviews` and only appear on the product once approved. Rating + review counts on the card and detail header are derived from approved reviews. Unknown slugs → custom 404.
 - **`/cart`** — Editable quantity, remove, promo code (`GLOW10` for 10% off), summary (subtotal + free-shipping logic + 5% GST + total), empty state, DB-backed wishlist section.
@@ -163,6 +164,15 @@ src/
   `/api/recruiters/candidates`, `/api/recruiters/hire`, `/api/recruiters/hired`
   back the portal; `/api/admin/recruiters` is the admin console. Recruiters
   publish events into `gg_admin_events`, so they appear on the storefront.
+- Recruiter job lifecycle: vacancies live in `gg_admin_jobs` with a review
+  status — `Pending` (new/edited, awaiting approval), `Open` (live),
+  `On Hold`, `Rejected`, and `Pending Hold` (hold request awaiting a decision).
+  Editing from `/recruiter/jobs` reverts a job to `Pending`; the recruiter
+  "Hold" action submits a `Pending Hold` request. In `/admin/jobs` the admin
+  accepts, holds, or rejects, and row details offer **Approve Hold** / **Reject
+  Hold** for hold requests. Only `Open` rows that are not `hidden` surface on
+  the storefront (`/api/jobs`); everything else (including `Pending` and
+  `Pending Hold`) is hidden until reviewed.
 - API reads that must reflect DB changes immediately (e.g. `/api/products`,
   `/api/events`, `/api/recruiters/candidates`) call `noStore()` from
   `next/cache` so their response is never baked into the build.
