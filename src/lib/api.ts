@@ -288,7 +288,9 @@ export type AdminJobRecord = {
   experience: string;
   openings: number;
   description: string;
+  responsibilities: string[];
   requirements: string[];
+  perks: string[];
   status: string;
   hidden: boolean;
   createdAt: string;

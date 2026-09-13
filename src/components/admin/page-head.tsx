@@ -9,8 +9,8 @@ export function AdminPageHead({
 }: {
   title: string;
   subtitle: string;
-  actionLabel: string;
-  actionHref: string;
+  actionLabel?: string;
+  actionHref?: string;
 }) {
   return (
     <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -18,7 +18,7 @@ export function AdminPageHead({
         <h1 className="text-3xl font-bold">{title}</h1>
         <p className="mt-1 text-muted">{subtitle}</p>
       </div>
-      {actionLabel && (
+      {actionLabel && actionHref && (
         <Link href={actionHref} className="btn-primary text-sm">
           <Plus className="h-4 w-4" /> {actionLabel}
         </Link>

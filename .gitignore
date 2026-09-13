@@ -53,6 +53,9 @@ server-err.txt
 server-out.txt
 server-run-err.log
 server-run-out.log
+dev-run.log
+start-run.log
+server-um*.log
 
 # design reference (never edit)
 design/

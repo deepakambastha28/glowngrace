@@ -209,7 +209,10 @@ export const adminJobSchema = z.object({
   experience: z.string().default("Fresher"),
   openings: z.coerce.number().int().positive().default(1),
   description: z.string().default(""),
+  responsibilities: z.array(z.string()).default([]),
   requirements: z.array(z.string()).default([]),
+  perks: z.array(z.string()).default([]),
+  status: z.enum(["Open", "Pending", "Pending Hold", "On Hold", "Closed", "Rejected"]).optional(),
   hidden: z.boolean().optional(),
 });
 

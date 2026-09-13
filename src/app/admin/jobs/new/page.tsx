@@ -1,12 +1,12 @@
 "use client";
 
-import { AdminGuard } from "@/components/admin/admin-guard";
-import { JobForm } from "@/components/admin/job-form";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default function AddJobPage() {
-  return (
-    <AdminGuard>
-      <JobForm />
-    </AdminGuard>
-  );
+export default function AdminAddJobRedirect() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/admin/jobs");
+  }, [router]);
+  return null;
 }

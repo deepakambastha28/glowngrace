@@ -49,7 +49,15 @@ pill buttons) when touching UI.
   the `/contact` page POST to `/api/reviews` → `gg_admin_reviews` (status
   `Pending`), the admin console approves/hides them (`PATCH
   /api/admin/reviews`), and only `Approved` rows surface on product pages, the
-  `/api/products` aggregates, and home testimonials. Storefront E2E specs seed
+  `/api/products` aggregates, and home testimonials.
+  Job workflow: `gg_admin_jobs` drives `/recruiter/jobs` (create/edit/hold)
+  and `/admin/jobs`. Statuses are `Pending` (new or edited — awaiting
+  approval), `Open` (live on `/careers`), `On Hold`, `Rejected`, and
+  `Pending Hold` (recruiter hold request). Recruiter edits submit as `Pending`;
+  recruiter "Hold" submits `Pending Hold`. Admin Accept publishes (`Open`),
+  rejects (`Rejected`), or for a `Pending Hold` row approves the hold
+  (`On Hold`) or rejects it (back to `Open`). Only `Open` + not `hidden` rows
+  hit `/api/jobs`. Storefront E2E specs seed
   admin records via `tests/helpers.ts` (`seedProduct` / `deleteSeededProduct`,
   `seedEvent` / `deleteSeededEvent`, `seedJob` / `deleteSeededJob`,
   `seedReview` / `deleteSeededReview`, `waitForAdminReview`).

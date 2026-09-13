@@ -165,4 +165,91 @@ test.describe("Recruiter portal", () => {
       if (job) await request.delete(`/api/admin/jobs?id=${job.id}`);
     }
   });
+
+  test("recruiter edit resubmits (Pending) and hold request reflects on site after admin decision", async ({ page, request }) => {
+    test.setTimeout(180_000);
+    const title = `E2E Job Flow ${Date.now()}`;
+    const renamed = `E2E Job Flow Renamed ${Date.now()}`;
+
+    const res = await request.post("/api/admin/jobs", {
+      data: {
+        title,
+        salon: "E2E Salon",
+        location: "Lucknow",
+        type: "Full Time",
+        salaryMin: 10000,
+        salaryMax: 15000,
+        salaryText: "₹10k–15k",
+        experience: "1-2 years",
+        openings: 2,
+        description: "E2E job for recruiter edit + hold flow.",
+        requirements: ["Teamwork"],
+      },
+    });
+    expect(res.ok()).toBe(true);
+
+    const id = await (async () => {
+      const list = await request.get("/api/admin/jobs");
+      const jobs = (((await list.json()) as { items: Array<{ id: number; title: string }> }).items ?? []);
+      const job = jobs.find((j) => j.title === title);
+      expect(job).toBeTruthy();
+      return String(job!.id);
+    })();
+
+    const siteJobs = async () =>
+      (((await (await request.get("/api/jobs")).json()) as { items: Array<{ title: string }> }).items ?? []).map(
+        (x) => x.title
+      );
+    const adminJob = async () =>
+      (((await (await request.get(`/api/admin/jobs?id=${id}`)).json()) as {
+        item: { title: string; status: string } | null;
+      }).item);
+
+    try {
+      await request.patch(`/api/admin/jobs?id=${id}`, { data: { status: "Open" } });
+      expect((await siteJobs()).includes(title)).toBe(true);
+
+      await signIn(page);
+      await page.goto("/recruiter/jobs");
+      await expect(page.getByRole("heading", { name: "Jobs" })).toBeVisible({ timeout: 30_000 });
+
+      const card = page.locator(".card", { hasText: title });
+      await expect(card.getByRole("button", { name: "Edit" })).toBeVisible({ timeout: 30_000 });
+      await card.getByRole("button", { name: "Edit" }).click();
+      await expect(page.getByRole("heading", { name: "Edit Job" })).toBeVisible({ timeout: 30_000 });
+      const titleInput = page.getByPlaceholder("e.g. Senior Beautician");
+      await expect(titleInput).toHaveValue(title);
+      await titleInput.fill(renamed);
+      await page.getByRole("button", { name: "Update Job" }).click();
+      await expect(page.getByRole("heading", { name: "Jobs" })).toBeVisible({ timeout: 30_000 });
+
+      let job = await adminJob();
+      expect(job?.title).toBe(renamed);
+      expect(job?.status).toBe("Pending");
+      expect((await siteJobs()).includes(renamed)).toBe(false);
+
+      await request.patch(`/api/admin/jobs?id=${id}`, { data: { status: "Open" } });
+      expect((await siteJobs()).includes(renamed)).toBe(true);
+
+      await page.reload();
+      const card2 = page.locator(".card", { hasText: renamed });
+      await expect(card2.getByRole("button", { name: "Hold" })).toBeVisible({ timeout: 30_000 });
+      page.once("dialog", (d) => d.accept());
+      await card2.getByRole("button", { name: "Hold" }).click();
+      await expect(page.getByText("Pending Hold")).toBeVisible({ timeout: 30_000 });
+      job = await adminJob();
+      expect(job?.status).toBe("Pending Hold");
+      expect((await siteJobs()).includes(renamed)).toBe(false);
+
+      await request.patch(`/api/admin/jobs?id=${id}`, { data: { status: "On Hold" } });
+      job = await adminJob();
+      expect(job?.status).toBe("On Hold");
+      expect((await siteJobs()).includes(renamed)).toBe(false);
+
+      await request.patch(`/api/admin/jobs?id=${id}`, { data: { status: "Open" } });
+      expect((await siteJobs()).includes(renamed)).toBe(true);
+    } finally {
+      await request.delete(`/api/admin/jobs?id=${id}`);
+    }
+  });
 });

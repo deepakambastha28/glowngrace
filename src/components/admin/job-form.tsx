@@ -9,7 +9,19 @@ const locations = ["Hazratganj", "Gomti Nagar", "Aliganj", "Indira Nagar", "Alam
 const types = ["Full Time", "Part Time", "Contract"];
 const experiences = ["Fresher", "1+ years", "2+ years", "3+ years", "5+ years"];
 
-export function JobForm({ id }: { id?: string }) {
+export function JobForm({
+  id,
+  backPath = "/admin/jobs",
+  cancelPath = "/admin",
+  submitStatus = "Open",
+  resetStatusOnUpdate,
+}: {
+  id?: string;
+  backPath?: string;
+  cancelPath?: string;
+  submitStatus?: string;
+  resetStatusOnUpdate?: string;
+}) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
 
@@ -22,10 +34,13 @@ export function JobForm({ id }: { id?: string }) {
   const [openings, setOpenings] = useState("1");
   const [experience, setExperience] = useState("2+ years");
   const [desc, setDesc] = useState("");
+  const [resps, setResps] = useState("");
   const [reqs, setReqs] = useState("");
+  const [perks, setPerks] = useState("");
 
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(!!id);
+  const [currentStatus, setCurrentStatus] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -45,7 +60,10 @@ export function JobForm({ id }: { id?: string }) {
         setOpenings(String(it.openings));
         setExperience(it.experience);
         setDesc(it.description || "");
+        setResps(Array.isArray(it.responsibilities) ? it.responsibilities.join("\n") : "");
         setReqs(Array.isArray(it.requirements) ? it.requirements.join("\n") : "");
+        setPerks(Array.isArray(it.perks) ? it.perks.join("\n") : "");
+        setCurrentStatus(it.status || "");
       })
       .catch(() => {})
       .finally(() => {
@@ -74,7 +92,9 @@ export function JobForm({ id }: { id?: string }) {
     }
 
     setSaving(true);
+    const responsibilities = resps.split("\n").map((r) => r.trim()).filter(Boolean);
     const requirements = reqs.split("\n").map((r) => r.trim()).filter(Boolean);
+    const perksList = perks.split("\n").map((r) => r.trim()).filter(Boolean);
     const payload = {
       title: title.trim(),
       salon: salon.trim(),
@@ -86,16 +106,27 @@ export function JobForm({ id }: { id?: string }) {
       experience,
       openings: parseInt(openings) || 1,
       description: desc,
+      responsibilities,
       requirements,
+      perks: perksList,
+      ...(id ? {} : { status: submitStatus }),
+      ...(id && resetStatusOnUpdate ? { status: resetStatusOnUpdate } : {}),
     };
     const res = id ? await updateAdminJob(id, payload) : await createAdminJob(payload);
     setSaving(false);
 
     if (res.ok) {
-      toast.success(res.data?.persisted
-        ? (id ? "Job updated successfully ✓" : "Job posted successfully ✓")
-        : "Job posted (database not configured — demo only)");
-      router.push("/admin/jobs");
+      const createdMsg =
+        submitStatus === "Pending" ? "Job submitted for review ✓" : "Job posted successfully ✓";
+      const updatedMsg = resetStatusOnUpdate ? "Job submitted for re-review ✓" : "Job updated successfully ✓";
+      toast.success(
+        res.data?.persisted
+          ? id
+            ? updatedMsg
+            : createdMsg
+          : "Job posted (database not configured — demo only)"
+      );
+      router.push(backPath);
     } else {
       toast.error("Could not post job");
     }
@@ -220,6 +251,16 @@ export function JobForm({ id }: { id?: string }) {
                 />
               </div>
               <div>
+                <label className="field-label">Responsibilities</label>
+                <textarea
+                  className="field-textarea min-h-[90px]"
+                  value={resps}
+                  onChange={(e) => setResps(e.target.value)}
+                  placeholder={"One per line — e.g.\nPerform makeup and grooming services for clients\nAdvise customers on products and after-care..."}
+                />
+                <p className="mt-1 text-xs text-muted">One responsibility per line.</p>
+              </div>
+              <div>
                 <label className="field-label">Key Requirements</label>
                 <textarea
                   className="field-textarea min-h-[90px]"
@@ -228,6 +269,16 @@ export function JobForm({ id }: { id?: string }) {
                   placeholder={"One per line — e.g.\nCertified diploma, salon experience, good communication..."}
                 />
                 <p className="mt-1 text-xs text-muted">One requirement per line.</p>
+              </div>
+              <div>
+                <label className="field-label">Perks &amp; Benefits</label>
+                <textarea
+                  className="field-textarea min-h-[90px]"
+                  value={perks}
+                  onChange={(e) => setPerks(e.target.value)}
+                  placeholder={"One per line — e.g.\nIncentives on sales\nFlexible timings, staff discounts..."}
+                />
+                <p className="mt-1 text-xs text-muted">One perk per line.</p>
               </div>
             </div>
           </div>
@@ -249,10 +300,10 @@ export function JobForm({ id }: { id?: string }) {
             <div className="mt-4 space-y-2.5 text-sm">
               <div className="flex justify-between"><span className="text-muted">Experience</span><b>{experience}</b></div>
               <div className="flex justify-between"><span className="text-muted">Openings</span><b>{openings || 1} position(s)</b></div>
-              <div className="flex justify-between"><span className="text-muted">Status</span><b>Open</b></div>
+              <div className="flex justify-between"><span className="text-muted">Status</span><b>{id ? currentStatus || "Open" : submitStatus}</b></div>
             </div>
             <div className="mt-6 flex gap-3">
-              <button type="button" onClick={() => router.push("/admin")} className="btn-outline flex-1 text-sm">
+              <button type="button" onClick={() => router.push(cancelPath)} className="btn-outline flex-1 text-sm">
                 Cancel
               </button>
               <button type="submit" disabled={saving} className="btn-primary flex-1 text-sm">

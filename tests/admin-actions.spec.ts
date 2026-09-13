@@ -54,6 +54,7 @@ async function seedJob(request: APIRequestContext, title: string) {
       openings: 2,
       description: "E2E actions job.",
       requirements: ["E2E requirement"],
+      status: "Pending",
     },
   });
   expect(res.ok()).toBe(true);
@@ -90,6 +91,14 @@ async function seedCandidate(request: APIRequestContext, email: string) {
     },
   });
   expect(res.ok()).toBe(true);
+}
+
+async function findJobId(request: APIRequestContext, title: string) {
+  const list = await request.get("/api/admin/jobs");
+  const jobs = (((await list.json()) as { items: Array<{ id: number; title: string }> }).items ?? []);
+  const job = jobs.find((j) => j.title === title);
+  expect(job, `seeded job "${title}" should appear on /api/admin/jobs`).toBeTruthy();
+  return String(job!.id);
 }
 
 test.describe("Admin record actions (edit / delete / hide / hold)", () => {
@@ -130,7 +139,7 @@ test.describe("Admin record actions (edit / delete / hide / hold)", () => {
     await expect(row(page, renamed)).toHaveCount(0, { timeout: 30_000 });
   });
 
-  test("jobs: edit, hide, delete", async ({ page, request }) => {
+  test("jobs: accept (pending), hold, edit, delete", async ({ page, request }) => {
     test.setTimeout(150_000);
     const original = `E2E Action Job ${Date.now()}`;
     const renamed = `E2E Action Job Renamed ${Date.now()}`;
@@ -141,6 +150,38 @@ test.describe("Admin record actions (edit / delete / hide / hold)", () => {
     await page.getByTestId("admin-sidebar").getByRole("link", { name: "Jobs" }).click();
     await expect(page.getByRole("heading", { name: "Jobs" })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(original, { exact: true })).toBeVisible();
+    await expect(row(page, original).getByText("Pending")).toBeVisible({ timeout: 30_000 });
+
+    let items = (((await (await request.get("/api/jobs")).json()) as { items: Array<{ title: string }> }).items ?? []);
+    expect(items.some((x) => x.title === original)).toBe(false);
+
+    await row(page, original).getByTitle("View details").click();
+    const modal = page.getByTestId("job-detail-modal");
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    await expect(modal.getByText("E2E actions job.")).toBeVisible();
+    await expect(modal.getByText("Key Requirements")).toBeVisible();
+
+    await modal.getByRole("button", { name: "Accept" }).click();
+    await expect(modal).toHaveCount(0, { timeout: 10_000 });
+    await expect(row(page, original).getByText("Open")).toBeVisible({ timeout: 30_000 });
+    items = (((await (await request.get("/api/jobs")).json()) as { items: Array<{ title: string }> }).items ?? []);
+    expect(items.some((x) => x.title === original)).toBe(true);
+
+    await row(page, original).getByTitle("View details").click();
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    await modal.getByRole("button", { name: "Reject" }).click();
+    await expect(modal).toHaveCount(0, { timeout: 10_000 });
+    await expect(row(page, original).getByText("Rejected")).toBeVisible({ timeout: 30_000 });
+    items = (((await (await request.get("/api/jobs")).json()) as { items: Array<{ title: string }> }).items ?? []);
+    expect(items.some((x) => x.title === original)).toBe(false);
+
+    await row(page, original).getByTitle("Hold").click();
+    await expect(row(page, original).getByText("On Hold")).toBeVisible({ timeout: 30_000 });
+    items = (((await (await request.get("/api/jobs")).json()) as { items: Array<{ title: string }> }).items ?? []);
+    expect(items.some((x) => x.title === original)).toBe(false);
+
+    await row(page, original).getByTitle("Accept").click();
+    await expect(row(page, original).getByText("Open")).toBeVisible({ timeout: 30_000 });
 
     const origRow = row(page, original);
     await origRow.getByTitle("Edit").click();
@@ -152,12 +193,52 @@ test.describe("Admin record actions (edit / delete / hide / hold)", () => {
     await expect(page.getByRole("heading", { name: "Jobs" })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(renamed, { exact: true })).toBeVisible();
 
-    await row(page, renamed).getByTitle("Hide").click();
-    await expect(row(page, renamed).getByText("Hidden")).toBeVisible({ timeout: 30_000 });
-
     page.once("dialog", (d) => d.accept());
     await row(page, renamed).getByTitle("Delete").click();
     await expect(row(page, renamed)).toHaveCount(0, { timeout: 30_000 });
+  });
+
+  test("jobs: approve & reject a recruiter hold request (reflects on site)", async ({ page, request }) => {
+    test.setTimeout(150_000);
+    const title = `E2E Hold Request ${Date.now()}`;
+
+    await seedJob(request, title);
+    const id = await findJobId(request, title);
+    await request.patch(`/api/admin/jobs?id=${id}`, { data: { status: "Open" } });
+    await request.patch(`/api/admin/jobs?id=${id}`, { data: { status: "Pending Hold" } });
+
+    const siteTitles = async () =>
+      (((await (await request.get("/api/jobs")).json()) as { items: Array<{ title: string }> }).items ?? []).map(
+        (x) => x.title
+      );
+    expect((await siteTitles()).includes(title)).toBe(false);
+
+    await signIn(page);
+    await page.getByTestId("admin-sidebar").getByRole("link", { name: "Jobs" }).click();
+    await expect(page.getByRole("heading", { name: "Jobs" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(title, { exact: true })).toBeVisible();
+    await expect(row(page, title).getByText("Pending Hold")).toBeVisible({ timeout: 30_000 });
+
+    await row(page, title).getByTitle("View details").click();
+    const modal = page.getByTestId("job-detail-modal");
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    await expect(modal.getByText(/Recruiter requested to put this job on hold/)).toBeVisible();
+    await modal.getByRole("button", { name: "Approve Hold" }).click();
+    await expect(modal).toHaveCount(0, { timeout: 10_000 });
+    await expect(row(page, title).getByText("On Hold")).toBeVisible({ timeout: 30_000 });
+    expect((await siteTitles()).includes(title)).toBe(false);
+
+    await request.patch(`/api/admin/jobs?id=${id}`, { data: { status: "Pending Hold" } });
+    await page.reload();
+    await expect(row(page, title).getByText("Pending Hold")).toBeVisible({ timeout: 30_000 });
+    await row(page, title).getByTitle("View details").click();
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    await modal.getByRole("button", { name: "Reject Hold" }).click();
+    await expect(modal).toHaveCount(0, { timeout: 10_000 });
+    await expect(row(page, title).getByText("Open")).toBeVisible({ timeout: 30_000 });
+    expect((await siteTitles()).includes(title)).toBe(true);
+
+    await request.delete(`/api/admin/jobs?id=${id}`);
   });
 
   test("partners: edit, hold (off storefront), activate, hide, delete", async ({ page, request }) => {

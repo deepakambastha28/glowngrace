@@ -598,7 +598,7 @@ function ContactTab() {
 
       <div className="grid sm:grid-cols-3 gap-4 mb-6">
         {[
-          { icon: Mail, label: "Email", value: "hello@glowngrace.in", href: "mailto:hello@glowngrace.in" },
+          { icon: Mail, label: "Email", value: "glowngracebiz@gmail.com", href: "mailto:glowngracebiz@gmail.com" },
           { icon: Phone, label: "Phone", value: "+91 89718 21213", href: "tel:+918971821213" },
           { icon: MapPin, label: "Visit", value: "Hazratganj, Lucknow", href: "#" },
         ].map((c) => (

@@ -24,7 +24,9 @@ function toItem(r: Record<string, unknown>) {
     experience: r.experience,
     openings: r.openings,
     description: r.description,
+    responsibilities: r.responsibilities,
     requirements: r.requirements,
+    perks: r.perks,
     status: r.status,
     hidden: Boolean(r.hidden),
     createdAt: r.created_at,
@@ -41,8 +43,8 @@ export async function GET(request: NextRequest) {
   if (id) {
     const rows = await query(
       `SELECT id, slug, title, salon, location, type, salary_min, salary_max,
-         salary_text, experience, openings, description, requirements,
-         status, hidden, created_at
+         salary_text, experience, openings, description, responsibilities,
+         requirements, perks, status, hidden, created_at
        FROM gg_admin_jobs WHERE id = $1 LIMIT 1`,
       [Number(id)]
     );
@@ -52,8 +54,8 @@ export async function GET(request: NextRequest) {
 
   const rows = await query(
     `SELECT id, slug, title, salon, location, type, salary_min, salary_max,
-       salary_text, experience, openings, description, requirements,
-       status, hidden, created_at
+       salary_text, experience, openings, description, responsibilities,
+       requirements, perks, status, hidden, created_at
      FROM gg_admin_jobs ORDER BY created_at DESC`
   );
   const items = (rows ?? []).map(toItem);
@@ -89,8 +91,8 @@ export async function POST(request: Request) {
     const rows = await query(
       `INSERT INTO gg_admin_jobs
         (slug, title, salon, location, type, salary_min, salary_max, salary_text,
-         experience, openings, description, requirements, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13)
+         experience, openings, description, responsibilities, requirements, perks, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13::jsonb,$14::jsonb,$15)
        RETURNING id`,
       [
         slug,
@@ -104,8 +106,10 @@ export async function POST(request: Request) {
         d.experience,
         d.openings,
         d.description,
+        JSON.stringify(d.responsibilities),
         JSON.stringify(d.requirements),
-        "Open",
+        JSON.stringify(d.perks),
+        d.status || "Open",
       ]
     );
 
@@ -120,7 +124,7 @@ export async function POST(request: Request) {
   }
 }
 
-/** PATCH /api/admin/jobs?id=... — edit a job, or toggle visibility with { hidden }. */
+/** PATCH /api/admin/jobs?id=... — edit a job, toggle visibility with { hidden }, or change status. */
 export async function PATCH(request: NextRequest) {
   const id = request.nextUrl.searchParams.get("id");
   if (!id) {
@@ -148,37 +152,53 @@ export async function PATCH(request: NextRequest) {
       );
     }
     const onlyHidden = keys.length === 1 && keys[0] === "hidden";
+    const onlyStatus = keys.length === 1 && keys[0] === "status";
 
     if (!isDbConfigured()) {
       return NextResponse.json({ persisted: false });
     }
 
-    const salaryMin = d.salaryMin ?? 0;
-    const salaryMax = d.salaryMax || salaryMin;
-    const sql = onlyHidden
-      ? `UPDATE gg_admin_jobs SET hidden=$1 WHERE id=$2`
-      : `UPDATE gg_admin_jobs
-           SET title=$1, salon=$2, location=$3, type=$4, salary_min=$5,
-               salary_max=$6, salary_text=$7, experience=$8, openings=$9,
-               description=$10, requirements=$11::jsonb
-         WHERE id=$12`;
-    const params = onlyHidden
-      ? [d.hidden, Number(id)]
-      : [
-          d.title,
-          d.salon,
-          d.location,
-          d.type,
-          d.salaryMin,
-          salaryMax,
-          d.salaryText ||
-            `₹${(salaryMin / 1000).toFixed(0)}k–${(salaryMax / 1000).toFixed(0)}k`,
-          d.experience,
-          d.openings,
-          d.description,
-          JSON.stringify(d.requirements),
-          Number(id),
-        ];
+    let sql: string;
+    let params: unknown[];
+    if (onlyHidden) {
+      sql = `UPDATE gg_admin_jobs SET hidden=$1 WHERE id=$2`;
+      params = [d.hidden, Number(id)];
+    } else if (onlyStatus) {
+      sql = `UPDATE gg_admin_jobs SET status=$1 WHERE id=$2`;
+      params = [d.status, Number(id)];
+    } else {
+      const entries: string[] = [];
+      const values: unknown[] = [];
+      const salaryMin = d.salaryMin ?? 0;
+      const salaryMax = d.salaryMax || salaryMin;
+      const add = (column: string, value: unknown, cast = "") => {
+        entries.push(`${column}=$${values.length + 1}${cast}`);
+        values.push(value);
+      };
+      add("title", d.title);
+      add("salon", d.salon);
+      add("location", d.location);
+      add("type", d.type);
+      add("salary_min", d.salaryMin);
+      add("salary_max", salaryMax);
+      add(
+        "salary_text",
+        d.salaryText ||
+          `₹${(salaryMin / 1000).toFixed(0)}k–${(salaryMax / 1000).toFixed(0)}k`
+      );
+      add("experience", d.experience);
+      add("openings", d.openings);
+      add("description", d.description);
+      add("responsibilities", JSON.stringify(d.responsibilities), "::jsonb");
+      add("requirements", JSON.stringify(d.requirements), "::jsonb");
+      add("perks", JSON.stringify(d.perks), "::jsonb");
+      if (typeof d.status === "string") {
+        add("status", d.status);
+      }
+      sql = `UPDATE gg_admin_jobs SET ${entries.join(", ")} WHERE id=$${values.length + 1}`;
+      values.push(Number(id));
+      params = values;
+    }
 
     await query(sql, params);
 
