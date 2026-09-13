@@ -12,8 +12,8 @@ const CONTACT_CARDS = [
   {
     icon: Mail,
     label: "Email",
-    value: "hello@glowngrace.in",
-    href: "mailto:hello@glowngrace.in",
+    value: "glowngracebiz@gmail.com",
+    href: "mailto:glowngracebiz@gmail.com",
   },
   {
     icon: Phone,

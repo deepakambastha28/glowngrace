@@ -72,7 +72,7 @@ export function Footer() {
                 <span>📞</span> +91 89718 21213
               </li>
               <li className="flex gap-2.5 items-start">
-                <span>✉️</span> hello@glowandgrace.in
+                <span>✉️</span> glowngracebiz@gmail.com
               </li>
             </ul>
           </div>
