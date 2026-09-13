@@ -281,6 +281,46 @@ export type AdminEventFormData = z.infer<typeof adminEventSchema>;
 export const adminEventPatchSchema = adminEventSchema.partial();
 export type AdminEventPatch = z.infer<typeof adminEventPatchSchema>;
 
+export const userAccountRoles = ["user", "candidate", "recruiter", "admin"] as const;
+export type UserAccountRole = (typeof userAccountRoles)[number];
+
+export const userLoginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export type UserLoginFormData = z.infer<typeof userLoginSchema>;
+
+export const userRegisterSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().max(20, "Phone is too long").default(""),
+  role: z.enum(userAccountRoles),
+  password: z.string().min(6, "Password must be at least 6 characters").max(72),
+});
+
+export type UserRegisterPayload = z.infer<typeof userRegisterSchema>;
+
+export const adminUserCreateSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(80),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().max(20, "Phone is too long").default(""),
+  role: z.enum(["user", "candidate", "recruiter"]),
+  password: z.string().min(6, "Password must be at least 6 characters").max(72),
+});
+
+export type AdminUserCreatePayload = z.infer<typeof adminUserCreateSchema>;
+
+export const adminUserPatchSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(80).optional(),
+  phone: z.string().max(20, "Phone is too long").optional(),
+  role: z.enum(userAccountRoles).optional(),
+  status: z.enum(["active", "suspended"]).optional(),
+  password: z.string().min(6, "Password must be at least 6 characters").max(72).optional(),
+});
+
+export type AdminUserPatch = z.infer<typeof adminUserPatchSchema>;
+
 export const adminCandidatePatchSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").optional(),
   phone: z

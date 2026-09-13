@@ -24,6 +24,7 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 
 - **`/`** — Hero (+ rotating DB-backed product circle), stats, trust badges, categories, bestsellers, job vacancies, CTA banner, testimonials, newsletter, footer
 - **`/admin`** — Authenticated admin console (dashboard + products/jobs/events/partners/candidates/recruiters with create / edit / hide / hold / delete, plus review moderation). Signed-in sessions (15-min expiry) gate the sidebar; `/admin` hides storefront chrome. Admins get an **Admin menu in the storefront top nav** once signed in.
+- **`/admin/users`** — User-account management across every role (`user` / `candidate` / `recruiter` / `admin`): search + role/status filters, create accounts, activate/suspend, reset passwords, and delete. The seeded `admin@glowngrace.in` account is **protected** — it cannot be suspended, deleted, or have its password reset from the UI or API.
 - **`/recruiter`** — Role-gated recruiter portal with a single top-nav (Home, Shop, Candidates, Careers, Events). Browse & hire candidates (`/recruiter/candidates`), manage job openings (`/recruiter/jobs`), update profile (`/recruiter/profile`), and publish workshops to the storefront event calendar (`/recruiter/events`). Recruiters sign in with the `recruiter` account type; logout always returns to the home page. Recruiters get a **Recruiter menu in the storefront top nav** once signed in.
 - **`/products`** — Filter by category, sort by price/rating, live search. Catalog is **admin-DB driven** (`/api/products`), no static seed.
 - **`/products/[slug]`** — Gallery + thumbnails, price + % saved, qty stepper, Add to Cart, features, delivery info, tabs (Description / Info / Reviews). **Tap a star** under the rating to open the rate-and-review popup (1–5 stars + comment); submissions start as **Pending** in `/admin/reviews` and only appear on the product once approved. Rating + review counts on the card and detail header are derived from approved reviews. Unknown slugs → custom 404.
@@ -37,7 +38,7 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 - **`/careers/[slug]/apply`** — Validated application form with drag-drop PDF/DOC resume upload, T&C, success screen
 - **`/shopper`** & **`/candidate`** — Role-based profiles with Edit Profile / orders / password / address / contact tabs
 - **`/contact`** — Contact page with a **comment-only** review form (no star rating); submissions land in `/admin/reviews` as **Pending** for moderation
-- **`/login`**, **`/signup`** — Zod-validated auth with `shopper` / `candidate` / `admin` / `recruiter` account-type selector and demo credentials
+- **`/login`**, **`/signup`** — Zod-validated auth with `shopper` / `candidate` / `admin` / `recruiter` account-type selector and demo credentials. Sign-in also checks server-side accounts (`gg_users`): suspended accounts are blocked, wrong passwords are rejected, and `admin`-role server accounts skip client-only auth.
 
 ## Getting Started
 
@@ -116,7 +117,7 @@ src/
 │   ├── layout.tsx            # Fonts, metadata/SEO, Navbar/Footer/Toaster
 │   ├── globals.css           # Design tokens + component classes
 │   ├── page.tsx              # Home
-│   ├── admin/                # Admin console (dashboard + products/jobs/events/partners/candidates/recruiters)
+│   ├── admin/                # Admin console (dashboard + products/jobs/events/partners/candidates/recruiters/users)
 │   ├── recruiter/            # Recruiter portal (dashboard, candidates, jobs, profile, events)
 │   ├── products/             # List + [slug] detail (DB-driven storefront)
 │   ├── cart/ checkout/       # Cart + 3-step checkout wizard + success
@@ -144,9 +145,16 @@ src/
 - Neon Postgres via `src/lib/db.ts` (graceful no-op when `DATABASE_URL` is unset).
 - Admin tables: `gg_admin_products`, `gg_admin_jobs`, `gg_admin_events`,
   `gg_admin_partners`, `gg_admin_candidates`, `gg_admin_reviews`,
-  `gg_admin_sessions`. `/api/products`,
+  `gg_admin_sessions`, `gg_users`. `/api/products`,
   `/api/partners`, `/api/events`, and `/api/jobs` expose non-hidden rows to the
   storefront with `admin-`-prefixed ids.
+- User accounts: `gg_users` rows are created/updated/deleted via
+  `/api/admin/users` (admin console) and `/api/users/register` (storefront
+  signup, best-effort); passwords are stored as salted scrypt hashes
+  (`scrypt$<salt>$<hash>` via `src/lib/users.ts`). `/api/users/login` validates
+  a storefront sign-in against the DB after the client-side check — blocking
+  suspended accounts and rejecting wrong passwords. The `admin@glowngrace.in`
+  seed account is protected from suspend/delete/password-reset.
 - Reviews: submitted from the product page (star popup) and the `/contact`
   page land in `gg_admin_reviews` with status `Pending`; the admin console
   approves/hides them (`PATCH /api/admin/reviews`), and only `Approved` rows

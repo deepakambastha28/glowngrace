@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { signupSchema, type SignupFormData } from "@/lib/schemas";
 import { registerUser } from "@/lib/auth";
+import { registerStorefrontUser } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const accountTypes = [
@@ -88,6 +89,16 @@ export default function SignupPage() {
   };
 
   const onSubmit = (data: SignupFormData) => {
+    registerStorefrontUser({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      role: data.accountType,
+      password: data.password,
+    }).catch(() => {
+      // Best-effort server registration — never blocks signup.
+    });
+
     const ok = registerUser({
       name: data.name,
       email: data.email,

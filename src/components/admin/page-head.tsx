@@ -18,9 +18,11 @@ export function AdminPageHead({
         <h1 className="text-3xl font-bold">{title}</h1>
         <p className="mt-1 text-muted">{subtitle}</p>
       </div>
-      <Link href={actionHref} className="btn-primary text-sm">
-        <Plus className="h-4 w-4" /> {actionLabel}
-      </Link>
+      {actionLabel && (
+        <Link href={actionHref} className="btn-primary text-sm">
+          <Plus className="h-4 w-4" /> {actionLabel}
+        </Link>
+      )}
     </div>
   );
 }

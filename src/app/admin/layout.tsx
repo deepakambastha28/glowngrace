@@ -33,6 +33,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
       { href: "/admin/jobs", label: "Jobs", icon: Briefcase },
       { href: "/admin/events", label: "Events", icon: CalendarDays },
       { href: "/admin/reviews", label: "Reviews", icon: MessageSquare },
+      { href: "/admin/users", label: "Users", icon: Users },
       { href: "/admin/partners", label: "Partners", icon: Users },
       { href: "/admin/candidates", label: "Candidates", icon: Users },
       { href: "/admin/recruiters", label: "Recruiters", icon: UserSearch },
