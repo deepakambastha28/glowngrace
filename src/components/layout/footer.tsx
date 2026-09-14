@@ -1,4 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
+import gngLogoSilver from "@/images/gnglogo-silver.png";
 
 const shopLinks = [
   { label: "Makeup", href: "/products?category=Makeup" },
@@ -21,8 +23,17 @@ export function Footer() {
       <div className="mx-auto max-w-screen-xl px-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1.2fr] gap-10">
           <div>
-            <div className="font-heading text-2xl font-bold text-white">
-              Glow<span className="text-gold">&amp;</span>Grace
+            <div className="flex items-center gap-2.5" data-testid="footer-logo">
+              <Image
+                src={gngLogoSilver}
+                alt=""
+                className="h-12 w-auto"
+                width={280}
+                height={280}
+              />
+              <span className="font-heading text-2xl font-bold text-white">
+                Glow<span className="text-gold">&amp;</span>Grace
+              </span>
             </div>
             <p className="mt-4 text-[0.9rem] leading-relaxed max-w-xs">
               Lucknow&apos;s trusted destination for premium women&apos;s cosmetics

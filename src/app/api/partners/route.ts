@@ -9,6 +9,21 @@ export const revalidate = 0;
 
 function toStorefrontPartner(row: Record<string, unknown>): Partner {
   const tags = Array.isArray(row.tags) ? (row.tags as string[]) : [];
+  const images = Array.isArray(row.gallery) ? (row.gallery as string[]) : [];
+  const menu = Array.isArray(row.menu)
+    ? (row.menu as { name?: string; price?: string | number; duration?: string; description?: string; services?: string[] }[])
+        .map((m) => ({
+          name: String(m.name ?? "").trim(),
+          price:
+            typeof m.price === "number"
+              ? "₹" + m.price.toLocaleString("en-IN")
+              : String(m.price ?? ""),
+          duration: String(m.duration ?? ""),
+          description: String(m.description ?? ""),
+          services: Array.isArray(m.services) ? m.services.map(String) : [],
+        }))
+        .filter((m) => m.name)
+    : [];
   return {
     id: `admin-${String(row.id)}`,
     slug: String(row.slug),
@@ -25,7 +40,8 @@ function toStorefrontPartner(row: Record<string, unknown>): Partner {
     description: String(row.description ?? ""),
     tags,
     gallery: [],
-    menu: [],
+    images,
+    menu,
   };
 }
 
@@ -36,7 +52,7 @@ export async function GET() {
   if (isDbConfigured()) {
     const rows = await query(
       `SELECT id, slug, name, type, loc, emoji, gradient, rating,
-              reviews, estd, staff, services, description, tags
+              reviews, estd, staff, services, description, tags, gallery, menu
        FROM gg_admin_partners WHERE status = 'Active' ORDER BY created_at DESC`
     );
     items = (rows ?? []).map(toStorefrontPartner);

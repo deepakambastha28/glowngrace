@@ -3,15 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  User, Mail, Lock, Phone, Sparkles, Shield, Briefcase,
-  ShoppingBag, ChevronRight, Check, UserSearch,
+  User, Mail, Lock, Phone, Sparkles, Briefcase,
+  ShoppingBag, ChevronRight, Check, Building2,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { signupSchema, type SignupFormData } from "@/lib/schemas";
+import { partnerSignupSchema, type PartnerSignupFormData } from "@/lib/schemas";
 import { registerUser } from "@/lib/auth";
-import { registerStorefrontUser } from "@/lib/api";
+import { registerStorefrontUser, submitPartnerForm } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const accountTypes = [
@@ -42,24 +43,11 @@ const accountTypes = [
     iconActiveBg: "bg-rose text-white",
   },
   {
-    value: "admin" as const,
-    label: "Admin",
-    icon: Shield,
-    description: "Manage products, jobs, reviews, and candidates from the dashboard.",
-    features: ["Full dashboard access", "Manage listings & reviews", "View analytics & reports"],
-    gradient: "from-[#e9f1fa]/60 to-white",
-    border: "border-[#3b82c9]/20",
-    activeBorder: "border-[#3b82c9]",
-    activeBg: "bg-[#e9f1fa]/40",
-    iconBg: "bg-[#e9f1fa] text-[#3b82c9]",
-    iconActiveBg: "bg-[#3b82c9] text-white",
-  },
-  {
     value: "recruiter" as const,
-    label: "Recruiter",
-    icon: UserSearch,
-    description: "Browse candidate profiles, contact and hire talent for your salon or agency.",
-    features: ["View candidate profiles", "Contact & shortlist talent", "Hire & manage placements"],
+    label: "Partner / Recruiter",
+    icon: Building2,
+    description: "Register your salon, hire vetted beauty professionals, and manage your services & packages.",
+    features: ["List your salon & services", "Post jobs & hire talent", "Create packages & gallery"],
     gradient: "from-emerald/5 to-[#eaf7f0]/60",
     border: "border-emerald/20",
     activeBorder: "border-emerald",
@@ -72,6 +60,7 @@ const accountTypes = [
 export default function SignupPage() {
   const router = useRouter();
   const [selectedType, setSelectedType] = useState<string>("user");
+  const [submitting, setSubmitting] = useState(false);
 
   const {
     register,
@@ -83,9 +72,15 @@ export default function SignupPage() {
     defaultValues: { accountType: "user" },
   });
 
+  const partnerForm = useForm<PartnerSignupFormData>({
+    resolver: zodResolver(partnerSignupSchema),
+  });
+
   const selectType = (value: string) => {
     setSelectedType(value);
-    setValue("accountType", value as SignupFormData["accountType"], { shouldValidate: true });
+    if (value !== "recruiter") {
+      setValue("accountType", value as SignupFormData["accountType"], { shouldValidate: true });
+    }
   };
 
   const onSubmit = (data: SignupFormData) => {
@@ -119,6 +114,54 @@ export default function SignupPage() {
     router.push("/login");
   };
 
+  const handlePartnerSubmit = async (data: PartnerSignupFormData) => {
+    setSubmitting(true);
+
+    const ok = registerUser({
+      name: data.ownerName,
+      email: data.email,
+      password: data.password,
+      phone: data.phone,
+      role: "recruiter",
+    });
+
+    if (!ok) {
+      setSubmitting(false);
+      toast.error("An account with this email already exists.");
+      return;
+    }
+
+    registerStorefrontUser({
+      name: data.ownerName,
+      email: data.email,
+      phone: data.phone,
+      role: "recruiter",
+      password: data.password,
+    }).catch(() => {
+      // Best-effort server registration — never blocks signup.
+    });
+
+    submitPartnerForm({
+      ownerName: data.ownerName,
+      salonName: data.salonName,
+      email: data.email,
+      phone: data.phone,
+      city: "",
+      services: "",
+      message: "",
+    }).catch(() => {
+      // Best-effort partner request — never blocks signup.
+    });
+
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("glow-grace-just-signed-up", "true");
+    }
+    setSubmitting(false);
+    toast.success("Partner account created successfully! 🎉");
+    router.push("/login");
+  };
+
+  const isRecruiter = selectedType === "recruiter";
   const activeType = accountTypes.find((t) => t.value === selectedType);
 
   return (
@@ -193,10 +236,9 @@ export default function SignupPage() {
               })}
             </div>
 
-            {errors.accountType && (
+            {!isRecruiter && errors.accountType && (
               <p className="text-sm text-rose">{errors.accountType.message}</p>
             )}
-
 
           </div>
 
@@ -209,67 +251,161 @@ export default function SignupPage() {
               <p className="text-sm text-muted mt-1">Fill in your details to get started</p>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <input type="hidden" {...register("accountType")} value={selectedType} />
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="field-label" htmlFor="name">Full Name</label>
-                  <div className="relative mt-1.5">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
-                    <input id="name" className="field-input !rounded-full !pl-11" {...register("name")} placeholder="Priya Sharma" />
+            {isRecruiter ? (
+              <form onSubmit={partnerForm.handleSubmit(handlePartnerSubmit)} className="space-y-4">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="field-label" htmlFor="ownerName">Owner Name</label>
+                    <div className="relative mt-1.5">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
+                      <input id="ownerName" className="field-input !rounded-full !pl-11" {...partnerForm.register("ownerName")} placeholder="Ritu Sharma" />
+                    </div>
+                    {partnerForm.formState.errors.ownerName && (
+                      <p className="mt-1 text-sm text-rose">{partnerForm.formState.errors.ownerName.message}</p>
+                    )}
                   </div>
-                  {errors.name && <p className="mt-1 text-sm text-rose">{errors.name.message}</p>}
+
+                  <div>
+                    <label className="field-label" htmlFor="salonName">Salon / Studio Name</label>
+                    <div className="relative mt-1.5">
+                      <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
+                      <input id="salonName" className="field-input !rounded-full !pl-11" {...partnerForm.register("salonName")} placeholder="Grace Beauty Lounge" />
+                    </div>
+                    {partnerForm.formState.errors.salonName && (
+                      <p className="mt-1 text-sm text-rose">{partnerForm.formState.errors.salonName.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="field-label" htmlFor="email">Email Address</label>
+                    <div className="relative mt-1.5">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
+                      <input id="email" type="email" className="field-input !rounded-full !pl-11" {...partnerForm.register("email")} placeholder="you@example.com" />
+                    </div>
+                    {partnerForm.formState.errors.email && (
+                      <p className="mt-1 text-sm text-rose">{partnerForm.formState.errors.email.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="field-label" htmlFor="phone">Phone Number</label>
+                    <div className="relative mt-1.5">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
+                      <input id="phone" type="tel" className="field-input !rounded-full !pl-11" {...partnerForm.register("phone")} placeholder="+91 98765 43210" />
+                    </div>
+                    {partnerForm.formState.errors.phone && (
+                      <p className="mt-1 text-sm text-rose">{partnerForm.formState.errors.phone.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="field-label" htmlFor="password">Password</label>
+                    <div className="relative mt-1.5">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
+                      <input id="password" type="password" className="field-input !rounded-full !pl-11" {...partnerForm.register("password")} placeholder="••••••••" />
+                    </div>
+                    {partnerForm.formState.errors.password && (
+                      <p className="mt-1 text-sm text-rose">{partnerForm.formState.errors.password.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="field-label" htmlFor="confirmPassword">Confirm Password</label>
+                    <div className="relative mt-1.5">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
+                      <input id="confirmPassword" type="password" className="field-input !rounded-full !pl-11" {...partnerForm.register("confirmPassword")} placeholder="••••••••" />
+                    </div>
+                    {partnerForm.formState.errors.confirmPassword && (
+                      <p className="mt-1 text-sm text-rose">{partnerForm.formState.errors.confirmPassword.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 rounded accent-rose"
+                    {...partnerForm.register("acceptTerms")}
+                  />
+                  <span className="text-sm text-charcoal/70">
+                    I agree to the partner terms &amp; conditions and confirm the
+                    information provided is accurate.
+                  </span>
+                </label>
+                {partnerForm.formState.errors.acceptTerms && (
+                  <p className="text-sm text-rose">{partnerForm.formState.errors.acceptTerms.message}</p>
+                )}
+
+                <div className="pt-2">
+                  <button type="submit" disabled={submitting} className="btn-primary w-full flex items-center justify-center gap-2">
+                    {submitting ? "Submitting…" : "Become a Partner"}
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <input type="hidden" {...register("accountType")} value={selectedType} />
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="field-label" htmlFor="name">Full Name</label>
+                    <div className="relative mt-1.5">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
+                      <input id="name" className="field-input !rounded-full !pl-11" {...register("name")} placeholder="Priya Sharma" />
+                    </div>
+                    {errors.name && <p className="mt-1 text-sm text-rose">{errors.name.message}</p>}
+                  </div>
+
+                  <div>
+                    <label className="field-label" htmlFor="phone">Phone Number</label>
+                    <div className="relative mt-1.5">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
+                      <input id="phone" type="tel" className="field-input !rounded-full !pl-11" {...register("phone")} placeholder="+91 98765 43210" />
+                    </div>
+                    {errors.phone && <p className="mt-1 text-sm text-rose">{errors.phone.message}</p>}
+                  </div>
                 </div>
 
                 <div>
-                  <label className="field-label" htmlFor="phone">Phone Number</label>
+                  <label className="field-label" htmlFor="email">Email Address</label>
                   <div className="relative mt-1.5">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
-                    <input id="phone" type="tel" className="field-input !rounded-full !pl-11" {...register("phone")} placeholder="+91 98765 43210" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
+                    <input id="email" type="email" className="field-input !rounded-full !pl-11" {...register("email")} placeholder="you@example.com" />
                   </div>
-                  {errors.phone && <p className="mt-1 text-sm text-rose">{errors.phone.message}</p>}
+                  {errors.email && <p className="mt-1 text-sm text-rose">{errors.email.message}</p>}
                 </div>
-              </div>
 
-              <div>
-                <label className="field-label" htmlFor="email">Email Address</label>
-                <div className="relative mt-1.5">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
-                  <input id="email" type="email" className="field-input !rounded-full !pl-11" {...register("email")} placeholder="you@example.com" />
-                </div>
-                {errors.email && <p className="mt-1 text-sm text-rose">{errors.email.message}</p>}
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="field-label" htmlFor="password">Password</label>
-                  <div className="relative mt-1.5">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
-                    <input id="password" type="password" className="field-input !rounded-full !pl-11" {...register("password")} placeholder="••••••••" />
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="field-label" htmlFor="password">Password</label>
+                    <div className="relative mt-1.5">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
+                      <input id="password" type="password" className="field-input !rounded-full !pl-11" {...register("password")} placeholder="••••••••" />
+                    </div>
+                    {errors.password && <p className="mt-1 text-sm text-rose">{errors.password.message}</p>}
                   </div>
-                  {errors.password && <p className="mt-1 text-sm text-rose">{errors.password.message}</p>}
-                </div>
 
-                <div>
-                  <label className="field-label" htmlFor="confirmPassword">Confirm Password</label>
-                  <div className="relative mt-1.5">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
-                    <input id="confirmPassword" type="password" className="field-input !rounded-full !pl-11" {...register("confirmPassword")} placeholder="••••••••" />
+                  <div>
+                    <label className="field-label" htmlFor="confirmPassword">Confirm Password</label>
+                    <div className="relative mt-1.5">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
+                      <input id="confirmPassword" type="password" className="field-input !rounded-full !pl-11" {...register("confirmPassword")} placeholder="••••••••" />
+                    </div>
+                    {errors.confirmPassword && <p className="mt-1 text-sm text-rose">{errors.confirmPassword.message}</p>}
                   </div>
-                  {errors.confirmPassword && <p className="mt-1 text-sm text-rose">{errors.confirmPassword.message}</p>}
                 </div>
-              </div>
 
-              <div className="pt-2">
-                <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2">
-                  Create {activeType?.label} Account
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-
-
-            </form>
+                <div className="pt-2">
+                  <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2">
+                    Create {activeType?.label} Account
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </div>

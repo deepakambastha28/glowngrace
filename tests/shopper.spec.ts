@@ -59,7 +59,20 @@ test.describe("Signup page", () => {
     await expect(page.getByText("Choose your account type")).toBeVisible();
     await expect(page.getByRole("button", { name: /Browse & buy beauty/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /Create a profile/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Manage products/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Register your salon/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Browse candidate profiles/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Manage products/ })).toHaveCount(0);
+  });
+
+  test("selecting Partner / Recruiter shows the business registration form", async ({ page }) => {
+    await page.goto("/signup");
+    await page.getByRole("button", { name: /Register your salon/ }).click();
+    await expect(page.getByText("List your salon & services")).toBeVisible();
+    await expect(page.getByLabel("Owner Name")).toBeVisible();
+    await expect(page.getByLabel("Salon / Studio Name")).toBeVisible();
+    await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Confirm Password", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Become a Partner" })).toBeVisible();
   });
 
   test("selecting Candidate shows candidate features", async ({ page }) => {

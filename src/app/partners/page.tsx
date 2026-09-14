@@ -325,7 +325,7 @@ export default function PartnersPage() {
                           📍 {p.loc}, Lucknow
                         </div>
                         <div className="mi-meta">
-                          ⭐ {p.rating} · {p.reviews} reviews · {p.gallery.length} photos
+                          ⭐ {p.rating} · {p.reviews} reviews · {p.images?.length ?? p.gallery.length} photos
                         </div>
                       </div>
                       <span style={{ color: "var(--rose)", fontSize: "1.2rem" }}>›</span>

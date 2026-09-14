@@ -65,6 +65,82 @@ test.describe("Recruiter portal", () => {
     await expect(page.getByText("Recruiter Portal")).toBeVisible();
   });
 
+  test("recruiter profile shows gallery, services and packages managers", async ({ page }) => {
+    await signIn(page);
+    await page.goto("/recruiter/profile");
+    await expect(page.getByRole("heading", { name: "My Profile" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("salon-gallery")).toBeVisible();
+    await expect(page.getByTestId("services-section")).toBeVisible();
+    await expect(page.getByTestId("packages-section")).toBeVisible();
+  });
+
+  test("recruiter can add a package via the form", async ({ page, request }) => {
+    test.setTimeout(120_000);
+    const name = `E2E Pkg ${Date.now()}`;
+    const cleanup = async () => {
+      const list = await request.get("/api/recruiters/packages?email=recruiter@glowngrace.in");
+      const items = (((await list.json()) as { items: Array<{ id: string; name: string }> }).items ?? []);
+      for (const p of items) {
+        if (p.name === name) await request.delete(`/api/recruiters/packages?id=${p.id}&email=recruiter@glowngrace.in`);
+      }
+    };
+
+    try {
+      await signIn(page);
+      await page.goto("/recruiter/profile");
+      await expect(page.getByTestId("packages-section")).toBeVisible({ timeout: 30_000 });
+
+      await page.getByRole("button", { name: "Facials & Skin Care", exact: true }).click();
+      await page.getByTestId("package-name").fill(name);
+      await page.getByTestId("package-price").fill("2999");
+      await page.getByTestId("package-duration").fill("1 month");
+      await page.getByTestId("add-package").click();
+
+      await expect(page.getByTestId("package-row").filter({ hasText: name })).toBeVisible({ timeout: 30_000 });
+      await expect(page.getByTestId("package-row").filter({ hasText: "₹2,999" })).toBeVisible();
+    } finally {
+      await cleanup();
+    }
+  });
+
+  test("recruiter can bulk import packages from a JSON file", async ({ page, request }) => {
+    test.setTimeout(120_000);
+    const name = `E2E Import Pkg ${Date.now()}`;
+    const cleanup = async () => {
+      const list = await request.get("/api/recruiters/packages?email=recruiter@glowngrace.in");
+      const items = (((await list.json()) as { items: Array<{ id: string; name: string }> }).items ?? []);
+      for (const p of items) {
+        if (p.name === name) await request.delete(`/api/recruiters/packages?id=${p.id}&email=recruiter@glowngrace.in`);
+      }
+    };
+
+    try {
+      await signIn(page);
+      await page.goto("/recruiter/profile");
+      await expect(page.getByTestId("packages-section")).toBeVisible({ timeout: 30_000 });
+
+      await page.getByTestId("packages-file").setInputFiles({
+        name: "packages.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(
+          JSON.stringify([
+            {
+              name,
+              price: 1999,
+              duration: "1 session",
+              description: "Imported via file upload",
+              services: ["Haircut & Styling"],
+            },
+          ])
+        ),
+      });
+
+      await expect(page.getByTestId("package-row").filter({ hasText: name })).toBeVisible({ timeout: 30_000 });
+    } finally {
+      await cleanup();
+    }
+  });
+
   test("recruiter can create an event", async ({ page, request }) => {
     test.setTimeout(150_000);
     const title = `E2E Recruiter Event ${Date.now()}`;

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { toast } from "sonner";
+import { MapPin, Sparkles, CalendarHeart, Camera, BadgeCheck } from "lucide-react";
 import type { Partner } from "@/lib/data";
 import { fetchPartners } from "@/lib/api";
 import { RatingStars } from "@/components/ui/rating-stars";
@@ -40,7 +41,10 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
       setLbIndex((prev) =>
         prev === null
           ? null
-          : (prev + d + (partner?.gallery.length ?? 1)) % (partner?.gallery.length ?? 1)
+          : (prev +
+              d +
+              (partner?.images?.length ?? partner?.gallery.length ?? 1)) %
+            (partner?.images?.length ?? partner?.gallery.length ?? 1)
       ),
     [partner]
   );
@@ -64,6 +68,9 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
     return <div className="py-32 text-center text-muted">Loading partner…</div>;
   }
 
+  const images = partner.images && partner.images.length > 0 ? partner.images : undefined;
+  const photoCount = images?.length ?? partner.gallery.length;
+
   return (
     <div className="pb-16">
       <div className="breadcrumb">
@@ -84,16 +91,33 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
       <section className="section pt-10">
         <div className="mx-auto max-w-screen-xl px-6">
           <div className="pd-hero">
-            <div
-              className="pd-hero-photo"
-              style={{ background: partner.gradient }}
-            >
-              {partner.emoji}
+            <div className="pd-hero-photo" style={images ? undefined : { background: partner.gradient }}>
+              {images ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={images[0]} alt={partner.name} className="absolute inset-0 h-full w-full object-cover" />
+              ) : (
+                <span className="pd-emoji">{partner.emoji}</span>
+              )}
+              <span className="pd-photo-fade" aria-hidden="true" />
+              <div className="pd-badges">
+                <span className="pd-badge">
+                  <Sparkles className="h-3.5 w-3.5" /> {partner.type}
+                </span>
+                <span className="pd-badge dark">
+                  ⭐ {partner.rating} · {partner.reviews} reviews
+                </span>
+              </div>
+              <span className="pd-photo-cap">
+                <Camera className="h-3.5 w-3.5" /> {photoCount} photos
+              </span>
             </div>
+
             <div className="pd-hero-info">
               <p className="eyebrow">{partner.type}</p>
               <h1>{partner.name}</h1>
-              <div className="pd-hero-loc">📍 {partner.loc}, Lucknow</div>
+              <div className="pd-hero-loc">
+                <MapPin className="h-4 w-4 text-rose" /> {partner.loc}, Lucknow
+              </div>
               <div className="pd-hero-rating">
                 <RatingStars rating={partner.rating} size={18} />
                 <span>
@@ -101,6 +125,18 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
                 </span>
               </div>
               <p className="pd-desc">{partner.description}</p>
+
+              <div className="pd-chips">
+                {partner.tags.slice(0, 4).map((t) => (
+                  <span key={t} className="pd-chip">
+                    <BadgeCheck className="h-3.5 w-3.5" /> {t}
+                  </span>
+                ))}
+                {partner.tags.length > 4 && (
+                  <span className="pd-chip more">+{partner.tags.length - 4} more services</span>
+                )}
+              </div>
+
               <div className="pd-meta-row">
                 <div className="m">
                   <b>{partner.staff}</b>
@@ -115,23 +151,19 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
                   <span>Established</span>
                 </div>
                 <div className="m">
-                  <b>{partner.gallery.length}</b>
+                  <b>{photoCount}</b>
                   <span>Photos</span>
                 </div>
               </div>
+
               <div className="flex flex-wrap gap-3">
                 <button
-                  onClick={() =>
-                    toast.success("Booking request sent 💅")
-                  }
+                  onClick={() => toast.success("Booking request sent 💅")}
                   className="btn-primary"
                 >
-                  Book Appointment
+                  <CalendarHeart className="h-4 w-4" /> Book Appointment
                 </button>
-                <Link
-                  href="/careers"
-                  className="btn-outline"
-                >
+                <Link href="/careers" className="btn-outline">
                   View Openings
                 </Link>
               </div>
@@ -140,8 +172,55 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
         </div>
       </section>
 
-      {/* Gallery */}
+      {/* Services */}
       <section className="section bg-rose-blush pt-12">
+        <div className="mx-auto max-w-screen-xl px-6">
+          <div className="section-head" style={{ marginBottom: 30 }}>
+            <p className="eyebrow">Menu</p>
+            <h2>Services &amp; Pricing</h2>
+            <p>The complete list of services offered by {partner.name}.</p>
+          </div>
+
+          <div className="pd-srv-chips">
+            <span className="pd-srv-label">Services provided:</span>
+            {partner.tags.map((t) => (
+              <span key={t} className="pd-chip">
+                ✓ {t}
+              </span>
+            ))}
+          </div>
+
+          <div className="service-list">
+            {partner.menu.length === 0 ? (
+              <div className="sv sv-empty">
+                <span className="sn">{partner.name} full menu is coming soon.</span>
+                <span className="sp">Call to book</span>
+              </div>
+            ) : (
+              partner.menu.map((item, i) => (
+                <div key={`${item.name}-${i}`} className="sv">
+                  <span className="sv-idx">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="sn">
+                    {item.name}
+                    {item.duration && (
+                      <span className="block text-xs font-normal text-muted">⏱ {item.duration}</span>
+                    )}
+                    {item.description && (
+                      <span className="mt-0.5 block text-xs font-normal text-charcoal/60 line-clamp-2">
+                        {item.description}
+                      </span>
+                    )}
+                  </span>
+                  <span className="sp">{item.price}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery */}
+      <section className="section pb-0">
         <div className="mx-auto max-w-screen-xl px-6">
           <div className="section-head" style={{ marginBottom: 34 }}>
             <p className="eyebrow">Photo Gallery</p>
@@ -149,40 +228,42 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
             <p>Tap any photo to view it full-size.</p>
           </div>
           <div className="gallery-grid">
-            {partner.gallery.map((photo, i) => (
-              <div
-                key={i}
-                className={cn("g", i === 0 && "tall")}
-                style={{ background: photo.gradient }}
-                onClick={() => openLightbox(i)}
-              >
-                {photo.emoji}
+            {photoCount === 0 ? (
+              <div className="g g-empty">
+                <span className="g-emoji">📸</span>
+                <span className="g-cap">Photos coming soon</span>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Services */}
-      <section className="section">
-        <div className="mx-auto max-w-screen-xl px-6">
-          <div className="section-head" style={{ marginBottom: 34 }}>
-            <p className="eyebrow">Menu</p>
-            <h2>Services &amp; Pricing</h2>
-          </div>
-          <div className="service-list">
-            {partner.menu.map((item) => (
-              <div key={item.name} className="sv">
-                <span className="sn">{item.name}</span>
-                <span className="sp">{item.price}</span>
-              </div>
-            ))}
+            ) : images ? (
+              images.map((src, i) => (
+                <figure
+                  key={i}
+                  className={cn("g", i === 0 && "tall")}
+                  onClick={() => openLightbox(i)}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt={`${partner.name} photo ${i + 1}`} className="h-full w-full object-cover" />
+                  <figcaption className="g-cap">{partner.name}</figcaption>
+                </figure>
+              ))
+            ) : (
+              partner.gallery.map((photo, i) => (
+                <figure
+                  key={i}
+                  className={cn("g", i === 0 && "tall")}
+                  style={{ background: photo.gradient }}
+                  onClick={() => openLightbox(i)}
+                >
+                  <span className="g-emoji">{photo.emoji}</span>
+                  <figcaption className="g-cap">{photo.caption}</figcaption>
+                </figure>
+              ))
+            )}
           </div>
         </div>
       </section>
 
       {/* Lightbox */}
-      {lbIndex !== null && partner.gallery[lbIndex] && (
+      {lbIndex !== null && (images ? images[lbIndex] : partner.gallery[lbIndex]) && (
         <div
           className={cn("lightbox", lbIndex !== null && "show")}
           onClick={(e) => {
@@ -200,15 +281,26 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
           </button>
           <div
             className="lb-stage"
-            style={{ background: partner.gallery[lbIndex].gradient }}
+            style={images ? undefined : { background: partner.gallery[lbIndex].gradient }}
           >
-            {partner.gallery[lbIndex].emoji}
+            {images ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={images[lbIndex]}
+                alt={`Photo ${lbIndex + 1}`}
+                className="h-full w-full object-contain rounded-[20px]"
+              />
+            ) : (
+              partner.gallery[lbIndex].emoji
+            )}
           </div>
           <div className="lb-cap">
-            {partner.gallery[lbIndex].caption} · {partner.name}
+            {images
+              ? `${partner.name} · Photo ${lbIndex + 1}`
+              : partner.gallery[lbIndex].caption} · {partner.name}
           </div>
           <div className="lb-dots">
-            {partner.gallery.map((_, i) => (
+            {Array.from({ length: photoCount }, (_, i) => (
               <span
                 key={i}
                 className={cn("d", i === lbIndex && "on")}
