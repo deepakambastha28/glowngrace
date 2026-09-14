@@ -133,6 +133,28 @@ export const partnerPayloadSchema = z.object({
 
 export type PartnerPayload = z.infer<typeof partnerPayloadSchema>;
 
+export const partnerSignupSchema = z
+  .object({
+    ownerName: z.string().min(2, "Owner name must be at least 2 characters"),
+    salonName: z.string().min(2, "Salon name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    phone: z
+      .string()
+      .min(10, "Phone must be at least 10 digits")
+      .max(15, "Phone must be at most 15 digits"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string(),
+    acceptTerms: z.literal(true, {
+      errorMap: () => ({ message: "You must accept the partner terms" }),
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type PartnerSignupFormData = z.infer<typeof partnerSignupSchema>;
+
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -242,6 +264,16 @@ export const contactReviewSchema = z.object({
 
 export type ContactReviewFormData = z.infer<typeof contactReviewSchema>;
 
+export const adminPartnerPackageSchema = z.object({
+  name: z.string(),
+  price: z.coerce.number().nonnegative(),
+  duration: z.string().default(""),
+  description: z.string().default(""),
+  services: z.array(z.string()).default([]),
+});
+
+export type AdminPartnerPackage = z.infer<typeof adminPartnerPackageSchema>;
+
 export const adminPartnerSchema = z.object({
   name: z.string().min(1, "Please enter a partner name"),
   type: z.string().default("Beauty Parlour"),
@@ -255,6 +287,8 @@ export const adminPartnerSchema = z.object({
   services: z.coerce.number().int().nonnegative().default(1),
   description: z.string().default(""),
   tags: z.array(z.string()).default([]),
+  gallery: z.array(z.string()).default([]),
+  menu: z.array(adminPartnerPackageSchema).default([]),
   status: z.enum(["Active", "On Hold", "Hidden"]).default("Active"),
 });
 
@@ -398,6 +432,8 @@ export const recruiterProfileSchema = z.object({
   designation: z.string().default(""),
   city: z.string().min(2, "Please enter your city"),
   bio: z.string().max(600, "Bio must be at most 600 characters").default(""),
+  gallery: z.array(z.string()).default([]),
+  services: z.array(z.string()).default([]),
 });
 
 export type RecruiterProfileFormData = z.infer<typeof recruiterProfileSchema>;
@@ -410,9 +446,31 @@ export const recruiterProfilePayloadSchema = z.object({
   designation: z.string(),
   city: z.string(),
   bio: z.string(),
+  gallery: z.array(z.string()).default([]),
+  services: z.array(z.string()).default([]),
 });
 
 export type RecruiterProfilePayload = z.infer<typeof recruiterProfilePayloadSchema>;
+
+export const recruiterPackageSchema = z.object({
+  name: z.string().min(2, "Package name must be at least 2 characters"),
+  price: z.coerce.number().int().nonnegative("Enter a valid price"),
+  duration: z.string().default(""),
+  description: z.string().max(600, "Description must be at most 600 characters").default(""),
+  services: z.array(z.string()).default([]),
+});
+
+export type RecruiterPackageFormData = z.infer<typeof recruiterPackageSchema>;
+
+export const recruiterPackagePayloadSchema = z.object({
+  name: z.string(),
+  price: z.number().int().nonnegative(),
+  duration: z.string(),
+  description: z.string(),
+  services: z.array(z.string()).default([]),
+});
+
+export type RecruiterPackagePayload = z.infer<typeof recruiterPackagePayloadSchema>;
 
 export const adminRecruiterSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -425,6 +483,8 @@ export const adminRecruiterSchema = z.object({
   designation: z.string().default(""),
   city: z.string().min(2, "Please enter your city"),
   bio: z.string().max(600, "Bio must be at most 600 characters").default(""),
+  gallery: z.array(z.string()).default([]),
+  services: z.array(z.string()).default([]),
   status: z.enum(["Active", "On Hold", "Hidden"]).default("Active"),
 });
 

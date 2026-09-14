@@ -68,6 +68,9 @@ export interface PartnerPhoto {
 export interface PartnerService {
   name: string;
   price: string;
+  duration?: string;
+  description?: string;
+  services?: string[];
 }
 
 export interface Partner {
@@ -86,6 +89,7 @@ export interface Partner {
   description: string;
   tags: string[];
   gallery: PartnerPhoto[];
+  images?: string[];
   menu: PartnerService[];
 }
 

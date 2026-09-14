@@ -6,7 +6,9 @@ interface PartnerCardProps {
 }
 
 export function PartnerCard({ partner }: PartnerCardProps) {
+  const images = partner.images?.length ? partner.images : undefined;
   const thumbs = partner.gallery.slice(0, 4);
+  const photoCount = images?.length ?? partner.gallery.length;
 
   return (
     <Link
@@ -14,10 +16,15 @@ export function PartnerCard({ partner }: PartnerCardProps) {
       className="partner-card block"
       data-testid={`partner-card-${partner.id}`}
     >
-      <div className="partner-photo" style={{ background: partner.gradient }}>
+      <div className="partner-photo" style={images ? undefined : { background: partner.gradient }}>
+        {images ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={images[0]} alt={partner.name} className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          partner.emoji
+        )}
         <span className="p-badge">{partner.type}</span>
-        {partner.emoji}
-        <span className="p-count">📷 {partner.gallery.length} photos</span>
+        <span className="p-count">📷 {photoCount} photos</span>
         <span className="p-rating">⭐ {partner.rating}</span>
       </div>
       <div className="partner-body">
@@ -38,22 +45,37 @@ export function PartnerCard({ partner }: PartnerCardProps) {
         </div>
       </div>
       <div className="p-thumbs">
-        {thumbs.map((photo, i) =>
-          i === 3 && partner.gallery.length > 4 ? (
-            <div
-              key={i}
-              className="pt more"
-              style={{ background: photo.gradient }}
-            >
-              +{partner.gallery.length - 3}
-            </div>
-          ) : (
-            <div
-              key={i}
-              className="pt"
-              style={{ background: photo.gradient }}
-              aria-hidden="true"
-            />
+        {images ? (
+          <>
+            {images.slice(0, 4).map((src, i) =>
+              i === 3 && images.length > 4 ? (
+                <div key={i} className="pt more">
+                  +{images.length - 3}
+                </div>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={i} src={src} alt="" className="pt" aria-hidden="true" />
+              )
+            )}
+          </>
+        ) : (
+          thumbs.map((photo, i) =>
+            i === 3 && photoCount > 4 ? (
+              <div
+                key={i}
+                className="pt more"
+                style={{ background: photo.gradient }}
+              >
+                +{photoCount - 3}
+              </div>
+            ) : (
+              <div
+                key={i}
+                className="pt"
+                style={{ background: photo.gradient }}
+                aria-hidden="true"
+              />
+            )
           )
         )}
       </div>
