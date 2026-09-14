@@ -209,6 +209,19 @@ const SCHEMA_STATEMENTS: string[] = [
     candidate_email TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
+  `CREATE TABLE IF NOT EXISTS gg_recruiter_packages (
+    id SERIAL PRIMARY KEY,
+    recruiter_email TEXT NOT NULL,
+    name TEXT NOT NULL,
+    price INT NOT NULL DEFAULT 0,
+    duration TEXT NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    services JSONB NOT NULL DEFAULT '[]'::jsonb,
+    status TEXT NOT NULL DEFAULT 'Active',
+    created_at TIMESTAMPTZ DEFAULT now()
+  )`,
+  `ALTER TABLE gg_recruiters ADD COLUMN IF NOT EXISTS gallery JSONB NOT NULL DEFAULT '[]'::jsonb`,
+  `ALTER TABLE gg_recruiters ADD COLUMN IF NOT EXISTS services JSONB NOT NULL DEFAULT '[]'::jsonb`,
   `CREATE TABLE IF NOT EXISTS gg_users (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,

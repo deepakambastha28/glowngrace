@@ -311,6 +311,14 @@ export type AdminPartnerRecord = {
   services: number;
   description: string;
   tags: string[];
+  gallery: string[];
+  menu: {
+    name: string;
+    price: number;
+    duration: string;
+    description: string;
+    services: string[];
+  }[];
   status: string;
   createdAt: string;
 };
@@ -555,6 +563,8 @@ export type RecruiterRecord = {
   designation: string;
   city: string;
   bio: string;
+  gallery: string[];
+  services: string[];
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -576,6 +586,51 @@ export function saveRecruiter(
     method: "POST",
     ...body(profile),
   });
+}
+
+export type RecruiterPackageRecord = {
+  id: string;
+  recruiterEmail: string;
+  name: string;
+  price: number;
+  duration: string;
+  description: string;
+  services: string[];
+  status: string;
+  createdAt: string;
+};
+
+export type RecruiterPackageListResponse = {
+  persisted: boolean;
+  items: RecruiterPackageRecord[];
+};
+
+/** GET /api/recruiters/packages?email=... — list a recruiter's packages. */
+export function fetchRecruiterPackages(
+  email: string
+): Promise<ApiResponse<RecruiterPackageListResponse>> {
+  return request(`/api/recruiters/packages?email=${encodeURIComponent(email)}`);
+}
+
+/** POST /api/recruiters/packages — create one or many packages (bulk). */
+export function createRecruiterPackages(
+  payload: { recruiterEmail: string; items: unknown[] }
+): Promise<ApiResponse<{ persisted: boolean; created: number }>> {
+  return request<{ persisted: boolean; created: number }>("/api/recruiters/packages", {
+    method: "POST",
+    ...body(payload),
+  });
+}
+
+/** DELETE /api/recruiters/packages?id=...&email=... — delete a recruiter package. */
+export function deleteRecruiterPackage(
+  id: string,
+  email: string
+): Promise<ApiResponse<{ persisted: boolean; deleted: boolean }>> {
+  return request<{ persisted: boolean; deleted: boolean }>(
+    `/api/recruiters/packages?id=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}`,
+    { method: "DELETE" }
+  );
 }
 
 /** GET /api/recruiters/candidates — list all active candidates for recruiters. */
