@@ -24,6 +24,15 @@ test.describe("Home page", () => {
     await expect(page.getByTestId("topbar")).toBeVisible();
     await expect(page.getByTestId("navbar")).toBeVisible();
     await expect(page.getByTestId("logo")).toBeVisible();
+    await expect(page.getByTestId("logo").locator("img")).toHaveAttribute(
+      "src",
+      /gnglogo-color/
+    );
+    await expect(page.getByTestId("footer-logo")).toBeVisible();
+    await expect(page.getByTestId("footer-logo").locator("img")).toHaveAttribute(
+      "src",
+      /gnglogo-silver/
+    );
 
     await expect(page.getByTestId("hero-shop")).toBeVisible();
     await expect(page.getByTestId("services-section")).toHaveCount(0);
