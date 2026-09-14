@@ -49,7 +49,7 @@ Expect `database: "connected"`. First write auto-creates the tables
 `gg_cart_snapshots`), the admin tables (`gg_admin_products`,
 `gg_admin_jobs`, `gg_admin_events`, `gg_admin_partners`, `gg_admin_candidates`,
 `gg_admin_reviews`, `gg_admin_sessions`), and the recruiter tables
-(`gg_recruiters`, `gg_recruiter_hires`). See
+(`gg_recruiters`, `gg_recruiter_hires`, `gg_recruiter_packages`). See
 `.opencode/skills/postgres-testing/SKILL.md`.
 
 Demo accounts (logged in from the `demo` link on `/login`):

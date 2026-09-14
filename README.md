@@ -24,15 +24,19 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 
 - **`/`** — Hero (+ rotating DB-backed product circle), stats, trust badges, categories, bestsellers, job vacancies, CTA banner, testimonials, newsletter, footer
 - **`/admin`** — Authenticated admin console (dashboard + products/jobs/events/partners/candidates/recruiters with create / edit / hide / hold / delete, plus review moderation). Signed-in sessions (15-min expiry) gate the sidebar; `/admin` hides storefront chrome. Admins get an **Admin menu in the storefront top nav** once signed in.
+- **`/admin/partners`** — 2-column partner form (Basic+Stats fields, Salon Gallery with cover/tile upload, Services chips, Packages manager) with a sticky **Live Preview** that mirrors the storefront card (cover photo, service chips, stats, gallery thumbs, packages).
 - **`/admin/users`** — User-account management across every role (`user` / `candidate` / `recruiter` / `admin`): search + role/status filters, create accounts, activate/suspend, reset passwords, and delete. The seeded `admin@glowngrace.in` account is **protected** — it cannot be suspended, deleted, or have its password reset from the UI or API.
 - **`/recruiter`** — Role-gated recruiter portal with a single top-nav (Home, Shop, Candidates, Careers, Events). Browse & hire candidates (`/recruiter/candidates`), manage job openings (`/recruiter/jobs`), update profile (`/recruiter/profile`), and publish workshops to the storefront event calendar (`/recruiter/events`). Recruiters sign in with the `recruiter` account type; logout always returns to the home page. Recruiters get a **Recruiter menu in the storefront top nav** once signed in.
+- **`/recruiter/profile`** — Recruiter profile mirrors the admin partner form: a 2-column layout (`1.7fr/1fr`) with all sections stacked on the left (Basic Information, About, Salon Gallery, Services Provided, Packages) and a sticky **Live Preview** sidebar with Save/Cancel. Gallery photos, service tags, and bio are persisted as JSONB on `gg_recruiters`; service packages live in `gg_recruiter_packages` and support single add or JSON/CSV bulk import.
+- **Partner gallery & packages** (`/admin/partners` + storefront) — The admin partner form persists a **cover/tile image** plus additional gallery photos (`gallery` JSONB), selected/custom service tags, and priced package rows (`menu` JSONB, with duration/description/services and JSON/CSV import). Storefront `/partners` cards use the first uploaded image as the tile, and `/partners/[slug]` shows the hero photo, a `.gallery-grid` lightbox, and package listings with ₹ pricing — falling back to gradient + emoji tiles for partners without uploads.
 - **Recruiter job review flow** (`/recruiter/jobs`) — Recruiters create, **edit**, and request a **hold** on vacancies. New and edited jobs are submitted as `Pending`; a hold request is submitted as `Pending Hold`. Each decision authorizes in the admin console (`/admin/jobs`): approving publishes (`Open`) or holds (`On Hold`), rejecting marks `Rejected` or keeps the job live — and only then does the change reflect on the website (`/careers`, `/api/jobs`).
 - **`/products`** — Filter by category, sort by price/rating, live search. Catalog is **admin-DB driven** (`/api/products`), no static seed.
 - **`/products/[slug]`** — Gallery + thumbnails, price + % saved, qty stepper, Add to Cart, features, delivery info, tabs (Description / Info / Reviews). **Tap a star** under the rating to open the rate-and-review popup (1–5 stars + comment); submissions start as **Pending** in `/admin/reviews` and only appear on the product once approved. Rating + review counts on the card and detail header are derived from approved reviews. Unknown slugs → custom 404.
 - **`/cart`** — Editable quantity, remove, promo code (`GLOW10` for 10% off), summary (subtotal + free-shipping logic + 5% GST + total), empty state, DB-backed wishlist section.
 - **`/checkout`** — 3-step wizard (Cart → Shipping & Payment → Confirmation) with live order summary; payment: Card / UPI / NetBanking / COD. Place Order clears the cart and shows order ID.
 - **`/checkout/success`** — Order confirmation with `#GG-2026-XXXXX`
-- **`/partners`** — Partner directory driven by admin DB (`/api/partners`), hidden on home when empty
+- **`/partners`** — Partner directory driven by admin DB (`/api/partners`), hidden on home when empty. Cards + detail pages render uploaded cover/gallery photos and priced packages.
+- **`/partners/[slug]`** — Partner detail with hero cover photo, gallery grid + lightbox, service chips (with optional duration/description), ratings/stats, and a packages list with ₹ prices.
 - **`/events`** — Admin-DB event tiles (created in `/admin/events`, exposed via `/api/events`), search + date/location filters, detail with gallery + lightbox, carousel banner
 - **`/careers`** — Job cards (type, title, salon, location, salary, experience) driven by `/api/jobs` (admin DB)
 - **`/careers/[slug]`** — Job header + tags, responsibilities, requirements, perks, sticky Apply box
@@ -160,10 +164,18 @@ src/
   page land in `gg_admin_reviews` with status `Pending`; the admin console
   approves/hides them (`PATCH /api/admin/reviews`), and only `Approved` rows
   surface on product pages, `/api/products` aggregates, and home testimonials.
-- Recruiter tables: `gg_recruiters`, `gg_recruiter_hires`. `/api/recruiters`,
-  `/api/recruiters/candidates`, `/api/recruiters/hire`, `/api/recruiters/hired`
-  back the portal; `/api/admin/recruiters` is the admin console. Recruiters
-  publish events into `gg_admin_events`, so they appear on the storefront.
+- Recruiter tables: `gg_recruiters` (with JSONB `gallery`/`services`),
+  `gg_recruiter_hires`, and `gg_recruiter_packages` (service packages created
+  from `/recruiter/profile`). `/api/recruiters`,
+  `/api/recruiters/candidates`, `/api/recruiters/hire`, `/api/recruiters/hired`,
+  and `/api/recruiters/packages` back the portal; `/api/admin/recruiters` is the
+  admin console. Recruiters publish events into `gg_admin_events`, so they
+  appear on the storefront.
+- Partner media & packages: `gg_admin_partners.gallery` (JSONB array of
+  data-URL images; index 0 doubles as the cover/tile) and `gg_admin_partners.menu`
+  (JSONB array of `{ name, price, duration, description, services }`) are
+  written by `/api/admin/partners` and mapped to `images`/packages by
+  `/api/partners` for the storefront.
 - Recruiter job lifecycle: vacancies live in `gg_admin_jobs` with a review
   status — `Pending` (new/edited, awaiting approval), `Open` (live),
   `On Hold`, `Rejected`, and `Pending Hold` (hold request awaiting a decision).
@@ -180,5 +192,8 @@ src/
   (`seedProduct` / `deleteSeededProduct`, `seedEvent` / `deleteSeededEvent`,
   `seedJob` / `deleteSeededJob`, `seedReview` / `deleteSeededReview`, plus the
   `waitForAdminReview` polling helper that tolerates Neon read-after-write lag)
-  so the storefront is exercised against real data.
+  so the storefront is exercised against real data. `tests/partner-admin-form.spec.ts`
+  covers the admin partner add/edit form end-to-end (cover + gallery upload,
+  service chips, packages, storefront rendering); `tests/recruiter.spec.ts`
+  covers the recruiter profile gallery/services/packages managers.
   The suite runs serially (`workers: 1`) because every spec shares one Neon DB.
