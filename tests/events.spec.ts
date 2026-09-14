@@ -3,7 +3,7 @@ import { seedEvent, deleteSeededEvent } from "./helpers";
 
 const EVENT_FIXTURES = [
   {
-    title: "Festive Makeup Masterclass",
+    title: "E2E Festive Makeup Masterclass",
     category: "Workshop",
     emoji: "💄",
     gradient: "linear-gradient(135deg,#d6336c,#f4a6c0)",
@@ -19,7 +19,7 @@ const EVENT_FIXTURES = [
     tags: ["Makeup", "Festive"],
   },
   {
-    title: "Bridal Glow Workshop",
+    title: "E2E Bridal Glow Workshop",
     category: "Workshop",
     emoji: "💍",
     gradient: "linear-gradient(135deg,#8e44ad,#f5c6e5)",
@@ -35,7 +35,7 @@ const EVENT_FIXTURES = [
     tags: ["Bridal", "Makeup"],
   },
   {
-    title: "Kartik Purnima Meetup",
+    title: "E2E Kartik Purnima Meetup",
     category: "Meetup",
     emoji: "🪔",
     gradient: "linear-gradient(135deg,#e67e22,#f9d493)",
@@ -51,7 +51,7 @@ const EVENT_FIXTURES = [
     tags: ["Meetup", "Festive"],
   },
   {
-    title: "Spa & Salon Expo",
+    title: "E2E Spa & Salon Expo",
     category: "Meetup",
     emoji: "💆",
     gradient: "linear-gradient(135deg,#16a085,#a8e6cf)",
@@ -67,7 +67,7 @@ const EVENT_FIXTURES = [
     tags: ["Expo", "Business"],
   },
   {
-    title: "Winter Glow Launch",
+    title: "E2E Winter Glow Launch",
     category: "Launch",
     emoji: "❄️",
     gradient: "linear-gradient(135deg,#2c3e50,#8fb5d9)",
@@ -83,7 +83,7 @@ const EVENT_FIXTURES = [
     tags: ["Launch", "Skincare"],
   },
   {
-    title: "Christmas Party Class",
+    title: "E2E Christmas Party Class",
     category: "Masterclass",
     emoji: "🎄",
     gradient: "linear-gradient(135deg,#c0392b,#f7a8a0)",
@@ -99,7 +99,7 @@ const EVENT_FIXTURES = [
     tags: ["Party", "Makeup"],
   },
   {
-    title: "New Year Makeup Masterclass",
+    title: "E2E New Year Makeup Masterclass",
     category: "Masterclass",
     emoji: "🥂",
     gradient: "linear-gradient(135deg,#7d3c98,#e5b8f5)",
@@ -115,7 +115,7 @@ const EVENT_FIXTURES = [
     tags: ["New Year", "Makeup"],
   },
   {
-    title: "Holi Beauty Bash",
+    title: "E2E Holi Beauty Bash",
     category: "Workshop",
     emoji: "🎨",
     gradient: "linear-gradient(135deg,#e84343,#fbd0b0)",
@@ -138,8 +138,9 @@ test.describe("Events", () => {
   test.beforeAll(async ({ request }) => {
     const adminList = await request.get("/api/admin/events");
     if (adminList.ok()) {
-      const items = ((await adminList.json()).items ?? []) as Array<{ id: number }>;
+      const items = ((await adminList.json()).items ?? []) as Array<{ id: number; title: string; slug: string }>;
       for (const item of items) {
+        if (!/e2e/i.test(item.title) && !/e2e/i.test(item.slug)) continue;
         await request.delete(`/api/admin/events?id=${item.id}`);
       }
     }
@@ -210,7 +211,7 @@ test.describe("Events", () => {
       .filter({ hasText: "Bridal Glow Workshop" })
       .click();
 
-    await expect(page).toHaveURL(/\/events\/bridal-glow-workshop/);
+    await expect(page).toHaveURL(/\/events\/e2e-bridal-glow-workshop/);
     await expect(
       page.getByRole("heading", { name: "Bridal Glow Workshop" })
     ).toBeVisible();
@@ -264,7 +265,7 @@ test.describe("Events", () => {
       await page.getByTestId("event-carousel").hover();
       await page.getByTestId("event-slide").first().click();
 
-      await expect(page).toHaveURL(/\/events\/festive-makeup-masterclass/);
+      await expect(page).toHaveURL(/\/events\/e2e-festive-makeup-masterclass/);
     });
   });
 });

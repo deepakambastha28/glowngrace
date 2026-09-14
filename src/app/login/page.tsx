@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Heart, Briefcase, ShoppingBag, ShieldCheck, Flower2, Sparkles, UserSearch } from "lucide-react";
+import { Mail, Lock, Heart, Briefcase, ShoppingBag, ShieldCheck, Flower2, Sparkles, UserSearch, Info, ChevronDown } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { loginSchema, type LoginFormData } from "@/lib/schemas";
 import { useAuthStore, findRegisteredUser, type UserRole } from "@/lib/auth";
 import { adminLogin, loginStorefrontUser } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 const DEMO_USERS = [
   { email: "shopper@glowngrace.in", password: "shopper123", name: "Priya (Shopper)", role: "user" as const },
@@ -48,6 +49,7 @@ export default function LoginPage() {
       ? sessionStorage.getItem("glow-grace-just-signed-up")
       : null
   );
+  const [demoOpen, setDemoOpen] = useState(false);
 
   const onSubmit = async (data: LoginFormData) => {
     const establishAdminSession = async (): Promise<boolean> => {
@@ -112,7 +114,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="grid lg:grid-cols-2 lg:h-[calc(100vh-120px)]">
+    <div className="grid lg:grid-cols-2 lg:min-h-[calc(100vh-104px)]">
       {/* Left — Brand visual panel (mirrors the split-panel login in the design reference) */}
       <div
         data-testid="login-brand-panel"
@@ -157,7 +159,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right — Login form */}
-      <div data-testid="login-form-panel" className="flex items-center justify-center overflow-y-auto px-6 py-10 md:py-12">
+      <div data-testid="login-form-panel" className="flex items-center justify-center px-6 py-10 md:py-12">
         <div className="w-full max-w-md">
           <div className="mb-6 text-center">
             <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-rose-blush">
@@ -174,19 +176,35 @@ export default function LoginPage() {
             )}
           </div>
 
-          <div className="mb-6 rounded-[14px] border border-dashed border-gold/50 bg-gold/10 px-4 py-3 text-sm text-charcoal">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gold">Demo credentials</p>
-            <div className="mt-2 flex flex-col gap-1.5">
-              {DEMO_USERS.map((u) => (
-                <div key={u.email} className="flex items-center gap-2">
-                  {roleIcon[u.role]}
-                  <span className="w-24 shrink-0 font-semibold text-charcoal capitalize">{u.role}</span>
-                  <span className="min-w-0 truncate font-medium text-charcoal">{u.email}</span>
-                  <span className="text-muted">/</span>
-                  <span className="font-medium text-charcoal">{u.password}</span>
+          <div className="mb-6">
+            <button
+              type="button"
+              onClick={() => setDemoOpen((v) => !v)}
+              data-testid="demo-credentials-toggle"
+              aria-expanded={demoOpen}
+              className="flex w-full items-center justify-between rounded-[14px] border border-dashed border-gold/50 bg-gold/10 px-4 py-3 transition hover:bg-gold/15"
+            >
+              <span className="flex items-center gap-2">
+                <Info className="h-4 w-4 text-gold" />
+                <span className="text-xs font-semibold uppercase tracking-wide text-gold">Demo credentials</span>
+              </span>
+              <ChevronDown className={cn("h-4 w-4 text-gold transition-transform", demoOpen && "rotate-180")} />
+            </button>
+            {demoOpen && (
+              <div className="mt-2 rounded-[14px] border border-dashed border-gold/50 bg-gold/10 px-4 py-3 text-sm text-charcoal">
+                <div className="flex flex-col gap-1.5">
+                  {DEMO_USERS.map((u) => (
+                    <div key={u.email} className="flex items-center gap-2">
+                      {roleIcon[u.role]}
+                      <span className="w-24 shrink-0 font-semibold text-charcoal capitalize">{u.role}</span>
+                      <span className="min-w-0 truncate font-medium text-charcoal">{u.email}</span>
+                      <span className="text-muted">/</span>
+                      <span className="font-medium text-charcoal">{u.password}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="card !rounded-[20px] p-6 space-y-4">

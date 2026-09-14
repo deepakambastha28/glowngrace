@@ -35,7 +35,6 @@ const adminMenuItems = [
   { href: "/admin/reviews", label: "Reviews" },
   { href: "/admin/partners", label: "Partners" },
   { href: "/admin/candidates", label: "Candidates" },
-  { href: "/admin/recruiters", label: "Recruiters" },
 ];
 
 const recruiterMenuItems = [

@@ -7,8 +7,9 @@ test.describe("Storefront syncs with the admin DB only (no static catalog)", () 
   test.beforeAll(async ({ request }) => {
     const adminList = await request.get("/api/admin/partners");
     if (adminList.ok()) {
-      const items = ((await adminList.json()).items ?? []) as Array<{ id: number }>;
+      const items = ((await adminList.json()).items ?? []) as Array<{ id: number; name: string }>;
       for (const item of items) {
+        if (!/e2e/i.test(item.name)) continue;
         await request.delete(`/api/admin/partners?id=${item.id}`);
       }
     }

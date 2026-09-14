@@ -24,7 +24,7 @@ test.describe("Admin Partner management", () => {
     await page.getByRole("link", { name: "Add Partner" }).click();
     await expect(page.getByRole("heading", { name: "Add New Partner" })).toBeVisible({ timeout: 30_000 });
 
-    const partnerName = `Alpha Beauty Studio ${Date.now()}`;
+    const partnerName = `E2E Alpha Beauty Studio ${Date.now()}`;
     await page.getByLabel("Partner Name").fill(partnerName);
     await page.getByLabel("Locality / Area").fill("Hazratganj");
     await page.getByRole("button", { name: "Save Partner" }).click();

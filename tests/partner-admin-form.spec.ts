@@ -24,6 +24,9 @@ async function deletePartnerByName(
   const rows = ((await list.json()).items ?? []) as Array<{ id: number; name: string }>;
   const row = rows.find((p) => p.name === name);
   if (row) {
+    if (!/e2e/i.test(row.name)) {
+      throw new Error(`Refused to delete non-test partner "${row.name}". Only E2E test records may be deleted.`);
+    }
     await request.delete(`/api/admin/partners?id=${row.id}`);
   }
 }
@@ -63,7 +66,7 @@ test.describe("Admin partner form mirrors recruiter profile (2-col + gallery/ser
   }) => {
     test.setTimeout(180_000);
 
-    const partnerName = `Gallery Partner ${Date.now()}`;
+    const partnerName = `E2E Gallery Partner ${Date.now()}`;
 
     await signInAsAdmin(page);
     await page.getByTestId("admin-sidebar").getByRole("link", { name: "Partners" }).click();
@@ -127,9 +130,9 @@ test.describe("Admin partner form mirrors recruiter profile (2-col + gallery/ser
     await card.getByText("View Gallery →").click();
     await expect(page.getByRole("heading", { name: partnerName })).toBeVisible({ timeout: 30_000 });
 
-    await expect(page.locator(".pd-hero-photo img")).toHaveCount(1);
+    await expect(page.locator(".banner-slider .bslide")).toHaveCount(2);
     await expect(page.locator(".gallery-grid img")).toHaveCount(2);
-    await expect(page.getByText("2 photos", { exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(".pstat").filter({ hasText: "Photos" })).toContainText("2");
     await expect(page.getByText("Signature Facial Combo")).toBeVisible();
     await expect(page.getByText("₹2,499")).toBeVisible();
 
@@ -142,7 +145,7 @@ test.describe("Admin partner form mirrors recruiter profile (2-col + gallery/ser
   }) => {
     test.setTimeout(180_000);
 
-    const partnerName = `Edit Roundtrip ${Date.now()}`;
+    const partnerName = `E2E Edit Roundtrip ${Date.now()}`;
     const create = await request.post("/api/admin/partners", {
       data: {
         name: partnerName,

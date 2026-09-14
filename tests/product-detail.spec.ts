@@ -111,13 +111,13 @@ test.describe("Product detail", () => {
     const slug = await seedProduct(request, name);
 
     const approvedId = await seedReview(request, {
-      author: "Aisha Verma",
+      author: "E2E Aisha Verma",
       product: name,
       rating: 5,
       comment: "Absolutely love this product, my hair feels amazing!",
     });
     const pendingId = await seedReview(request, {
-      author: "Hidden User",
+      author: "E2E Hidden User",
       product: name,
       rating: 1,
       comment: "This pending review must never appear.",

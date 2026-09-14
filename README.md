@@ -23,7 +23,7 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 ## Pages
 
 - **`/`** — Hero (+ rotating DB-backed product circle), stats, trust badges, categories, bestsellers, job vacancies, CTA banner, testimonials, newsletter, footer
-- **`/admin`** — Authenticated admin console (dashboard + products/jobs/events/partners/candidates/recruiters with create / edit / hide / hold / delete, plus review moderation). Signed-in sessions (15-min expiry) gate the sidebar; `/admin` hides storefront chrome. Admins get an **Admin menu in the storefront top nav** once signed in.
+- **`/admin`** — Authenticated admin console (dashboard + products/jobs/events/partners/candidates/users with create / edit / hide / hold / delete, plus review moderation). Signed-in sessions (15-min expiry) gate the sidebar; `/admin` hides storefront chrome. Admins get an **Admin menu in the storefront top nav** once signed in.
 - **`/admin/partners`** — 2-column partner form (Basic+Stats fields, Salon Gallery with cover/tile upload, Services chips, Packages manager) with a sticky **Live Preview** that mirrors the storefront card (cover photo, service chips, stats, gallery thumbs, packages).
 - **`/admin/users`** — User-account management across every role (`user` / `candidate` / `recruiter` / `admin`): search + role/status filters, create accounts, activate/suspend, reset passwords, and delete. The seeded `admin@glowngrace.in` account is **protected** — it cannot be suspended, deleted, or have its password reset from the UI or API.
 - **`/recruiter`** — Role-gated recruiter portal with a single top-nav (Home, Shop, Candidates, Careers, Events). Browse & hire candidates (`/recruiter/candidates`), manage job openings (`/recruiter/jobs`), update profile (`/recruiter/profile`), and publish workshops to the storefront event calendar (`/recruiter/events`). Recruiters sign in with the `recruiter` account type; logout always returns to the home page. Recruiters get a **Recruiter menu in the storefront top nav** once signed in.
@@ -122,7 +122,7 @@ src/
 │   ├── layout.tsx            # Fonts, metadata/SEO, Navbar/Footer/Toaster
 │   ├── globals.css           # Design tokens + component classes
 │   ├── page.tsx              # Home
-│   ├── admin/                # Admin console (dashboard + products/jobs/events/partners/candidates/recruiters/users)
+│   ├── admin/                # Admin console (dashboard + products/jobs/events/partners/candidates/users)
 │   ├── recruiter/            # Recruiter portal (dashboard, candidates, jobs, profile, events)
 │   ├── products/             # List + [slug] detail (DB-driven storefront)
 │   ├── cart/ checkout/       # Cart + 3-step checkout wizard + success
@@ -168,14 +168,16 @@ src/
   `gg_recruiter_hires`, and `gg_recruiter_packages` (service packages created
   from `/recruiter/profile`). `/api/recruiters`,
   `/api/recruiters/candidates`, `/api/recruiters/hire`, `/api/recruiters/hired`,
-  and `/api/recruiters/packages` back the portal; `/api/admin/recruiters` is the
-  admin console. Recruiters publish events into `gg_admin_events`, so they
+  and `/api/recruiters/packages` back the portal. Recruiters publish events into `gg_admin_events`, so they
   appear on the storefront.
 - Partner media & packages: `gg_admin_partners.gallery` (JSONB array of
   data-URL images; index 0 doubles as the cover/tile) and `gg_admin_partners.menu`
   (JSONB array of `{ name, price, duration, description, services }`) are
   written by `/api/admin/partners` and mapped to `images`/packages by
-  `/api/partners` for the storefront.
+  `/api/partners` for the storefront. A separate `banner_image` (TEXT, data
+  URL) stores the wide detail-page banner (~1920×460 recommended) and is
+  surfaced as `bannerImage` on the storefront — the banner slider uses only
+  this image, never gallery photos.
 - Recruiter job lifecycle: vacancies live in `gg_admin_jobs` with a review
   status — `Pending` (new/edited, awaiting approval), `Open` (live),
   `On Hold`, `Rejected`, and `Pending Hold` (hold request awaiting a decision).
@@ -197,3 +199,8 @@ src/
   service chips, packages, storefront rendering); `tests/recruiter.spec.ts`
   covers the recruiter profile gallery/services/packages managers.
   The suite runs serially (`workers: 1`) because every spec shares one Neon DB.
+- Test cleanup is **test-record-only**: helpers and specs only delete rows whose
+  name/slug/email matches the `E2E`/`e2e` convention (seeded helpers throw on
+  any other record). Every delete first re-reads the admin list from the DB to
+  resolve the row by id, so cleanup always stays in sync and never touches
+  production/real records.

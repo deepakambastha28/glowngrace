@@ -288,6 +288,7 @@ export const adminPartnerSchema = z.object({
   description: z.string().default(""),
   tags: z.array(z.string()).default([]),
   gallery: z.array(z.string()).default([]),
+  bannerImage: z.string().optional(),
   menu: z.array(adminPartnerPackageSchema).default([]),
   status: z.enum(["Active", "On Hold", "Hidden"]).default("Active"),
 });

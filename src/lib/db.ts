@@ -140,10 +140,12 @@ const SCHEMA_STATEMENTS: string[] = [
     description TEXT NOT NULL DEFAULT '',
     tags JSONB NOT NULL DEFAULT '[]'::jsonb,
     gallery JSONB NOT NULL DEFAULT '[]'::jsonb,
+    banner_image TEXT,
     menu JSONB NOT NULL DEFAULT '[]'::jsonb,
     status TEXT NOT NULL DEFAULT 'Active',
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
+  `ALTER TABLE gg_admin_partners ADD COLUMN IF NOT EXISTS banner_image TEXT`,
   `CREATE TABLE IF NOT EXISTS gg_candidates (
     id SERIAL PRIMARY KEY,
     user_email TEXT NOT NULL,

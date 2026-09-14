@@ -45,7 +45,7 @@ test.describe("Contact page reviews", () => {
     page,
     request,
   }) => {
-    const author = `Contact UI Reviewer ${stamp}`;
+    const author = `E2E Contact UI Reviewer ${stamp}`;
     const comment = `UI review comment ${stamp}`;
 
     await page.goto("/contact");
@@ -72,9 +72,9 @@ test.describe("Contact page reviews", () => {
     page,
     request,
   }) => {
-    const author = `Moderated Reviewer ${stamp}`;
+    const author = `E2E Moderated Reviewer ${stamp}`;
     const comment = `Loved the products ${stamp}`;
-    const deniedAuthor = `Denied User ${stamp}`;
+    const deniedAuthor = `E2E Denied User ${stamp}`;
     const deniedComment = `Not a fan ${stamp}`;
 
     const create = await request.post("/api/reviews", {
