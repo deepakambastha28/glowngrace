@@ -9,9 +9,10 @@ test.describe("Admin", () => {
     await expect(page.getByTestId("admin-sidebar")).toHaveCount(0);
   });
 
-  test("login page surfaces the admin demo credentials on the glowngrace.in domain", async ({ page }) => {
+  test("login page surfaces the admin demo credentials behind the info toggle on the glowngrace.in domain", async ({ page }) => {
     await page.goto("/login");
 
+    await page.getByTestId("demo-credentials-toggle").click();
     await expect(page.getByText("admin@glowngrace.in")).toBeVisible();
   });
 

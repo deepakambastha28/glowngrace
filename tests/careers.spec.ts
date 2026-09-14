@@ -3,7 +3,7 @@ import { seedJob, deleteSeededJob } from "./helpers";
 
 const JOB_FIXTURES = [
   {
-    title: "Senior Beautician",
+    title: "E2E Senior Beautician",
     salon: "Aurelia Salon & Spa",
     location: "Hazratganj",
     type: "Full Time",
@@ -16,7 +16,7 @@ const JOB_FIXTURES = [
     requirements: ["2+ years salon experience", "Bridal service expertise"],
   },
   {
-    title: "Makeup Artist",
+    title: "E2E Makeup Artist",
     salon: "Velvet Touch Studio",
     location: "Gomti Nagar",
     type: "Full Time",
@@ -29,7 +29,7 @@ const JOB_FIXTURES = [
     requirements: ["Makeup portfolio", "Strong hygiene habits"],
   },
   {
-    title: "Hair Stylist",
+    title: "E2E Hair Stylist",
     salon: "Glam Haus",
     location: "Aliganj",
     type: "Part Time",
@@ -42,7 +42,7 @@ const JOB_FIXTURES = [
     requirements: ["3+ years of styling"],
   },
   {
-    title: "Nail Technician",
+    title: "E2E Nail Technician",
     salon: "Polished Parlour",
     location: "Hazratganj",
     type: "Full Time",
@@ -64,7 +64,7 @@ test.describe("Careers", () => {
     for (const fixture of JOB_FIXTURES) {
       const slug = await seedJob(request, fixture);
       seededSlugs.push(slug);
-      if (fixture.title === "Senior Beautician") seniorSlug = slug;
+      if (fixture.title === "E2E Senior Beautician") seniorSlug = slug;
     }
   });
 

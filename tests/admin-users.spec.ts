@@ -56,9 +56,12 @@ async function seedUser(request: APIRequestContext, user: {
 async function deleteSeededUser(request: APIRequestContext, email: string) {
   const list = await request.get("/api/admin/users");
   if (!list.ok()) return;
-  const items = ((await list.json()).items ?? []) as Array<{ id: string; email: string }>;
+  const items = ((await list.json()).items ?? []) as Array<{ id: string; email: string; name: string }>;
   const rowRecord = items.find((u) => u.email.toLowerCase() === email.toLowerCase());
   if (!rowRecord) return;
+  if (!/e2e/i.test(rowRecord.email) && !/e2e/i.test(rowRecord.name)) {
+    throw new Error(`Refused to delete non-test user "${rowRecord.email}". Only E2E test records may be deleted.`);
+  }
   await request.delete(`/api/admin/users?id=${rowRecord.id}`);
 }
 

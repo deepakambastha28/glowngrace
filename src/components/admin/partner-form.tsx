@@ -81,6 +81,7 @@ export function PartnerForm({ id }: { id?: string }) {
   const [services, setServices] = useState("1");
   const [description, setDescription] = useState("");
   const [cover, setCover] = useState("");
+  const [bannerImage, setBannerImage] = useState("");
   const [gallery, setGallery] = useState<string[]>([]);
   const [serviceItems, setServiceItems] = useState<string[]>([]);
   const [serviceInput, setServiceInput] = useState("");
@@ -120,6 +121,7 @@ export function PartnerForm({ id }: { id?: string }) {
         const galleryArr = Array.isArray(it.gallery) ? it.gallery : [];
         setCover(galleryArr[0] ?? "");
         setGallery(galleryArr.slice(1));
+        setBannerImage(it.bannerImage ?? "");
         setServiceItems(Array.isArray(it.tags) ? it.tags : []);
         const seeded = Array.isArray(it.menu)
           ? it.menu.map((m) => ({
@@ -154,6 +156,22 @@ export function PartnerForm({ id }: { id?: string }) {
     }
     const reader = new FileReader();
     reader.onload = (e) => setCover(String(e.target?.result));
+    reader.readAsDataURL(file);
+  };
+
+  const handleBannerUpload = (list: FileList | null) => {
+    const file = list?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.warning("Only image files are allowed");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.warning("Banner image exceeds 8MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => setBannerImage(String(e.target?.result));
     reader.readAsDataURL(file);
   };
 
@@ -276,6 +294,7 @@ export function PartnerForm({ id }: { id?: string }) {
       description,
       tags: serviceItems,
       gallery: cover ? [cover, ...gallery] : gallery,
+      bannerImage,
       menu: packages,
     };
     const res = id ? await updateAdminPartner(id, payload) : await createAdminPartner(payload);
@@ -367,6 +386,42 @@ export function PartnerForm({ id }: { id?: string }) {
                         className="hidden"
                         onChange={(e) => {
                           handleCoverUpload(e.target.files);
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+                <div>
+                  <label className="field-label">Banner Image</label>
+                  <p className="mb-2 text-xs text-muted">
+                    Shown at the top of the partner detail page. Recommended size:{" "}
+                    <b>1920 × 460 px</b> (wide landscape, ~4:1 ratio, min width 1200 px, max 8MB).
+                  </p>
+                  {bannerImage ? (
+                    <div className="relative h-32 w-full overflow-hidden rounded-xl border border-line">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={bannerImage} alt="Banner preview" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setBannerImage("")}
+                        aria-label="Remove banner image"
+                        className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white hover:bg-red"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-rose-soft bg-blush px-4 py-6 text-muted transition hover:border-rose">
+                      <Upload className="h-5 w-5 text-rose" />
+                      <span className="text-sm font-semibold text-rose">Upload banner image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        data-testid="banner-input"
+                        className="hidden"
+                        onChange={(e) => {
+                          handleBannerUpload(e.target.files);
                           e.target.value = "";
                         }}
                       />

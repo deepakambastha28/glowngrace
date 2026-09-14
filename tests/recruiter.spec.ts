@@ -36,6 +36,14 @@ async function seedCandidate(request: APIRequestContext, email: string): Promise
 }
 
 async function cleanupCandidate(request: APIRequestContext, id: string): Promise<void> {
+  const list = await request.get("/api/admin/candidates");
+  if (!list.ok()) return;
+  const items = ((await list.json()).items ?? []) as Array<{ id: string; fullName: string }>;
+  const row = items.find((c) => String(c.id) === id);
+  if (!row) return;
+  if (!/e2e/i.test(row.fullName)) {
+    throw new Error(`Refused to delete non-test candidate "${row.fullName}". Only E2E test records may be deleted.`);
+  }
   await request.delete(`/api/admin/candidates?id=${id}`);
 }
 

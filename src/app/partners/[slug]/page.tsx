@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { toast } from "sonner";
-import { MapPin, Sparkles, CalendarHeart, Camera, BadgeCheck } from "lucide-react";
+import { MapPin, Camera } from "lucide-react";
 import type { Partner } from "@/lib/data";
 import { fetchPartners } from "@/lib/api";
 import { RatingStars } from "@/components/ui/rating-stars";
@@ -18,6 +17,7 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
   const [status, setStatus] = useState<"loading" | "ready">("loading");
   const [partner, setPartner] = useState<Partner | undefined>(undefined);
   const [lbIndex, setLbIndex] = useState<number | null>(null);
+  const [slideIndex, setSlideIndex] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -71,196 +71,306 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
   const images = partner.images && partner.images.length > 0 ? partner.images : undefined;
   const photoCount = images?.length ?? partner.gallery.length;
 
+  const bannerSlides = partner.bannerImage ? [partner.bannerImage] : [];
+  const slides = images
+    ? images.slice(0, Math.min(6, images.length))
+    : partner.gallery.slice(0, Math.min(6, partner.gallery.length)).map((g) => g.emoji);
+
+  const totalSlides = bannerSlides.length || slides.length;
+  const currentSlide =
+    totalSlides > 0 ? slideIndex % totalSlides : 0;
+
+  const bannerStep = (d: number) => {
+    setSlideIndex((prev) => (prev + d + totalSlides) % totalSlides);
+  };
+
   return (
-    <div className="pb-16">
-      <div className="breadcrumb">
-        <div className="mx-auto max-w-screen-xl px-6 flex flex-wrap items-center gap-2 text-[0.9rem]">
-          <Link href="/" className="hover:text-rose transition-colors">
-            Home
-          </Link>
-          <span className="text-muted">/</span>
-          <Link href="/partners" className="hover:text-rose transition-colors">
-            Partners
-          </Link>
-          <span className="text-muted">/</span>
-          <span className="text-charcoal">{partner.name}</span>
-        </div>
-      </div>
-
-      {/* Hero */}
-      <section className="section pt-10">
-        <div className="mx-auto max-w-screen-xl px-6">
-          <div className="pd-hero">
-            <div className="pd-hero-photo" style={images ? undefined : { background: partner.gradient }}>
-              {images ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={images[0]} alt={partner.name} className="absolute inset-0 h-full w-full object-cover" />
-              ) : (
-                <span className="pd-emoji">{partner.emoji}</span>
-              )}
-              <span className="pd-photo-fade" aria-hidden="true" />
-              <div className="pd-badges">
-                <span className="pd-badge">
-                  <Sparkles className="h-3.5 w-3.5" /> {partner.type}
-                </span>
-                <span className="pd-badge dark">
-                  ⭐ {partner.rating} · {partner.reviews} reviews
-                </span>
-              </div>
-              <span className="pd-photo-cap">
-                <Camera className="h-3.5 w-3.5" /> {photoCount} photos
-              </span>
-            </div>
-
-            <div className="pd-hero-info">
-              <p className="eyebrow">{partner.type}</p>
-              <h1>{partner.name}</h1>
-              <div className="pd-hero-loc">
-                <MapPin className="h-4 w-4 text-rose" /> {partner.loc}, Lucknow
-              </div>
-              <div className="pd-hero-rating">
-                <RatingStars rating={partner.rating} size={18} />
-                <span>
-                  {partner.rating} ({partner.reviews} reviews)
-                </span>
-              </div>
-              <p className="pd-desc">{partner.description}</p>
-
-              <div className="pd-chips">
-                {partner.tags.slice(0, 4).map((t) => (
-                  <span key={t} className="pd-chip">
-                    <BadgeCheck className="h-3.5 w-3.5" /> {t}
-                  </span>
-                ))}
-                {partner.tags.length > 4 && (
-                  <span className="pd-chip more">+{partner.tags.length - 4} more services</span>
-                )}
-              </div>
-
-              <div className="pd-meta-row">
-                <div className="m">
-                  <b>{partner.staff}</b>
-                  <span>Expert Staff</span>
-                </div>
-                <div className="m">
-                  <b>{partner.services}</b>
-                  <span>Services</span>
-                </div>
-                <div className="m">
-                  <b>{partner.estd}</b>
-                  <span>Established</span>
-                </div>
-                <div className="m">
-                  <b>{photoCount}</b>
-                  <span>Photos</span>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => toast.success("Booking request sent 💅")}
-                  className="btn-primary"
+    <div>
+      {/* Banner Slider */}
+      <div className="banner-slider">
+        {bannerSlides.length > 0
+          ? bannerSlides.map((slide, i) => (
+              <div
+                key={i}
+                className={cn("bslide", i === currentSlide && "active")}
+                style={{ backgroundImage: `url(${slide})` }}
+              />
+            ))
+          : slides.map((slide, i) => {
+              const isActive = i === currentSlide;
+              const isImage =
+                typeof slide === "string" &&
+                (slide.startsWith("http") || slide.startsWith("data:image"));
+              return (
+                <div
+                  key={i}
+                  className={cn("bslide", isActive && "active")}
+                  style={
+                    isImage
+                      ? { backgroundImage: `url(${slide})` }
+                      : partner.gallery[i]
+                        ? { background: partner.gallery[i].gradient }
+                        : { background: partner.gradient }
+                  }
                 >
-                  <CalendarHeart className="h-4 w-4" /> Book Appointment
-                </button>
-                <Link href="/careers" className="btn-outline">
-                  View Openings
-                </Link>
-              </div>
-            </div>
-          </div>
+                  {!isImage && (
+                    <span className="text-8rem relative z-[1] grid place-items-center h-full w-full opacity-90">
+                      {typeof slide === "string" ? slide : partner.emoji}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+
+        <button className="pb-back" onClick={() => window.history.back()}>
+          ← Back to Partners
+        </button>
+
+        <div className="pb-badges">
+          <span className="bdg gold">⭐ {partner.rating}</span>
+          <span className="bdg">Since {partner.estd}</span>
         </div>
-      </section>
 
-      {/* Services */}
-      <section className="section bg-rose-blush pt-12">
-        <div className="mx-auto max-w-screen-xl px-6">
-          <div className="section-head" style={{ marginBottom: 30 }}>
-            <p className="eyebrow">Menu</p>
-            <h2>Services &amp; Pricing</h2>
-            <p>The complete list of services offered by {partner.name}.</p>
-          </div>
+        {totalSlides > 1 && (
+          <>
+            <button className="b-arrow left" onClick={() => bannerStep(-1)}>
+              ‹
+            </button>
+            <button className="b-arrow right" onClick={() => bannerStep(1)}>
+              ›
+            </button>
+          </>
+        )}
 
-          <div className="pd-srv-chips">
-            <span className="pd-srv-label">Services provided:</span>
-            {partner.tags.map((t) => (
-              <span key={t} className="pd-chip">
-                ✓ {t}
-              </span>
+        <div className="b-caption">
+          <Camera className="h-4 w-4" /> Photo {currentSlide + 1} / {totalSlides}
+        </div>
+
+        {totalSlides > 1 && (
+          <div className="b-dots">
+            {Array.from({ length: totalSlides }, (_, i) => (
+              <span
+                key={i}
+                className={cn("bd", i === currentSlide && "on")}
+                onClick={() => setSlideIndex(i)}
+              />
             ))}
           </div>
+        )}
+      </div>
 
-          <div className="service-list">
-            {partner.menu.length === 0 ? (
-              <div className="sv sv-empty">
-                <span className="sn">{partner.name} full menu is coming soon.</span>
-                <span className="sp">Call to book</span>
-              </div>
-            ) : (
-              partner.menu.map((item, i) => (
-                <div key={`${item.name}-${i}`} className="sv">
-                  <span className="sv-idx">{String(i + 1).padStart(2, "0")}</span>
-                  <span className="sn">
-                    {item.name}
-                    {item.duration && (
-                      <span className="block text-xs font-normal text-muted">⏱ {item.duration}</span>
-                    )}
-                    {item.description && (
-                      <span className="mt-0.5 block text-xs font-normal text-charcoal/60 line-clamp-2">
-                        {item.description}
-                      </span>
-                    )}
+      <div className="mx-auto max-w-screen-xl px-6">
+        {/* Profile Card */}
+        <div className="profile-card">
+          <div
+            className="profile-avatar"
+            style={
+              images
+                ? { backgroundImage: `url(${images[0]})` }
+                : { background: partner.gradient }
+            }
+          >
+            {!images && <span className="av-emoji">{partner.emoji}</span>}
+          </div>
+
+          <div className="profile-main">
+            <p className="ptype">{partner.type}</p>
+            <h1>{partner.name}</h1>
+            <div className="ploc">
+              <MapPin className="h-4 w-4 text-rose" /> {partner.loc}, Lucknow
+            </div>
+            <div className="prate">
+              <RatingStars rating={partner.rating} size={18} />
+              <span>
+                {partner.rating} ({partner.reviews} reviews)
+              </span>
+            </div>
+          </div>
+
+          <div className="profile-actions">
+            <button
+              onClick={() => toast.success("Booking request sent 💅")}
+              className="btn-primary"
+            >
+              Book Appointment
+            </button>
+            <button
+              onClick={() => toast.success("Added to favourites ♥")}
+              className="btn-outline"
+            >
+              ♥ Save
+            </button>
+          </div>
+        </div>
+
+        {/* Profile Stats */}
+        <div className="profile-stats">
+          <div className="pstat">
+            <b>{partner.staff}</b>
+            <span>Expert Staff</span>
+          </div>
+          <div className="pstat">
+            <b>{partner.services}</b>
+            <span>Services</span>
+          </div>
+          <div className="pstat">
+            <b>{partner.estd}</b>
+            <span>Established</span>
+          </div>
+          <div className="pstat">
+            <b>{photoCount}</b>
+            <span>Photos</span>
+          </div>
+        </div>
+
+        {/* Two-column body */}
+        <div className="profile-body">
+          <div>
+            {/* About */}
+            <div className="profile-section">
+              <h3>📖 About</h3>
+              <p>{partner.description}</p>
+              <div className="about-tags">
+                {partner.tags.map((t) => (
+                  <span key={t} className="at">
+                    {t}
                   </span>
-                  <span className="sp">{item.price}</span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Gallery */}
-      <section className="section pb-0">
-        <div className="mx-auto max-w-screen-xl px-6">
-          <div className="section-head" style={{ marginBottom: 34 }}>
-            <p className="eyebrow">Photo Gallery</p>
-            <h2>Inside {partner.name}</h2>
-            <p>Tap any photo to view it full-size.</p>
-          </div>
-          <div className="gallery-grid">
-            {photoCount === 0 ? (
-              <div className="g g-empty">
-                <span className="g-emoji">📸</span>
-                <span className="g-cap">Photos coming soon</span>
+                ))}
               </div>
-            ) : images ? (
-              images.map((src, i) => (
-                <figure
-                  key={i}
-                  className={cn("g", i === 0 && "tall")}
-                  onClick={() => openLightbox(i)}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt={`${partner.name} photo ${i + 1}`} className="h-full w-full object-cover" />
-                  <figcaption className="g-cap">{partner.name}</figcaption>
-                </figure>
-              ))
-            ) : (
-              partner.gallery.map((photo, i) => (
-                <figure
-                  key={i}
-                  className={cn("g", i === 0 && "tall")}
-                  style={{ background: photo.gradient }}
-                  onClick={() => openLightbox(i)}
-                >
-                  <span className="g-emoji">{photo.emoji}</span>
-                  <figcaption className="g-cap">{photo.caption}</figcaption>
-                </figure>
-              ))
-            )}
+            </div>
+
+            {/* Photo Gallery */}
+            <div className="profile-section">
+              <h3>📷 Photo Gallery</h3>
+              <div className="gallery-grid">
+                {photoCount === 0 ? (
+                  <div className="g g-empty">
+                    <span className="g-emoji">📸</span>
+                    <span className="g-cap">Photos coming soon</span>
+                  </div>
+                ) : images ? (
+                  images.map((src, i) => (
+                    <figure
+                      key={i}
+                      className={cn("g", i === 0 && "tall")}
+                      onClick={() => openLightbox(i)}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt={`${partner.name} photo ${i + 1}`} className="h-full w-full object-cover" />
+                      <figcaption className="g-cap">{partner.name}</figcaption>
+                    </figure>
+                  ))
+                ) : (
+                  partner.gallery.map((photo, i) => (
+                    <figure
+                      key={i}
+                      className={cn("g", i === 0 && "tall")}
+                      style={{ background: photo.gradient }}
+                      onClick={() => openLightbox(i)}
+                    >
+                      <span className="g-emoji">{photo.emoji}</span>
+                      <figcaption className="g-cap">{photo.caption}</figcaption>
+                    </figure>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Services & Pricing */}
+            <div className="profile-section">
+              <h3>💇 Services &amp; Pricing</h3>
+              <div className="service-list">
+                {partner.menu.length === 0 ? (
+                  <div className="sv sv-empty">
+                    <span className="sn">{partner.name} full menu is coming soon.</span>
+                    <span className="sp">Call to book</span>
+                  </div>
+                ) : (
+                  partner.menu.map((item, i) => (
+                    <div key={`${item.name}-${i}`} className="sv">
+                      <span className="sv-idx">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="sn">
+                        {item.name}
+                        {item.duration && (
+                          <span className="block text-xs font-normal text-muted">⏱ {item.duration}</span>
+                        )}
+                        {item.description && (
+                          <span className="mt-0.5 block text-xs font-normal text-charcoal/60 line-clamp-2">
+                            {item.description}
+                          </span>
+                        )}
+                      </span>
+                      <span className="sp">{item.price}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            {/* Information Card */}
+            <div className="side-card">
+              <h3>📋 Information</h3>
+              <div className="info-row">
+                <div className="ir-ic">📍</div>
+                <div className="ir-txt">
+                  <b>{partner.loc}</b>
+                  <span>Lucknow, UP</span>
+                </div>
+              </div>
+              <div className="info-row">
+                <div className="ir-ic">📞</div>
+                <div className="ir-txt">
+                  <b>+91 98765 43210</b>
+                  <span>Call to book</span>
+                </div>
+              </div>
+              <div className="info-row">
+                <div className="ir-ic">👥</div>
+                <div className="ir-txt">
+                  <b>{partner.staff} Experts</b>
+                  <span>Certified professionals</span>
+                </div>
+              </div>
+              <div className="info-row">
+                <div className="ir-ic">✅</div>
+                <div className="ir-txt">
+                  <b>Verified Partner</b>
+                  <span>Background-checked salon</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Opening Hours Card */}
+            <div className="side-card" style={{ top: "auto" }}>
+              <h3>🕐 Opening Hours</h3>
+              <div className="hours-row today">
+                <span>Today</span>
+                <span>10:00 AM – 8:00 PM</span>
+              </div>
+              <div className="hours-row">
+                <span>Mon – Fri</span>
+                <span>10:00 AM – 8:00 PM</span>
+              </div>
+              <div className="hours-row">
+                <span>Saturday</span>
+                <span>9:00 AM – 9:00 PM</span>
+              </div>
+              <div className="hours-row">
+                <span>Sunday</span>
+                <span>11:00 AM – 6:00 PM</span>
+              </div>
+              <button
+                className="btn-primary w-full mt-4"
+                onClick={() => toast.success("Booking request sent 💅")}
+              >
+                Book Now
+              </button>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Lightbox */}
       {lbIndex !== null && (images ? images[lbIndex] : partner.gallery[lbIndex]) && (
@@ -285,11 +395,7 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
           >
             {images ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={images[lbIndex]}
-                alt={`Photo ${lbIndex + 1}`}
-                className="h-full w-full object-contain rounded-[20px]"
-              />
+              <img src={images[lbIndex]} alt={`Photo ${lbIndex + 1}`} />
             ) : (
               partner.gallery[lbIndex].emoji
             )}
@@ -310,6 +416,8 @@ export default function PartnerDetailPage({ params }: PartnerDetailPageProps) {
           </div>
         </div>
       )}
+
+      <div style={{ height: 60 }} />
     </div>
   );
 }

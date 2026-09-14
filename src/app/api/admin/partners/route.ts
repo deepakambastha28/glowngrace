@@ -27,6 +27,7 @@ function toItem(r: Record<string, unknown>) {
     description: r.description,
     tags: r.tags,
     gallery: Array.isArray(r.gallery) ? r.gallery : [],
+    bannerImage: r.banner_image ?? null,
     menu: Array.isArray(r.menu) ? r.menu : [],
     status: r.status,
     createdAt: r.created_at,
@@ -43,7 +44,8 @@ export async function GET(request: NextRequest) {
   if (id) {
     const rows = await query(
       `SELECT id, slug, name, type, loc, emoji, gradient, rating,
-              reviews, estd, staff, services, description, tags, gallery, menu, status, created_at
+              reviews, estd, staff, services, description, tags, gallery,
+              banner_image, menu, status, created_at
        FROM gg_admin_partners WHERE id = $1 LIMIT 1`,
       [Number(id)]
     );
@@ -53,7 +55,8 @@ export async function GET(request: NextRequest) {
 
   const rows = await query(
     `SELECT id, slug, name, type, loc, emoji, gradient, rating,
-            reviews, estd, staff, services, description, tags, gallery, menu, status, created_at
+            reviews, estd, staff, services, description, tags, gallery,
+            banner_image, menu, status, created_at
      FROM gg_admin_partners ORDER BY created_at DESC`
   );
   const items = (rows ?? []).map(toItem);
@@ -85,8 +88,8 @@ export async function POST(request: Request) {
     const rows = await query(
       `INSERT INTO gg_admin_partners
         (slug, name, type, loc, emoji, gradient, rating, reviews,
-         estd, staff, services, description, tags, gallery, menu, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::jsonb,$14::jsonb,$15::jsonb,$16)
+         estd, staff, services, description, tags, gallery, banner_image, menu, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::jsonb,$14::jsonb,$15,$16::jsonb,$17)
        RETURNING id`,
       [
         slug,
@@ -103,6 +106,7 @@ export async function POST(request: Request) {
         d.description,
         JSON.stringify(d.tags),
         JSON.stringify(d.gallery),
+        d.bannerImage ?? null,
         JSON.stringify(d.menu),
         d.status,
       ]
@@ -157,8 +161,9 @@ export async function PATCH(request: NextRequest) {
       : `UPDATE gg_admin_partners
            SET name=$1, type=$2, loc=$3, emoji=$4, gradient=$5, rating=$6,
                reviews=$7, estd=$8, staff=$9, services=$10, description=$11,
-               tags=$12::jsonb, gallery=$13::jsonb, menu=$14::jsonb, status=$15
-         WHERE id=$16`;
+               tags=$12::jsonb, gallery=$13::jsonb, banner_image=$14,
+               menu=$15::jsonb, status=$16
+         WHERE id=$17`;
     const params = onlyStatus
       ? [d.status, Number(id)]
       : [
@@ -175,6 +180,7 @@ export async function PATCH(request: NextRequest) {
           d.description,
           JSON.stringify(d.tags),
           JSON.stringify(d.gallery),
+          d.bannerImage ?? null,
           JSON.stringify(d.menu),
           d.status ?? "Active",
           Number(id),

@@ -62,6 +62,19 @@ pill buttons) when touching UI.
   `seedEvent` / `deleteSeededEvent`, `seedJob` / `deleteSeededJob`,
   `seedReview` / `deleteSeededReview`, `waitForAdminReview`).
 
+## Test-data & deletion policy (user-mandated)
+- **Never delete production/real records.** Test helpers and specs may only
+  delete **E2E test records** (names/slugs/emails containing `E2E`/`e2e`).
+  Apply the test-record guard (`isTestRecord` in `tests/helpers.ts`, or an
+  inline `/e2e/i` match in local spec helpers) before any delete; helpers that
+  hit a non-test record throw instead of deleting.
+- **Always sync with the database** before deleting: GET the admin list first,
+  resolve the row by slug/name/email/id, verify it is a test record, then
+  DELETE by `?id=` (never sweep, never filter-drop, never `DELETE` by slug).
+- **Keep docs in sync:** whenever seeding/cleanup or the DB contract changes,
+  update `AGENTS.md`, `README.md`, and `.opencode/skills/e2e-testing/SKILL.md`
+  in the same change.
+
 ## Conventions
 - Commit style (used on main): lowercase type + summary —
   `chore:`, `feat:`, `style:`, `fix:`, `docs:`. Stage-wise: one cohesion/commit.

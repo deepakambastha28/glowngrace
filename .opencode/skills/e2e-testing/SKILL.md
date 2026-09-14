@@ -61,6 +61,19 @@ UI pass, so interactive repair is usually unnecessary.
   See `tests/storefront-db-only.spec.ts`, `tests/home.spec.ts`,
   `tests/events.spec.ts` and `tests/careers.spec.ts` for the pattern.
 - Admin record specs self-clean the records they create (products/partners/candidates).
+- **Test-data & deletion policy (user-mandated):**
+  - Never delete production/real records. Only **E2E test records** may ever be
+    deleted — rows whose `name`/`slug`/`email`/`title` shows the `E2E`/`e2e`
+    convention. All seed helpers already create such rows (e.g. brand "E2E
+    Catalog", names "E2E …"), and every cleanup path (`deleteSeeded*`,
+    local spec helpers) verifies the pattern before deleting and **throws** on
+    a non-test row.
+  - Always sync with the database: the delete helpers first GET the admin list,
+    resolve the row by slug/name/email/id, confirm it is a test row, then
+    `DELETE /api/…?id=<id>`. Never sweep rows, never filter-drop, never delete
+    by slug/name blindly.
+  - Keep docs in sync too: when the seed/cleanup contract changes, update
+    `AGENTS.md`, `README.md`, and this SKILL.md in the same change.
 - The whole suite is serial (`workers: 1`) because the specs share one live Neon
   DB — never bump the worker count, left-over rows from a cancelled parallel run
   can break storefront specs (e.g. the partners preview on home).

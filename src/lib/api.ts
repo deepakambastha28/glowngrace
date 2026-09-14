@@ -312,6 +312,7 @@ export type AdminPartnerRecord = {
   description: string;
   tags: string[];
   gallery: string[];
+  bannerImage: string | null;
   menu: {
     name: string;
     price: number;

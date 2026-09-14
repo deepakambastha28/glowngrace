@@ -90,6 +90,7 @@ export interface Partner {
   tags: string[];
   gallery: PartnerPhoto[];
   images?: string[];
+  bannerImage?: string | null;
   menu: PartnerService[];
 }
 

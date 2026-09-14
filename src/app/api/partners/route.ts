@@ -41,6 +41,7 @@ function toStorefrontPartner(row: Record<string, unknown>): Partner {
     tags,
     gallery: [],
     images,
+    bannerImage: row.banner_image ? String(row.banner_image) : null,
     menu,
   };
 }
@@ -52,7 +53,8 @@ export async function GET() {
   if (isDbConfigured()) {
     const rows = await query(
       `SELECT id, slug, name, type, loc, emoji, gradient, rating,
-              reviews, estd, staff, services, description, tags, gallery, menu
+              reviews, estd, staff, services, description, tags, gallery,
+              banner_image, menu
        FROM gg_admin_partners WHERE status = 'Active' ORDER BY created_at DESC`
     );
     items = (rows ?? []).map(toStorefrontPartner);

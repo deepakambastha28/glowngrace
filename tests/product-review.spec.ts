@@ -9,7 +9,7 @@ import {
 test.describe("Product page star review", () => {
   const stamp = Date.now();
   const productName = `E2E Product Review ${stamp}`;
-  const author = `Product Star Reviewer ${stamp}`;
+  const author = `E2E Product Star Reviewer ${stamp}`;
   const comment = `Star rating review ${stamp}`;
   const seededSlugs: string[] = [];
   const seededReviewIds: string[] = [];

@@ -1,5 +1,12 @@
 import { expect, type APIRequestContext } from "@playwright/test";
 
+const TEST_PATTERN = /e2e/i;
+
+function isTestRecord(record: Record<string, unknown>): boolean {
+  const fields = [record.name, record.title, record.slug, record.author, record.email, record.fullName];
+  return fields.some((v) => typeof v === "string" && TEST_PATTERN.test(v));
+}
+
 interface StorefrontProduct {
   name: string;
   slug: string;
@@ -48,6 +55,9 @@ export async function deleteSeededProduct(request: APIRequestContext, slug: stri
   const items = ((await list.json()).items ?? []) as Array<{ id: number; slug: string }>;
   const row = items.find((p) => p.slug === slug);
   if (!row) return;
+  if (!isTestRecord(row)) {
+    throw new Error(`Refused to delete non-test product "${row.slug}". Only E2E test records may be deleted.`);
+  }
   await request.delete(`/api/admin/products?id=${row.id}`);
 }
 
@@ -81,6 +91,9 @@ export async function deleteSeededEvent(request: APIRequestContext, slug: string
   const items = ((await list.json()).items ?? []) as Array<{ id: number; slug: string }>;
   const row = items.find((e) => e.slug === slug);
   if (!row) return;
+  if (!isTestRecord(row)) {
+    throw new Error(`Refused to delete non-test event "${row.slug}". Only E2E test records may be deleted.`);
+  }
   await request.delete(`/api/admin/events?id=${row.id}`);
 }
 
@@ -99,6 +112,9 @@ export async function deleteSeededJob(request: APIRequestContext, slug: string):
   const items = ((await list.json()).items ?? []) as Array<{ id: number; slug: string }>;
   const row = items.find((j) => j.slug === slug);
   if (!row) return;
+  if (!isTestRecord(row)) {
+    throw new Error(`Refused to delete non-test job "${row.slug}". Only E2E test records may be deleted.`);
+  }
   await request.delete(`/api/admin/jobs?id=${row.id}`);
 }
 
@@ -134,6 +150,14 @@ export async function deleteSeededReview(
   request: APIRequestContext,
   id: string
 ): Promise<void> {
+  const list = await request.get("/api/admin/reviews");
+  if (!list.ok()) return;
+  const items = ((await list.json()).items ?? []) as Array<{ id: string | number; author: string }>;
+  const row = items.find((r) => String(r.id) === id);
+  if (!row) return;
+  if (!isTestRecord(row)) {
+    throw new Error(`Refused to delete non-test review id=${id} by "${row.author}". Only E2E test records may be deleted.`);
+  }
   await request.delete(`/api/admin/reviews?id=${id}`);
 }
 
