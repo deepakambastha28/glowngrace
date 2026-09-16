@@ -193,11 +193,11 @@ function UsersContent() {
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className="field-label" htmlFor="au-name">Full Name</label>
+              <label className="field-label" htmlFor="au-name">Full Name </label><span className="text-rose" aria-hidden="true">*</span>
               <input id="au-name" className="field-input mt-1.5" value={add.name} onChange={(e) => setAdd({ ...add, name: e.target.value })} placeholder="Priya Sharma" />
             </div>
             <div>
-              <label className="field-label" htmlFor="au-email">Email Address</label>
+              <label className="field-label" htmlFor="au-email">Email Address </label><span className="text-rose" aria-hidden="true">*</span>
               <input id="au-email" type="email" className="field-input mt-1.5" value={add.email} onChange={(e) => setAdd({ ...add, email: e.target.value })} placeholder="user@example.com" />
             </div>
             <div>
@@ -213,7 +213,7 @@ function UsersContent() {
               </select>
             </div>
             <div>
-              <label className="field-label" htmlFor="au-password">Password</label>
+              <label className="field-label" htmlFor="au-password">Password </label><span className="text-rose" aria-hidden="true">*</span>
               <input id="au-password" type="password" className="field-input mt-1.5" value={add.password} onChange={(e) => setAdd({ ...add, password: e.target.value })} placeholder="••••••••" />
             </div>
           </div>
@@ -235,11 +235,11 @@ function UsersContent() {
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className="field-label" htmlFor="rp-password">New Password</label>
+              <label className="field-label" htmlFor="rp-password">New Password </label><span className="text-rose" aria-hidden="true">*</span>
               <input id="rp-password" type="password" className="field-input mt-1.5" value={reset.password} onChange={(e) => setReset({ ...reset, password: e.target.value })} placeholder="••••••••" />
             </div>
             <div>
-              <label className="field-label" htmlFor="rp-confirm">Confirm New Password</label>
+              <label className="field-label" htmlFor="rp-confirm">Confirm New Password </label><span className="text-rose" aria-hidden="true">*</span>
               <input id="rp-confirm" type="password" className="field-input mt-1.5" value={reset.confirm} onChange={(e) => setReset({ ...reset, confirm: e.target.value })} placeholder="••••••••" />
             </div>
           </div>

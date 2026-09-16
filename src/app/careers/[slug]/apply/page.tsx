@@ -68,6 +68,7 @@ function SelectField({
   options,
   placeholder,
   error,
+  required = false,
 }: {
   label: string;
   value?: string;
@@ -75,10 +76,11 @@ function SelectField({
   options: string[];
   placeholder: string;
   error?: string;
+  required?: boolean;
 }) {
   return (
     <div>
-      <span className="field-label">{label}</span>
+      <span className="field-label">{label}{required && <span className="text-rose" aria-hidden="true"> *</span>}</span>
       <div className="mt-1.5">
         <Select value={value} onValueChange={onValueChange}>
           <SelectTrigger className="field-input !h-[50px]">
@@ -184,22 +186,22 @@ function ApplicantForm({
       <form onSubmit={onSubmit} className="card !rounded-[18px] p-6 md:p-8 space-y-6">
         <div className="grid sm:grid-cols-2 gap-5">
           <div>
-            <label className="field-label" htmlFor="name">Full Name</label>
+            <label className="field-label" htmlFor="name">Full Name </label><span className="text-rose" aria-hidden="true">*</span>
             <input id="name" className="field-input" placeholder="e.g. Priya Sharma" {...register("name")} />
             {errors.name && <p className="mt-1 text-[0.8rem] text-rose">{errors.name.message}</p>}
           </div>
           <div>
-            <label className="field-label" htmlFor="phone">Phone Number</label>
+            <label className="field-label" htmlFor="phone">Phone Number </label><span className="text-rose" aria-hidden="true">*</span>
             <input id="phone" type="tel" className="field-input" placeholder="+91 98765 43210" {...register("phone")} />
             {errors.phone && <p className="mt-1 text-[0.8rem] text-rose">{errors.phone.message}</p>}
           </div>
           <div>
-            <label className="field-label" htmlFor="email">Email Address</label>
+            <label className="field-label" htmlFor="email">Email Address </label><span className="text-rose" aria-hidden="true">*</span>
             <input id="email" type="email" className="field-input" placeholder="priya@example.com" {...register("email")} />
             {errors.email && <p className="mt-1 text-[0.8rem] text-rose">{errors.email.message}</p>}
           </div>
           <div>
-            <label className="field-label" htmlFor="city">City</label>
+            <label className="field-label" htmlFor="city">City </label><span className="text-rose" aria-hidden="true">*</span>
             <input id="city" className="field-input" placeholder="Lucknow" {...register("city")} />
             {errors.city && <p className="mt-1 text-[0.8rem] text-rose">{errors.city.message}</p>}
           </div>
@@ -212,6 +214,7 @@ function ApplicantForm({
             onValueChange={(v) => setValue("experience", v as ApplyJobFormData["experience"])}
             options={experienceOptions}
             error={errors.experience?.message}
+            required
           />
           <SelectField
             label="Specialization"
@@ -219,6 +222,7 @@ function ApplicantForm({
             onValueChange={(v) => setValue("specialization", v as ApplyJobFormData["specialization"])}
             options={specializationOptions}
             error={errors.specialization?.message}
+            required
           />
           <SelectField
             label="Qualification"
@@ -226,11 +230,12 @@ function ApplicantForm({
             onValueChange={(v) => setValue("qualification", v as ApplyJobFormData["qualification"])}
             options={qualificationOptions}
             error={errors.qualification?.message}
+            required
           />
         </div>
 
         <div>
-          <label className="field-label" htmlFor="coverNote">Cover Note</label>
+          <label className="field-label" htmlFor="coverNote">Cover Note </label><span className="text-rose" aria-hidden="true">*</span>
           <textarea
             id="coverNote"
             className="field-textarea min-h-[120px]"

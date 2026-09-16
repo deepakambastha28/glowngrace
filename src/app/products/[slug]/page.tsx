@@ -486,7 +486,8 @@ export default function ProductPage({ params }: ProductPageProps) {
             </div>
 
             <div className="mt-5">
-              <p className="text-[0.85rem] font-semibold text-charcoal">Your rating</p>
+              <p className="text-[0.85rem] font-semibold text-charcoal">Your rating </p>
+              <span className="text-rose" aria-hidden="true">*</span>
               <div className="mt-1.5 flex gap-1.5">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
@@ -513,8 +514,8 @@ export default function ProductPage({ params }: ProductPageProps) {
             <div className="mt-4 space-y-3">
               <div>
                 <label className="field-label" htmlFor="review-name">
-                  Your Name
-                </label>
+                  Your Name </label>
+                  <span className="text-rose" aria-hidden="true">*</span>
                 <input
                   id="review-name"
                   className="field-input w-full"
@@ -526,8 +527,8 @@ export default function ProductPage({ params }: ProductPageProps) {
               </div>
               <div>
                 <label className="field-label" htmlFor="review-email">
-                  Email
-                </label>
+                  Email </label>
+                  <span className="text-rose" aria-hidden="true">*</span>
                 <input
                   id="review-email"
                   type="email"
@@ -540,8 +541,8 @@ export default function ProductPage({ params }: ProductPageProps) {
               </div>
               <div>
                 <label className="field-label" htmlFor="review-comment">
-                  Your Review
-                </label>
+                  Your Review </label>
+                  <span className="text-rose" aria-hidden="true">*</span>
                 <textarea
                   id="review-comment"
                   className="field-input w-full min-h-[110px]"

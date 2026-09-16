@@ -209,7 +209,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="card !rounded-[20px] p-6 space-y-4">
             <div>
-              <label className="field-label" htmlFor="email">Email</label>
+              <label className="field-label" htmlFor="email">Email </label><span className="text-rose" aria-hidden="true">*</span>
               <div className="relative mt-1.5">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                 <input id="email" type="email" className="field-input !rounded-full !pl-11" {...register("email")} placeholder="you@example.com" />
@@ -218,7 +218,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="field-label" htmlFor="password">Password</label>
+              <label className="field-label" htmlFor="password">Password </label><span className="text-rose" aria-hidden="true">*</span>
               <div className="relative mt-1.5">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                 <input id="password" type="password" className="field-input !rounded-full !pl-11" {...register("password")} placeholder="••••••••" />
