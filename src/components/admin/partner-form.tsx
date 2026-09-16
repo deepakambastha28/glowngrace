@@ -653,7 +653,7 @@ export function PartnerForm({ id }: { id?: string }) {
           <div className="rounded-2xl border border-line bg-cream/60 p-5 space-y-4">
             <div className="grid sm:grid-cols-3 gap-4">
               <div>
-                <label className="field-label" htmlFor="package-name">Package Name *</label>
+                <label className="field-label" htmlFor="package-name">Package Name </label><span className="text-rose" aria-hidden="true">*</span>
                 <input
                   id="package-name"
                   data-testid="package-name"
@@ -664,7 +664,7 @@ export function PartnerForm({ id }: { id?: string }) {
                 />
               </div>
               <div>
-                <label className="field-label" htmlFor="package-price">Price (₹) *</label>
+                <label className="field-label" htmlFor="package-price">Price (₹) </label><span className="text-rose" aria-hidden="true">*</span>
                 <input
                   id="package-price"
                   data-testid="package-price"

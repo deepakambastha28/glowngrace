@@ -214,7 +214,7 @@ function ProfileTab({ user, signIn }: { user: { name: string; email: string; rol
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="field-label" htmlFor="s-name">Full Name</label>
+            <label className="field-label" htmlFor="s-name">Full Name </label><span className="text-rose" aria-hidden="true">*</span>
             <div className="relative mt-1.5">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gold" />
               <input id="s-name" className="field-input !rounded-full !pl-11" {...register("name")} />
@@ -222,7 +222,7 @@ function ProfileTab({ user, signIn }: { user: { name: string; email: string; rol
             {errors.name && <p className="mt-1 text-sm text-rose">{errors.name.message}</p>}
           </div>
           <div>
-            <label className="field-label" htmlFor="s-phone">Phone</label>
+            <label className="field-label" htmlFor="s-phone">Phone </label><span className="text-rose" aria-hidden="true">*</span>
             <div className="relative mt-1.5">
               <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gold" />
               <input id="s-phone" type="tel" className="field-input !rounded-full !pl-11" {...register("phone")} placeholder="+91 98765 43210" />
@@ -388,7 +388,7 @@ function PasswordTab({ user }: { user: { email: string; role: string } }) {
       <p className="text-sm text-muted mb-6">Update your account password</p>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-md">
         <div>
-          <label className="field-label" htmlFor="cur-pw">Current Password</label>
+          <label className="field-label" htmlFor="cur-pw">Current Password </label><span className="text-rose" aria-hidden="true">*</span>
           <div className="relative mt-1.5">
             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gold" />
             <input id="cur-pw" type="password" className="field-input !rounded-full !pl-11" {...register("currentPassword")} placeholder="••••••••" />
@@ -396,7 +396,7 @@ function PasswordTab({ user }: { user: { email: string; role: string } }) {
           {errors.currentPassword && <p className="mt-1 text-sm text-rose">{errors.currentPassword.message}</p>}
         </div>
         <div>
-          <label className="field-label" htmlFor="new-pw">New Password</label>
+          <label className="field-label" htmlFor="new-pw">New Password </label><span className="text-rose" aria-hidden="true">*</span>
           <div className="relative mt-1.5">
             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gold" />
             <input id="new-pw" type="password" className="field-input !rounded-full !pl-11" {...register("newPassword")} placeholder="••••••••" />
@@ -404,7 +404,7 @@ function PasswordTab({ user }: { user: { email: string; role: string } }) {
           {errors.newPassword && <p className="mt-1 text-sm text-rose">{errors.newPassword.message}</p>}
         </div>
         <div>
-          <label className="field-label" htmlFor="conf-pw">Confirm New Password</label>
+          <label className="field-label" htmlFor="conf-pw">Confirm New Password </label><span className="text-rose" aria-hidden="true">*</span>
           <div className="relative mt-1.5">
             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gold" />
             <input id="conf-pw" type="password" className="field-input !rounded-full !pl-11" {...register("confirmPassword")} placeholder="••••••••" />
@@ -494,18 +494,18 @@ function AddressTab() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="field-label">Label</label>
+                <label className="field-label">Label </label><span className="text-rose" aria-hidden="true">*</span>
                 <input className="field-input mt-1.5" {...register("label")} placeholder="Home, Office..." />
                 {errors.label && <p className="mt-1 text-sm text-rose">{errors.label.message}</p>}
               </div>
               <div>
-                <label className="field-label">Phone</label>
+                <label className="field-label">Phone </label><span className="text-rose" aria-hidden="true">*</span>
                 <input className="field-input mt-1.5" {...register("phone")} placeholder="+91 98765 43210" />
                 {errors.phone && <p className="mt-1 text-sm text-rose">{errors.phone.message}</p>}
               </div>
             </div>
             <div>
-              <label className="field-label">Street Address</label>
+              <label className="field-label">Street Address </label><span className="text-rose" aria-hidden="true">*</span>
               <input className="field-input mt-1.5" {...register("street")} placeholder="123, Beauty Lane" />
               {errors.street && <p className="mt-1 text-sm text-rose">{errors.street.message}</p>}
             </div>
@@ -515,17 +515,17 @@ function AddressTab() {
             </div>
             <div className="grid sm:grid-cols-3 gap-4">
               <div>
-                <label className="field-label">City</label>
+                <label className="field-label">City </label><span className="text-rose" aria-hidden="true">*</span>
                 <input className="field-input mt-1.5" {...register("city")} />
                 {errors.city && <p className="mt-1 text-sm text-rose">{errors.city.message}</p>}
               </div>
               <div>
-                <label className="field-label">State</label>
+                <label className="field-label">State </label><span className="text-rose" aria-hidden="true">*</span>
                 <input className="field-input mt-1.5" {...register("state")} />
                 {errors.state && <p className="mt-1 text-sm text-rose">{errors.state.message}</p>}
               </div>
               <div>
-                <label className="field-label">Pincode</label>
+                <label className="field-label">Pincode </label><span className="text-rose" aria-hidden="true">*</span>
                 <input className="field-input mt-1.5" {...register("pincode")} />
                 {errors.pincode && <p className="mt-1 text-sm text-rose">{errors.pincode.message}</p>}
               </div>
@@ -617,23 +617,23 @@ function ContactTab() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-lg">
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="field-label">Your Name</label>
+            <label className="field-label">Your Name </label><span className="text-rose" aria-hidden="true">*</span>
             <input className="field-input mt-1.5" {...register("name")} placeholder="Priya Sharma" />
             {errors.name && <p className="mt-1 text-sm text-rose">{errors.name.message}</p>}
           </div>
           <div>
-            <label className="field-label">Email</label>
+            <label className="field-label">Email </label><span className="text-rose" aria-hidden="true">*</span>
             <input type="email" className="field-input mt-1.5" {...register("email")} placeholder="you@example.com" />
             {errors.email && <p className="mt-1 text-sm text-rose">{errors.email.message}</p>}
           </div>
         </div>
         <div>
-          <label className="field-label">Subject</label>
+          <label className="field-label">Subject </label><span className="text-rose" aria-hidden="true">*</span>
           <input className="field-input mt-1.5" {...register("subject")} placeholder="How can we help?" />
           {errors.subject && <p className="mt-1 text-sm text-rose">{errors.subject.message}</p>}
         </div>
         <div>
-          <label className="field-label">Message</label>
+          <label className="field-label">Message </label><span className="text-rose" aria-hidden="true">*</span>
           <textarea className="field-input mt-1.5 min-h-[120px] resize-y" {...register("message")} placeholder="Tell us more..." />
           {errors.message && <p className="mt-1 text-sm text-rose">{errors.message.message}</p>}
         </div>

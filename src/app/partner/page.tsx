@@ -225,32 +225,32 @@ export default function PartnerPage() {
           >
             <div className="grid sm:grid-cols-2 gap-5">
               <div>
-                <label className="field-label" htmlFor="ownerName">Owner Name</label>
+                <label className="field-label" htmlFor="ownerName">Owner Name </label><span className="text-rose" aria-hidden="true">*</span>
                 <input id="ownerName" className="field-input" placeholder="e.g. Ritu Sharma" {...register("ownerName")} />
                 {errors.ownerName && <p className="mt-1 text-[0.8rem] text-rose">{errors.ownerName.message}</p>}
               </div>
               <div>
-                <label className="field-label" htmlFor="salonName">Salon / Studio Name</label>
+                <label className="field-label" htmlFor="salonName">Salon / Studio Name </label><span className="text-rose" aria-hidden="true">*</span>
                 <input id="salonName" className="field-input" placeholder="e.g. Grace Beauty Lounge" {...register("salonName")} />
                 {errors.salonName && <p className="mt-1 text-[0.8rem] text-rose">{errors.salonName.message}</p>}
               </div>
               <div>
-                <label className="field-label" htmlFor="email">Email Address</label>
+                <label className="field-label" htmlFor="email">Email Address </label><span className="text-rose" aria-hidden="true">*</span>
                 <input id="email" type="email" className="field-input" placeholder="you@example.com" {...register("email")} />
                 {errors.email && <p className="mt-1 text-[0.8rem] text-rose">{errors.email.message}</p>}
               </div>
               <div>
-                <label className="field-label" htmlFor="phone">Phone Number</label>
+                <label className="field-label" htmlFor="phone">Phone Number </label><span className="text-rose" aria-hidden="true">*</span>
                 <input id="phone" type="tel" className="field-input" placeholder="+91 98765 43210" {...register("phone")} />
                 {errors.phone && <p className="mt-1 text-[0.8rem] text-rose">{errors.phone.message}</p>}
               </div>
               <div>
-                <label className="field-label" htmlFor="city">City / Area</label>
+                <label className="field-label" htmlFor="city">City / Area </label><span className="text-rose" aria-hidden="true">*</span>
                 <input id="city" className="field-input" placeholder="e.g. Gomti Nagar, Lucknow" {...register("city")} />
                 {errors.city && <p className="mt-1 text-[0.8rem] text-rose">{errors.city.message}</p>}
               </div>
               <div>
-                <span className="field-label">Primary Service</span>
+                <span className="field-label">Primary Service <span className="text-rose">*</span></span>
                 <div className="mt-1.5">
                   <Select onValueChange={(v) => setValue("services", v as PartnerFormData["services"])}>
                     <SelectTrigger className="field-input !h-[50px]">
@@ -268,7 +268,7 @@ export default function PartnerPage() {
             </div>
 
             <div>
-              <label className="field-label" htmlFor="message">Tell Us About Your Salon</label>
+              <label className="field-label" htmlFor="message">Tell Us About Your Salon </label><span className="text-rose" aria-hidden="true">*</span>
               <textarea
                 id="message"
                 className="field-textarea min-h-[120px]"

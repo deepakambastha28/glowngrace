@@ -206,41 +206,41 @@ export default function CheckoutPage() {
                     <h2 className="text-[1.2rem] font-bold">Shipping &amp; Contact Details</h2>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="field-label" htmlFor="firstName">First Name</label>
+                        <label className="field-label" htmlFor="firstName">First Name </label><span className="text-rose" aria-hidden="true">*</span>
                         <input id="firstName" className="field-input" placeholder="Priya" {...register("firstName")} />
                         {errors.firstName && <p className="text-[0.8rem] text-rose mt-1">{errors.firstName.message}</p>}
                       </div>
                       <div>
-                        <label className="field-label" htmlFor="lastName">Last Name</label>
+                        <label className="field-label" htmlFor="lastName">Last Name </label><span className="text-rose" aria-hidden="true">*</span>
                         <input id="lastName" className="field-input" placeholder="Sharma" {...register("lastName")} />
                         {errors.lastName && <p className="text-[0.8rem] text-rose mt-1">{errors.lastName.message}</p>}
                       </div>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="field-label" htmlFor="email">Email Address</label>
+                        <label className="field-label" htmlFor="email">Email Address </label><span className="text-rose" aria-hidden="true">*</span>
                         <input id="email" type="email" className="field-input" placeholder="priya@example.com" {...register("email")} />
                         {errors.email && <p className="text-[0.8rem] text-rose mt-1">{errors.email.message}</p>}
                       </div>
                       <div>
-                        <label className="field-label" htmlFor="phone">Phone Number</label>
+                        <label className="field-label" htmlFor="phone">Phone Number </label><span className="text-rose" aria-hidden="true">*</span>
                         <input id="phone" type="tel" className="field-input" placeholder="+91 98765 43210" {...register("phone")} />
                         {errors.phone && <p className="text-[0.8rem] text-rose mt-1">{errors.phone.message}</p>}
                       </div>
                     </div>
                     <div>
-                      <label className="field-label" htmlFor="street">Street Address</label>
+                      <label className="field-label" htmlFor="street">Street Address </label><span className="text-rose" aria-hidden="true">*</span>
                       <input id="street" className="field-input" placeholder="123 Hazratganj Road" {...register("street")} />
                       {errors.street && <p className="text-[0.8rem] text-rose mt-1">{errors.street.message}</p>}
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="field-label" htmlFor="locality">Locality / Area</label>
+                        <label className="field-label" htmlFor="locality">Locality / Area </label><span className="text-rose" aria-hidden="true">*</span>
                         <input id="locality" className="field-input" placeholder="Hazratganj" {...register("locality")} />
                         {errors.locality && <p className="text-[0.8rem] text-rose mt-1">{errors.locality.message}</p>}
                       </div>
                       <div>
-                        <label className="field-label" htmlFor="pincode">PIN Code</label>
+                        <label className="field-label" htmlFor="pincode">PIN Code </label><span className="text-rose" aria-hidden="true">*</span>
                         <input id="pincode" className="field-input" placeholder="226001" inputMode="numeric" {...register("pincode")} />
                         {errors.pincode && <p className="text-[0.8rem] text-rose mt-1">{errors.pincode.message}</p>}
                       </div>

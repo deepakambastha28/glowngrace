@@ -306,14 +306,14 @@ export default function RecruiterProfilePage() {
             <div className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="field-label" htmlFor="fullName">Full Name *</label>
+                  <label className="field-label" htmlFor="fullName">Full Name </label><span className="text-rose" aria-hidden="true">*</span>
                   <div className="relative mt-1.5">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2e9e6b]" />
                     <input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} className="field-input !rounded-full !pl-11" />
                   </div>
                 </div>
                 <div>
-                  <label className="field-label" htmlFor="phone">Phone *</label>
+                  <label className="field-label" htmlFor="phone">Phone </label><span className="text-rose" aria-hidden="true">*</span>
                   <div className="relative mt-1.5">
                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2e9e6b]" />
                     <input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="field-input !rounded-full !pl-11" placeholder="+91 …" />
@@ -322,7 +322,7 @@ export default function RecruiterProfilePage() {
               </div>
 
               <div>
-                <label className="field-label" htmlFor="email">Email *</label>
+                <label className="field-label" htmlFor="email">Email </label><span className="text-rose" aria-hidden="true">*</span>
                 <div className="relative mt-1.5">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2e9e6b]" />
                   <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="field-input !rounded-full !pl-11" />
@@ -331,7 +331,7 @@ export default function RecruiterProfilePage() {
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="field-label" htmlFor="company">Company / Salon *</label>
+                  <label className="field-label" htmlFor="company">Company / Salon </label><span className="text-rose" aria-hidden="true">*</span>
                   <div className="relative mt-1.5">
                     <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2e9e6b]" />
                     <input id="company" value={company} onChange={(e) => setCompany(e.target.value)} className="field-input !rounded-full !pl-11" placeholder="e.g. Luxe Salon Lucknow" />
@@ -347,7 +347,7 @@ export default function RecruiterProfilePage() {
               </div>
 
               <div>
-                <label className="field-label" htmlFor="city">City *</label>
+                <label className="field-label" htmlFor="city">City </label><span className="text-rose" aria-hidden="true">*</span>
                 <div className="relative mt-1.5">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#2e9e6b]" />
                   <input id="city" value={city} onChange={(e) => setCity(e.target.value)} className="field-input !rounded-full !pl-11" placeholder="Lucknow" />
@@ -506,7 +506,7 @@ export default function RecruiterProfilePage() {
             <div className="rounded-2xl border border-line bg-cream/60 p-5 space-y-4">
               <div className="grid sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="field-label" htmlFor="package-name">Package Name *</label>
+                  <label className="field-label" htmlFor="package-name">Package Name </label><span className="text-rose" aria-hidden="true">*</span>
                   <input
                     id="package-name"
                     data-testid="package-name"
@@ -517,7 +517,7 @@ export default function RecruiterProfilePage() {
                   />
                 </div>
                 <div>
-                  <label className="field-label" htmlFor="package-price">Price (₹) *</label>
+                  <label className="field-label" htmlFor="package-price">Price (₹) </label><span className="text-rose" aria-hidden="true">*</span>
                   <input
                     id="package-price"
                     data-testid="package-price"

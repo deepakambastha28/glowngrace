@@ -255,7 +255,7 @@ export default function SignupPage() {
               <form onSubmit={partnerForm.handleSubmit(handlePartnerSubmit)} className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="field-label" htmlFor="ownerName">Owner Name</label>
+                    <label className="field-label" htmlFor="ownerName">Owner Name </label><span className="text-rose" aria-hidden="true">*</span>
                     <div className="relative mt-1.5">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                       <input id="ownerName" className="field-input !rounded-full !pl-11" {...partnerForm.register("ownerName")} placeholder="Ritu Sharma" />
@@ -266,7 +266,7 @@ export default function SignupPage() {
                   </div>
 
                   <div>
-                    <label className="field-label" htmlFor="salonName">Salon / Studio Name</label>
+                    <label className="field-label" htmlFor="salonName">Salon / Studio Name </label><span className="text-rose" aria-hidden="true">*</span>
                     <div className="relative mt-1.5">
                       <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                       <input id="salonName" className="field-input !rounded-full !pl-11" {...partnerForm.register("salonName")} placeholder="Grace Beauty Lounge" />
@@ -277,7 +277,7 @@ export default function SignupPage() {
                   </div>
 
                   <div>
-                    <label className="field-label" htmlFor="email">Email Address</label>
+<label className="field-label" htmlFor="email">Email Address </label><span className="text-rose" aria-hidden="true">*</span>
                     <div className="relative mt-1.5">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                       <input id="email" type="email" className="field-input !rounded-full !pl-11" {...partnerForm.register("email")} placeholder="you@example.com" />
@@ -288,7 +288,7 @@ export default function SignupPage() {
                   </div>
 
                   <div>
-                    <label className="field-label" htmlFor="phone">Phone Number</label>
+                    <label className="field-label" htmlFor="phone">Phone Number </label><span className="text-rose" aria-hidden="true">*</span>
                     <div className="relative mt-1.5">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                       <input id="phone" type="tel" className="field-input !rounded-full !pl-11" {...partnerForm.register("phone")} placeholder="+91 98765 43210" />
@@ -301,7 +301,7 @@ export default function SignupPage() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="field-label" htmlFor="password">Password</label>
+                    <label className="field-label" htmlFor="password">Password </label><span className="text-rose" aria-hidden="true">*</span>
                     <div className="relative mt-1.5">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                       <input id="password" type="password" className="field-input !rounded-full !pl-11" {...partnerForm.register("password")} placeholder="••••••••" />
@@ -312,7 +312,7 @@ export default function SignupPage() {
                   </div>
 
                   <div>
-                    <label className="field-label" htmlFor="confirmPassword">Confirm Password</label>
+                    <label className="field-label" htmlFor="confirmPassword">Confirm Password </label><span className="text-rose" aria-hidden="true">*</span>
                     <div className="relative mt-1.5">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                       <input id="confirmPassword" type="password" className="field-input !rounded-full !pl-11" {...partnerForm.register("confirmPassword")} placeholder="••••••••" />
@@ -351,7 +351,7 @@ export default function SignupPage() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="field-label" htmlFor="name">Full Name</label>
+                    <label className="field-label" htmlFor="name">Full Name </label><span className="text-rose" aria-hidden="true">*</span>
                     <div className="relative mt-1.5">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                       <input id="name" className="field-input !rounded-full !pl-11" {...register("name")} placeholder="Priya Sharma" />
@@ -360,7 +360,7 @@ export default function SignupPage() {
                   </div>
 
                   <div>
-                    <label className="field-label" htmlFor="phone">Phone Number</label>
+                    <label className="field-label" htmlFor="phone">Phone Number </label><span className="text-rose" aria-hidden="true">*</span>
                     <div className="relative mt-1.5">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                       <input id="phone" type="tel" className="field-input !rounded-full !pl-11" {...register("phone")} placeholder="+91 98765 43210" />
@@ -370,7 +370,7 @@ export default function SignupPage() {
                 </div>
 
                 <div>
-                  <label className="field-label" htmlFor="email">Email Address</label>
+                  <label className="field-label" htmlFor="email">Email Address </label><span className="text-rose" aria-hidden="true">*</span>
                   <div className="relative mt-1.5">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                     <input id="email" type="email" className="field-input !rounded-full !pl-11" {...register("email")} placeholder="you@example.com" />
@@ -380,7 +380,7 @@ export default function SignupPage() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="field-label" htmlFor="password">Password</label>
+                    <label className="field-label" htmlFor="password">Password </label><span className="text-rose" aria-hidden="true">*</span>
                     <div className="relative mt-1.5">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                       <input id="password" type="password" className="field-input !rounded-full !pl-11" {...register("password")} placeholder="••••••••" />
@@ -389,7 +389,7 @@ export default function SignupPage() {
                   </div>
 
                   <div>
-                    <label className="field-label" htmlFor="confirmPassword">Confirm Password</label>
+                    <label className="field-label" htmlFor="confirmPassword">Confirm Password </label><span className="text-rose" aria-hidden="true">*</span>
                     <div className="relative mt-1.5">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
                       <input id="confirmPassword" type="password" className="field-input !rounded-full !pl-11" {...register("confirmPassword")} placeholder="••••••••" />
