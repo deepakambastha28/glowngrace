@@ -27,7 +27,7 @@ export default async function Home() {
   return (
     <div className="w-full">
       {config.sections
-        .filter((section) => section.visible)
+        .filter((section) => section.visible && !section.deleted)
         .map((section) => (
           <Fragment key={section.key}>{sections[section.key]}</Fragment>
         ))}

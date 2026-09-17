@@ -61,6 +61,7 @@ export interface HomeCtaContent {
 export interface HomeSectionSetting {
   key: HomeSectionKey;
   visible: boolean;
+  deleted: boolean;
 }
 
 export interface HomeConfig {
@@ -75,7 +76,7 @@ export interface HomeConfig {
 }
 
 export const DEFAULT_HOME_CONFIG: HomeConfig = {
-  sections: HOME_SECTION_KEYS.map((key) => ({ key, visible: true })),
+  sections: HOME_SECTION_KEYS.map((key) => ({ key, visible: true, deleted: false })),
   hero: {
     eyebrow: "Lucknow's Premier Beauty Destination",
     title: "Discover Your Radiant Beauty & Career",
@@ -150,15 +151,17 @@ function normalizeSections(raw: unknown): HomeSectionSetting[] {
       (HOME_SECTION_KEYS as readonly string[]).includes(key) &&
       !seen.has(key as HomeSectionKey)
     ) {
+      const deleted = (entry as { deleted?: unknown }).deleted === true;
       seen.add(key as HomeSectionKey);
       out.push({
         key: key as HomeSectionKey,
-        visible: (entry as { visible?: unknown }).visible !== false,
+        visible: (entry as { visible?: unknown }).visible !== false && !deleted,
+        deleted,
       });
     }
   }
   for (const key of HOME_SECTION_KEYS) {
-    if (!seen.has(key)) out.push({ key, visible: true });
+    if (!seen.has(key)) out.push({ key, visible: false, deleted: true });
   }
   return out;
 }

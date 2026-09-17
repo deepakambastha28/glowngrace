@@ -322,6 +322,7 @@ export type AdminEventPatch = z.infer<typeof adminEventPatchSchema>;
 export const homeSectionSettingSchema = z.object({
   key: z.enum(["hero", "categories", "bestsellers", "partners", "jobs", "cta", "testimonials"]),
   visible: z.boolean(),
+  deleted: z.boolean().default(false),
 });
 
 export const homeTextSectionSchema = z.object({
