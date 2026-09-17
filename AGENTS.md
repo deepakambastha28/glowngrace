@@ -64,7 +64,7 @@ pill buttons) when touching UI.
 - Home config: the storefront home page is server-rendered from a single
   `gg_admin_home_config` row (`id = 1`) — hero copy/stats/trust, section
   eyebrow/heading/description, CTA, testimonials heading, per-section
-  visibility + ordering (`src/lib/home-config.ts` defaults +
+  visibility + ordering + deletion (`src/lib/home-config.ts` defaults +
   `normalizeHomeConfig`, loaded by `src/lib/home-config-server.ts`).
   `/api/home-config` serves it; `/admin/pages/home` edits it (`GET`/`PUT
   /api/admin/home-config`, zod `homeConfigSchema` in `src/lib/schemas.ts`).

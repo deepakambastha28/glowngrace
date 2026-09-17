@@ -11,7 +11,7 @@ import {
   type HomeConfig,
   type HomeSectionKey,
 } from "@/lib/home-config";
-import { ChevronDown, ChevronUp, Eye, EyeOff, Plus, Save, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, EyeOff, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 function Field({
@@ -72,40 +72,156 @@ function TextArea({
   );
 }
 
-function TextSectionCard({
-  title,
+function TextSectionBody({
   keyPrefix,
   section,
   onChange,
 }: {
-  title: string;
   keyPrefix: string;
   section: { eyebrow: string; title: string; description: string };
   onChange: (next: { eyebrow: string; title: string; description: string }) => void;
 }) {
   return (
-    <div className="card !shadow-lg p-6">
-      <h3 className="text-lg font-semibold mb-4">{title}</h3>
-      <div className="grid gap-4">
-        <Field
-          id={`home-${keyPrefix}-eyebrow`}
-          label="Eyebrow"
-          value={section.eyebrow}
-          onChange={(eyebrow) => onChange({ ...section, eyebrow })}
-        />
-        <Field
-          id={`home-${keyPrefix}-title`}
-          label="Heading"
-          value={section.title}
-          onChange={(nextTitle) => onChange({ ...section, title: nextTitle })}
-        />
-        <TextArea
-          id={`home-${keyPrefix}-description`}
-          label="Description"
-          value={section.description}
-          onChange={(description) => onChange({ ...section, description })}
-        />
+    <div className="grid gap-4">
+      <Field
+        id={`home-${keyPrefix}-eyebrow`}
+        label="Eyebrow"
+        value={section.eyebrow}
+        onChange={(eyebrow) => onChange({ ...section, eyebrow })}
+      />
+      <Field
+        id={`home-${keyPrefix}-title`}
+        label="Heading"
+        value={section.title}
+        onChange={(nextTitle) => onChange({ ...section, title: nextTitle })}
+      />
+      <TextArea
+        id={`home-${keyPrefix}-description`}
+        label="Description"
+        value={section.description}
+        onChange={(description) => onChange({ ...section, description })}
+      />
+    </div>
+  );
+}
+
+function SectionCard({
+  sectionKey,
+  label,
+  visible,
+  deleted,
+  index,
+  count,
+  onMoveUp,
+  onMoveDown,
+  onToggle,
+  onDelete,
+  onRestore,
+  children,
+}: {
+  sectionKey: HomeSectionKey;
+  label: string;
+  visible: boolean;
+  deleted: boolean;
+  index: number;
+  count: number;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onToggle: () => void;
+  onDelete: () => void;
+  onRestore: () => void;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(!deleted);
+
+  return (
+    <div className="card !shadow-lg mb-6">
+      <div className="flex items-center gap-3 px-6 py-4">
+        <div className="flex flex-col">
+          <button
+            type="button"
+            onClick={onMoveUp}
+            disabled={index === 0}
+            aria-label={`Move ${label} up`}
+            className="text-muted hover:text-rose disabled:opacity-30"
+          >
+            <ChevronUp className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onMoveDown}
+            disabled={index === count - 1}
+            aria-label={`Move ${label} down`}
+            className="text-muted hover:text-rose disabled:opacity-30"
+          >
+            <ChevronDown className="h-4 w-4" />
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (!deleted) setOpen((o) => !o);
+          }}
+          className="flex flex-1 items-center gap-2 text-left"
+          aria-expanded={deleted ? false : open}
+        >
+          <span className="font-semibold text-charcoal">{label}</span>
+          {deleted ? (
+            <span className="rounded-full bg-[#f1f1f4] px-2.5 py-0.5 text-xs font-semibold text-muted">
+              Deleted
+            </span>
+          ) : !visible ? (
+            <span className="rounded-full bg-amber/10 px-2.5 py-0.5 text-xs font-semibold text-amber">
+              Hidden
+            </span>
+          ) : null}
+        </button>
+
+        {deleted ? (
+          <button
+            type="button"
+            data-testid={`home-section-restore-${sectionKey}`}
+            onClick={onRestore}
+            className="inline-flex items-center gap-1.5 rounded-full border-[1.6px] border-rose px-3 py-1.5 text-xs font-semibold text-rose transition-colors hover:bg-rose hover:text-white"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> Restore
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              data-testid={`home-section-toggle-${sectionKey}`}
+              onClick={onToggle}
+              aria-pressed={visible}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                visible ? "bg-emerald/15 text-emerald" : "bg-[#f1f1f4] text-muted"
+              }`}
+            >
+              {visible ? (
+                <>
+                  <Eye className="h-3.5 w-3.5" /> Visible
+                </>
+              ) : (
+                <>
+                  <EyeOff className="h-3.5 w-3.5" /> Hidden
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              data-testid={`home-section-delete-${sectionKey}`}
+              onClick={onDelete}
+              aria-label={`Delete ${label} section`}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#fdeaea] px-3 py-1.5 text-xs font-semibold text-red transition-colors hover:bg-red hover:text-white"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Delete
+            </button>
+          </>
+        )}
       </div>
+
+      {open && !deleted && <div className="grid gap-4 px-6 pb-6">{children}</div>}
     </div>
   );
 }
@@ -124,17 +240,37 @@ function HomeConfigContent() {
     load();
   }, [load]);
 
-  const toggleSection = (key: HomeSectionKey) => {
+  const updateSection = (key: HomeSectionKey, patch: Partial<{ visible: boolean; deleted: boolean }>) => {
     setConfig((c) =>
       c
         ? {
             ...c,
-            sections: c.sections.map((s) =>
-              s.key === key ? { ...s, visible: !s.visible } : s
-            ),
+            sections: c.sections.map((s) => (s.key === key ? { ...s, ...patch } : s)),
           }
         : c
     );
+  };
+
+  const toggleSection = (key: HomeSectionKey) => {
+    setConfig((c) => {
+      if (!c) return c;
+      const section = c.sections.find((s) => s.key === key);
+      if (!section || section.deleted) return c;
+      return {
+        ...c,
+        sections: c.sections.map((s) =>
+          s.key === key ? { ...s, visible: !s.visible } : s
+        ),
+      };
+    });
+  };
+
+  const deleteSection = (key: HomeSectionKey) => {
+    updateSection(key, { visible: false, deleted: true });
+  };
+
+  const restoreSection = (key: HomeSectionKey) => {
+    updateSection(key, { visible: true, deleted: false });
   };
 
   const moveSection = (key: HomeSectionKey, dir: -1 | 1) => {
@@ -167,83 +303,26 @@ function HomeConfigContent() {
 
   const hero = config.hero;
 
-  return (
-    <div data-testid="home-config-form">
-      <AdminPageHead
-        title="Home Page"
-        subtitle="Configure the sections and copy shown on the storefront home page. The top menu is not affected."
-      />
+  const sectionProps = (key: HomeSectionKey, index: number) => {
+    const section = config.sections[index];
+    return {
+      sectionKey: key,
+      label: HOME_SECTION_LABELS[key],
+      visible: section.visible,
+      deleted: section.deleted,
+      index,
+      count: config.sections.length,
+      onMoveUp: () => moveSection(key, -1),
+      onMoveDown: () => moveSection(key, 1),
+      onToggle: () => toggleSection(key),
+      onDelete: () => deleteSection(key),
+      onRestore: () => restoreSection(key),
+    };
+  };
 
-      <div className="mb-6 flex justify-end">
-        <button
-          data-testid="home-config-save"
-          onClick={save}
-          disabled={saving}
-          className="btn-primary text-sm disabled:opacity-60"
-        >
-          <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save Changes"}
-        </button>
-      </div>
-
-      <div className="card !shadow-lg p-6 mb-6">
-        <h3 className="text-lg font-semibold mb-4">Sections</h3>
-        <div className="grid gap-2">
-          {config.sections.map((section, index) => (
-            <div
-              key={section.key}
-              className="flex items-center gap-3 rounded-xl border border-line-soft bg-white px-4 py-3"
-            >
-              <div className="flex flex-col">
-                <button
-                  type="button"
-                  onClick={() => moveSection(section.key, -1)}
-                  disabled={index === 0}
-                  aria-label={`Move ${HOME_SECTION_LABELS[section.key]} up`}
-                  className="text-muted hover:text-rose disabled:opacity-30"
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => moveSection(section.key, 1)}
-                  disabled={index === config.sections.length - 1}
-                  aria-label={`Move ${HOME_SECTION_LABELS[section.key]} down`}
-                  className="text-muted hover:text-rose disabled:opacity-30"
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-              </div>
-              <span className="flex-1 font-semibold text-charcoal">
-                {HOME_SECTION_LABELS[section.key]}
-              </span>
-              <button
-                type="button"
-                data-testid={`home-section-toggle-${section.key}`}
-                onClick={() => toggleSection(section.key)}
-                aria-pressed={section.visible}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  section.visible
-                    ? "bg-emerald/15 text-emerald"
-                    : "bg-[#f1f1f4] text-muted"
-                }`}
-              >
-                {section.visible ? (
-                  <>
-                    <Eye className="h-3.5 w-3.5" /> Visible
-                  </>
-                ) : (
-                  <>
-                    <EyeOff className="h-3.5 w-3.5" /> Hidden
-                  </>
-                )}
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="card !shadow-lg p-6 mb-6">
-        <h3 className="text-lg font-semibold mb-4">Hero</h3>
+  const sectionChildren: Record<HomeSectionKey, React.ReactNode> = {
+    hero: (
+      <>
         <div className="grid sm:grid-cols-2 gap-4">
           <Field
             id="home-hero-eyebrow"
@@ -430,112 +509,135 @@ function HomeConfigContent() {
             ))}
           </div>
         </div>
-      </div>
-
-      <div className="grid gap-6 mb-6">
-        <TextSectionCard
-          title="Shop Categories"
-          keyPrefix="categories"
-          section={config.categories}
-          onChange={(categories) => setConfig({ ...config, categories })}
-        />
-        <TextSectionCard
-          title="Bestsellers"
-          keyPrefix="bestsellers"
-          section={config.bestsellers}
-          onChange={(bestsellers) => setConfig({ ...config, bestsellers })}
-        />
-        <TextSectionCard
-          title="Partner Parlours"
-          keyPrefix="partners"
-          section={config.partners}
-          onChange={(partners) => setConfig({ ...config, partners })}
-        />
-        <TextSectionCard
-          title="Job Vacancies"
-          keyPrefix="jobs"
-          section={config.jobs}
-          onChange={(jobs) => setConfig({ ...config, jobs })}
-        />
-      </div>
-
-      <div className="card !shadow-lg p-6 mb-6">
-        <h3 className="text-lg font-semibold mb-4">CTA Banner</h3>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="sm:col-span-2">
-            <Field
-              id="home-cta-title"
-              label="Heading"
-              value={config.cta.title}
-              onChange={(title) => setConfig({ ...config, cta: { ...config.cta, title } })}
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <TextArea
-              id="home-cta-description"
-              label="Description"
-              value={config.cta.description}
-              onChange={(description) =>
-                setConfig({ ...config, cta: { ...config.cta, description } })
-              }
-            />
-          </div>
+      </>
+    ),
+    categories: (
+      <TextSectionBody
+        keyPrefix="categories"
+        section={config.categories}
+        onChange={(categories) => setConfig({ ...config, categories })}
+      />
+    ),
+    bestsellers: (
+      <TextSectionBody
+        keyPrefix="bestsellers"
+        section={config.bestsellers}
+        onChange={(bestsellers) => setConfig({ ...config, bestsellers })}
+      />
+    ),
+    partners: (
+      <TextSectionBody
+        keyPrefix="partners"
+        section={config.partners}
+        onChange={(partners) => setConfig({ ...config, partners })}
+      />
+    ),
+    jobs: (
+      <TextSectionBody
+        keyPrefix="jobs"
+        section={config.jobs}
+        onChange={(jobs) => setConfig({ ...config, jobs })}
+      />
+    ),
+    cta: (
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="sm:col-span-2">
           <Field
-            id="home-cta-primary-label"
-            label="Primary button label"
-            value={config.cta.primaryLabel}
-            onChange={(primaryLabel) =>
-              setConfig({ ...config, cta: { ...config.cta, primaryLabel } })
-            }
-          />
-          <Field
-            id="home-cta-primary-href"
-            label="Primary button link"
-            value={config.cta.primaryHref}
-            onChange={(primaryHref) =>
-              setConfig({ ...config, cta: { ...config.cta, primaryHref } })
-            }
-          />
-          <Field
-            id="home-cta-secondary-label"
-            label="Secondary button label"
-            value={config.cta.secondaryLabel}
-            onChange={(secondaryLabel) =>
-              setConfig({ ...config, cta: { ...config.cta, secondaryLabel } })
-            }
-          />
-          <Field
-            id="home-cta-secondary-href"
-            label="Secondary button link"
-            value={config.cta.secondaryHref}
-            onChange={(secondaryHref) =>
-              setConfig({ ...config, cta: { ...config.cta, secondaryHref } })
-            }
-          />
-        </div>
-      </div>
-
-      <div className="card !shadow-lg p-6 mb-6">
-        <h3 className="text-lg font-semibold mb-4">Testimonials</h3>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Field
-            id="home-testimonials-eyebrow"
-            label="Eyebrow"
-            value={config.testimonials.eyebrow}
-            onChange={(eyebrow) =>
-              setConfig({ ...config, testimonials: { ...config.testimonials, eyebrow } })
-            }
-          />
-          <Field
-            id="home-testimonials-title"
+            id="home-cta-title"
             label="Heading"
-            value={config.testimonials.title}
-            onChange={(title) =>
-              setConfig({ ...config, testimonials: { ...config.testimonials, title } })
+            value={config.cta.title}
+            onChange={(title) => setConfig({ ...config, cta: { ...config.cta, title } })}
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <TextArea
+            id="home-cta-description"
+            label="Description"
+            value={config.cta.description}
+            onChange={(description) =>
+              setConfig({ ...config, cta: { ...config.cta, description } })
             }
           />
         </div>
+        <Field
+          id="home-cta-primary-label"
+          label="Primary button label"
+          value={config.cta.primaryLabel}
+          onChange={(primaryLabel) =>
+            setConfig({ ...config, cta: { ...config.cta, primaryLabel } })
+          }
+        />
+        <Field
+          id="home-cta-primary-href"
+          label="Primary button link"
+          value={config.cta.primaryHref}
+          onChange={(primaryHref) =>
+            setConfig({ ...config, cta: { ...config.cta, primaryHref } })
+          }
+        />
+        <Field
+          id="home-cta-secondary-label"
+          label="Secondary button label"
+          value={config.cta.secondaryLabel}
+          onChange={(secondaryLabel) =>
+            setConfig({ ...config, cta: { ...config.cta, secondaryLabel } })
+          }
+        />
+        <Field
+          id="home-cta-secondary-href"
+          label="Secondary button link"
+          value={config.cta.secondaryHref}
+          onChange={(secondaryHref) =>
+            setConfig({ ...config, cta: { ...config.cta, secondaryHref } })
+          }
+        />
       </div>
+    ),
+    testimonials: (
+      <div className="grid sm:grid-cols-2 gap-4">
+        <Field
+          id="home-testimonials-eyebrow"
+          label="Eyebrow"
+          value={config.testimonials.eyebrow}
+          onChange={(eyebrow) =>
+            setConfig({ ...config, testimonials: { ...config.testimonials, eyebrow } })
+          }
+        />
+        <Field
+          id="home-testimonials-title"
+          label="Heading"
+          value={config.testimonials.title}
+          onChange={(title) =>
+            setConfig({ ...config, testimonials: { ...config.testimonials, title } })
+          }
+        />
+      </div>
+    ),
+  };
+
+  return (
+    <div data-testid="home-config-form">
+      <AdminPageHead
+        title="Home Page"
+        subtitle="Configure each section independently. Hide, show, delete, or restore any section before saving."
+      />
+
+      <div className="mb-6 flex justify-end">
+        <button
+          data-testid="home-config-save"
+          onClick={save}
+          disabled={saving}
+          className="btn-primary text-sm disabled:opacity-60"
+        >
+          <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save Changes"}
+        </button>
+      </div>
+
+      {config.sections.map((section, index) => (
+        <SectionCard key={section.key} {...sectionProps(section.key, index)}>
+          {sectionChildren[section.key]}
+        </SectionCard>
+      ))}
 
       <div className="flex justify-end">
         <button

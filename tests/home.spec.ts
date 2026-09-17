@@ -92,6 +92,20 @@ test.describe("Home page", () => {
     await expect(circle.locator("button")).toHaveCount(0);
   });
 
+  test("topbar Instagram link points to the official Instagram page", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const igLink = page.getByTestId("topbar").getByRole("link", {
+      name: "Instagram",
+    });
+    await expect(igLink).toHaveAttribute(
+      "href",
+      "https://www.instagram.com/glowngracebiz/"
+    );
+    await expect(igLink).toHaveAttribute("target", "_blank");
+  });
+
   test("hero circle product links to its product page", async ({ page }) => {
     await page.goto("/");
 

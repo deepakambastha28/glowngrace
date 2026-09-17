@@ -139,14 +139,16 @@ mirrors the reference design and changes.
 - Admin Pages (`/admin/pages`): the sidebar "Pages" group lists Home, Shop,
   Career, Partner, Event, Contact. `/admin/pages/home` renders the home page
   manager (`home-config-form`), with `home-config-save`, `home-hero-eyebrow`
-  (and matching `home-hero-*` / `home-<section>-*` fields), the per-section
-  visibility toggle `home-section-toggle-<key>` (e.g.
-  `home-section-toggle-testimonials`), and `home-stat-add` / `home-trust-add`.
+  (and matching `home-hero-*` / `home-<section>-*` fields). Each section is its
+  own separate card with per-section visibility toggle
+  `home-section-toggle-<key>` (e.g. `home-section-toggle-testimonials`), delete
+  `home-section-delete-<key>` and restore `home-section-restore-<key>`, plus
+  up/down reorder; `home-stat-add` / `home-trust-add` manage hero stats/trust.
   `tests/admin-pages.spec.ts` covers the Pages menu navigation;
   `tests/admin-home-config.spec.ts` edits hero copy + toggles a section and
-  asserts the change on the storefront — it snapshots the original config via
-  `GET /api/home-config` and **restores it in `finally`**, so a failed run does
-  not leave the DB config modified.
+  deletes/restores one, asserting the change on the storefront — it snapshots
+  the original config via `GET /api/home-config` and **restores it in
+  `finally`**, so a failed run does not leave the DB config modified.
 
 **strict-mode gotcha:** `add-to-cart` / `wishlist-button` testids appear on
 product CARDS too, so on a detail page they resolve to the main button PLUS the
