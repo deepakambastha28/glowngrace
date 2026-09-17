@@ -54,6 +54,8 @@ server-out.txt
 server-run-err.log
 server-run-out.log
 dev-run.log
+dev-run.out.log
+dev-run.err.log
 start-run.log
 server-um*.log
 
