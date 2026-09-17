@@ -342,6 +342,7 @@ export const homeHeroContentSchema = z.object({
   secondaryHref: z.string().default(""),
   stats: z.array(z.object({ value: z.string(), label: z.string() })).default([]),
   trust: z.array(z.object({ emoji: z.string(), text: z.string() })).default([]),
+  images: z.array(z.string()).default([]),
 });
 
 export const homeCtaContentSchema = z.object({
@@ -368,6 +369,27 @@ export const homeConfigSchema = z.object({
 });
 
 export type HomeConfigFormData = z.infer<typeof homeConfigSchema>;
+
+export const shopSectionSettingSchema = z.object({
+  key: z.enum(["banner", "heading", "categories"]),
+  visible: z.boolean(),
+  deleted: z.boolean().default(false),
+});
+
+export const shopBannerContentSchema = z.object({
+  images: z.array(z.string()).default([]),
+  title: z.string().default(""),
+  subtitle: z.string().default(""),
+});
+
+export const shopConfigSchema = z.object({
+  sections: z.array(shopSectionSettingSchema).default([]),
+  banner: shopBannerContentSchema,
+  heading: homeTextSectionSchema,
+  categories: z.array(z.string()).default([]),
+});
+
+export type ShopConfigFormData = z.infer<typeof shopConfigSchema>;
 
 export const userAccountRoles = ["user", "candidate", "recruiter", "admin"] as const;
 export type UserAccountRole = (typeof userAccountRoles)[number];

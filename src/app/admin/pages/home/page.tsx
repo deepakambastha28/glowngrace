@@ -6,13 +6,15 @@ import { AdminPageHead } from "@/components/admin/page-head";
 import { fetchAdminHomeConfig, updateAdminHomeConfig } from "@/lib/api";
 import {
   DEFAULT_HOME_CONFIG,
+  HOME_HERO_MAX_IMAGES,
   HOME_SECTION_LABELS,
   normalizeHomeConfig,
   type HomeConfig,
   type HomeSectionKey,
 } from "@/lib/home-config";
-import { ChevronDown, ChevronUp, Eye, EyeOff, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, EyeOff, ImagePlus, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { Preloader } from "@/components/preloader";
 
 function Field({
   id,
@@ -285,6 +287,63 @@ function HomeConfigContent() {
     });
   };
 
+  const handleHeroUpload = (list: FileList | null) => {
+    if (!config) return;
+    const files = Array.from(list ?? []).filter((f) => f.type.startsWith("image/"));
+    if (files.length === 0) {
+      toast.warning("Only image files are allowed");
+      return;
+    }
+    const remaining = HOME_HERO_MAX_IMAGES - config.hero.images.length;
+    if (remaining <= 0) {
+      toast.warning(`You can add up to ${HOME_HERO_MAX_IMAGES} hero images`);
+      return;
+    }
+    if (files.length > remaining) {
+      toast.warning(`You can add up to ${HOME_HERO_MAX_IMAGES} hero images (${remaining} left)`);
+    }
+    const accepted = files.slice(0, remaining);
+    if (accepted.some((f) => f.size > 8 * 1024 * 1024)) {
+      toast.warning("One or more hero images exceed 8MB");
+      return;
+    }
+    const readers = accepted.map(
+      (file) =>
+        new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(String(e.target?.result ?? ""));
+          reader.readAsDataURL(file);
+        })
+    );
+    Promise.all(readers).then((dataUrls) =>
+      setConfig((c) =>
+        c
+          ? {
+              ...c,
+              hero: {
+                ...c.hero,
+                images: [...c.hero.images, ...dataUrls].slice(0, HOME_HERO_MAX_IMAGES),
+              },
+            }
+          : c
+      )
+    );
+  };
+
+  const removeHeroImage = (index: number) => {
+    setConfig((c) =>
+      c
+        ? {
+            ...c,
+            hero: {
+              ...c.hero,
+              images: c.hero.images.filter((_, i) => i !== index),
+            },
+          }
+        : c
+    );
+  };
+
   const save = async () => {
     if (!config) return;
     setSaving(true);
@@ -298,7 +357,7 @@ function HomeConfigContent() {
   };
 
   if (!config) {
-    return <div className="text-sm text-muted">Loading…</div>;
+    return <Preloader fullscreen={false} />;
   }
 
   const hero = config.hero;
@@ -323,6 +382,62 @@ function HomeConfigContent() {
   const sectionChildren: Record<HomeSectionKey, React.ReactNode> = {
     hero: (
       <>
+        <div>
+          <label className="field-label">
+            Hero Circle Images&nbsp;
+            <span className="text-muted">({hero.images.length}/{HOME_HERO_MAX_IMAGES})</span>
+          </label>
+          <p className="mb-2 text-xs text-muted">
+            Shown as a rotating slideshow inside the hero circle on the home page. Upload up to{" "}
+            <b>{HOME_HERO_MAX_IMAGES} images</b> — recommended size{" "}
+            <b>380 × 380 px (1:1 square, min 300 × 300 px — the circle renders at 380 × 380 px)</b>,
+            max 8MB each. Leave empty to show the auto-generated product slides.
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {hero.images.map((src, index) => (
+              <div
+                key={index}
+                className="relative h-32 w-full overflow-hidden rounded-full border border-line"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={src}
+                  alt={`Hero circle image ${index + 1}`}
+                  data-testid="home-hero-image-preview"
+                  className="h-full w-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeHeroImage(index)}
+                  aria-label={`Remove hero image ${index + 1}`}
+                  className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white hover:bg-red"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+            {hero.images.length < HOME_HERO_MAX_IMAGES && (
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-rose-soft bg-blush px-4 py-6 text-muted transition hover:border-rose">
+                <ImagePlus className="h-5 w-5 text-rose" />
+                <span className="text-sm font-semibold text-rose">
+                  {hero.images.length === 0 ? "Upload hero circle image" : "Add hero circle image"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  data-testid="home-hero-image-upload"
+                  className="hidden"
+                  onChange={(e) => {
+                    handleHeroUpload(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            )}
+          </div>
+        </div>
+
         <div className="grid sm:grid-cols-2 gap-4">
           <Field
             id="home-hero-eyebrow"

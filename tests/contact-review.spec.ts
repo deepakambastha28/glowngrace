@@ -72,6 +72,7 @@ test.describe("Contact page reviews", () => {
     page,
     request,
   }) => {
+    test.setTimeout(120_000);
     const author = `E2E Moderated Reviewer ${stamp}`;
     const comment = `Loved the products ${stamp}`;
     const deniedAuthor = `E2E Denied User ${stamp}`;

@@ -73,11 +73,22 @@ test.describe("Home page", () => {
     await expect(page).toHaveURL(/\/careers/);
   });
 
-  test("hero circle cycles through product slides", async ({ page }) => {
+  test("hero circle cycles through product slides", async ({ page, request }) => {
+    const res = await request.get("/api/home-config");
+    const heroImages = ((await res.json()).config?.hero?.images ?? []) as string[];
+    const hasHeroImages = heroImages.some((src) => src.length > 0);
+
     await page.goto("/");
 
     const circle = page.getByTestId("hero-circle");
     await expect(circle).toBeVisible();
+
+    if (hasHeroImages) {
+      const imageSlides = circle.getByTestId("hero-circle-image");
+      await expect(imageSlides.first()).toBeVisible();
+      await expect(imageSlides.first()).toHaveAttribute("data-active", "true");
+      return;
+    }
 
     const slides = circle.getByTestId("hero-circle-product");
     await expect(slides).toHaveCount(4);
@@ -106,12 +117,23 @@ test.describe("Home page", () => {
     await expect(igLink).toHaveAttribute("target", "_blank");
   });
 
-  test("hero circle product links to its product page", async ({ page }) => {
+  test("hero circle product links to its product page", async ({ page, request }) => {
+    const res = await request.get("/api/home-config");
+    const heroImages = ((await res.json()).config?.hero?.images ?? []) as string[];
+    const hasHeroImages = heroImages.some((src) => src.length > 0);
+
     await page.goto("/");
 
     const circle = page.getByTestId("hero-circle");
     await circle.hover();
     await expect(circle).toBeVisible();
+
+    if (hasHeroImages) {
+      const imageSlides = circle.getByTestId("hero-circle-image");
+      await expect(imageSlides.first()).toBeVisible();
+      await expect(imageSlides.first()).toHaveAttribute("data-active", "true");
+      return;
+    }
 
     const slides = circle.getByTestId("hero-circle-product");
     await expect(slides).toHaveCount(4);

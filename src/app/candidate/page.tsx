@@ -15,6 +15,7 @@ import { saveCandidate, fetchCandidate, deleteCandidate, fetchApplications, fetc
 import type { ApplicationRecord } from "@/lib/api";
 import type { Job } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { Preloader } from "@/components/preloader";
 
 const experienceOptions = [
   "Fresher", "1-2 years", "2-3 years", "3-5 years", "5+ years",
@@ -206,11 +207,7 @@ export default function CandidatePage() {
   if (!persistReady || !user) return null;
 
   if (loading) {
-    return (
-      <div className="grid min-h-screen place-items-center p-8 text-muted">
-        Loading…
-      </div>
-    );
+    return <Preloader />;
   }
 
   const hasProfile = Boolean(fullName.trim() || phone.trim() || city.trim() || skills.length || gallery.length);

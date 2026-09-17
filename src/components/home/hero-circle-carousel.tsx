@@ -12,14 +12,24 @@ const CATEGORY_GRADIENT: Record<string, string> = {
   Fragrances: "linear-gradient(135deg,#3b82c9,#a8c9f0)",
 };
 
-export function HeroCircleCarousel() {
+export function HeroCircleCarousel({ images = [] }: { images?: string[] }) {
   const [items, setItems] = useState<Product[]>([]);
+  const featureSlides = useMemo(
+    () => images.filter((src) => src.length > 0),
+    [images]
+  );
   const featured = useMemo(() => items.slice(0, 4), [items]);
-  const count = featured.length;
+  const useImages = featureSlides.length > 0;
+  const count = useImages ? featureSlides.length : featured.length;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
+    setIndex(0);
+    if (useImages) {
+      setItems([]);
+      return;
+    }
     let active = true;
     fetchProducts().then((res) => {
       if (!active) return;
@@ -28,7 +38,7 @@ export function HeroCircleCarousel() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [useImages]);
 
   const next = useCallback(
     () => setIndex((i) => (count === 0 ? 0 : (i + 1) % count)),
@@ -52,20 +62,36 @@ export function HeroCircleCarousel() {
         className="hc-track"
         style={{ transform: `translateX(-${index * 100}%)` }}
       >
-        {featured.map((p, i) => (
-          <Link
-            key={p.id}
-            href={`/products/${p.slug}`}
-            className="hc-slide"
-            data-testid="hero-circle-product"
-            data-active={i === index}
-            style={{ background: CATEGORY_GRADIENT[p.category] }}
-            aria-label={p.name}
-            tabIndex={i === index ? 0 : -1}
-          >
-            <span className="hc-emoji">{p.emoji}</span>
-          </Link>
-        ))}
+        {useImages
+          ? featureSlides.map((src, i) => (
+              <div
+                key={i}
+                className="hc-slide"
+                data-testid="hero-circle-image"
+                data-active={i === index}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={src}
+                  alt={`Hero image ${i + 1}`}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              </div>
+            ))
+          : featured.map((p, i) => (
+              <Link
+                key={p.id}
+                href={`/products/${p.slug}`}
+                className="hc-slide"
+                data-testid="hero-circle-product"
+                data-active={i === index}
+                style={{ background: CATEGORY_GRADIENT[p.category] }}
+                aria-label={p.name}
+                tabIndex={i === index ? 0 : -1}
+              >
+                <span className="hc-emoji">{p.emoji}</span>
+              </Link>
+            ))}
       </div>
     </div>
   );

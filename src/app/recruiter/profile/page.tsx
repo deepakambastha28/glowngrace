@@ -16,6 +16,7 @@ import {
   type RecruiterPackageRecord,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { Preloader } from "@/components/preloader";
 
 const servicePresets = [
   "Haircut & Styling",
@@ -273,7 +274,9 @@ export default function RecruiterProfilePage() {
 
   if (loading) {
     return (
-      <div className="card !shadow-lg p-8 text-center text-muted">Loading profile…</div>
+      <div className="card !shadow-lg p-8">
+        <Preloader fullscreen={false} label="Loading profile..." />
+      </div>
     );
   }
 

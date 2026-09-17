@@ -12,6 +12,7 @@ import {
 import { adminLogout, adminSession } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { Preloader } from "@/components/preloader";
 
 type NavItem = {
   href: string;
@@ -94,7 +95,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (authed === null || !authed) {
     return (
       <div className="grid min-h-screen place-items-center bg-[#faf5f8]">
-        <div className="text-sm text-muted">Loading…</div>
+        <Preloader fullscreen={false} />
       </div>
     );
   }

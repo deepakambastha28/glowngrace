@@ -41,7 +41,10 @@ export interface HomeHeroContent {
   secondaryHref: string;
   stats: HomeStat[];
   trust: HomeTrustItem[];
+  images: string[];
 }
+
+export const HOME_HERO_MAX_IMAGES = 5;
 
 export interface HomeTextSection {
   eyebrow: string;
@@ -98,6 +101,7 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
       { emoji: "💳", text: "Secure Payments" },
       { emoji: "🤝", text: "Verified Job Placements" },
     ],
+    images: [],
   },
   categories: {
     eyebrow: "Shop by Category",
@@ -198,6 +202,9 @@ export function normalizeHomeConfig(raw: unknown): HomeConfig {
       secondaryHref: str(hero.secondaryHref, base.hero.secondaryHref),
       stats: Array.isArray(hero.stats) ? hero.stats : base.hero.stats,
       trust: Array.isArray(hero.trust) ? hero.trust : base.hero.trust,
+      images: Array.isArray(hero.images)
+        ? hero.images.filter((src): src is string => typeof src === "string" && src.length > 0).slice(0, HOME_HERO_MAX_IMAGES)
+        : base.hero.images,
     },
     categories: normalizeTextSection(value.categories, base.categories),
     bestsellers: normalizeTextSection(value.bestsellers, base.bestsellers),

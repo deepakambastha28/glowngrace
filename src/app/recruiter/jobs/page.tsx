@@ -7,6 +7,7 @@ import { BriefcaseBusiness, MapPin, Clock, Users, Plus, ArrowUpRight, Pencil, Pa
 import { RecruiterGuard } from "@/components/recruiter/recruiter-guard";
 import { fetchAdminJobs, updateAdminJob, type AdminJobRecord } from "@/lib/api";
 import { toast } from "sonner";
+import { Preloader } from "@/components/preloader";
 
 function statusPill(status: string) {
   const key = (status || "").toLowerCase();
@@ -80,7 +81,9 @@ function RecruiterJobsContent() {
       </div>
 
       {loading ? (
-        <div className="card !shadow-lg p-8 text-center text-muted">Loading jobs…</div>
+        <div className="card !shadow-lg p-8">
+          <Preloader fullscreen={false} label="Loading jobs..." />
+        </div>
       ) : items.length ? (
         <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
           {items.map((job) => (

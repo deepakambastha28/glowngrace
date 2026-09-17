@@ -16,6 +16,7 @@ import { useAuthStore } from "@/lib/auth";
 import { usePersistReady } from "@/lib/use-persist-ready";
 import { useCartStore } from "@/lib/store";
 import { money, cn } from "@/lib/utils";
+import { Preloader } from "@/components/preloader";
 import { fetchOrders } from "@/lib/api";
 
 /* ------------------------------------------------------------------ */
@@ -270,9 +271,8 @@ function OrdersTab({ user }: { user: { email: string } }) {
 
   if (loading) {
     return (
-      <div className="card !rounded-[20px] p-10 text-center">
-        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-gold border-t-transparent" />
-        <p className="mt-3 text-sm text-muted">Loading orders...</p>
+      <div className="card !rounded-[20px] p-10">
+        <Preloader fullscreen={false} label="Loading orders..." />
       </div>
     );
   }

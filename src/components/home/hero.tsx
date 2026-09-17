@@ -67,7 +67,7 @@ export function Hero({ content }: { content: HomeHeroContent }) {
           >
             <div className="relative grid h-[380px] w-[380px] place-items-center rounded-full bg-rose-gradient shadow-rose">
               <span className="absolute -inset-[18px] rounded-full border-2 border-dashed border-gold/50" />
-              <HeroCircleCarousel />
+              <HeroCircleCarousel images={content.images} />
             </div>
             <div className="absolute top-[30px] left-[-10px] flex items-center gap-2.5 rounded-2xl bg-white px-4 py-3.5 text-[0.85rem] font-semibold shadow-rose">
               <span>🌸</span> Premium Skincare
