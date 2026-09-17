@@ -1,6 +1,7 @@
 import Link from "next/link";
+import type { HomeCtaContent } from "@/lib/home-config";
 
-export function CtaBanner() {
+export function CtaBanner({ content }: { content: HomeCtaContent }) {
   return (
     <section className="py-20">
       <div className="mx-auto max-w-screen-xl px-6">
@@ -15,18 +16,17 @@ export function CtaBanner() {
             ✿
           </span>
           <h2 className="text-white text-[2rem] md:text-[2.4rem] mb-3">
-            Ready to Begin Your Beauty Journey?
+            {content.title}
           </h2>
           <p className="text-white/85 text-[1.05rem] mb-8 max-w-xl mx-auto">
-            Whether you&apos;re shopping for the perfect glow or searching for
-            your dream beauty career, Glow &amp; Grace is here for you.
+            {content.description}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/products" className="btn btn-light">
-              Get Started Today
+            <Link href={content.primaryHref} className="btn btn-light">
+              {content.primaryLabel}
             </Link>
-            <Link href="/careers" className="btn btn-gold">
-              Explore Careers
+            <Link href={content.secondaryHref} className="btn btn-gold">
+              {content.secondaryLabel}
             </Link>
           </div>
         </div>

@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Partner } from "@/lib/data";
+import type { HomeTextSection } from "@/lib/home-config";
 import { fetchPartners } from "@/lib/api";
 import { PartnerCard } from "@/components/partners/partner-card";
 
-export function PartnerPreview() {
+export function PartnerPreview({ content }: { content: HomeTextSection }) {
   const [partners, setPartners] = useState<Partner[]>([]);
 
   useEffect(() => {
@@ -31,13 +32,9 @@ export function PartnerPreview() {
     <section className="section" data-testid="partners-preview-section">
       <div className="mx-auto max-w-screen-xl px-6">
         <div className="section-head">
-          <p className="eyebrow">Our Network</p>
-          <h2>Featured Partner Parlours</h2>
-          <p>
-            Premium beauty parlours &amp; salons partnered with{" "}
-            <span className="font-semibold">Glow &amp; Grace</span> across
-            Lucknow.
-          </p>
+          <p className="eyebrow">{content.eyebrow}</p>
+          <h2>{content.title}</h2>
+          <p>{content.description}</p>
         </div>
         <div className="partner-grid">
           {featured.map((p) => (

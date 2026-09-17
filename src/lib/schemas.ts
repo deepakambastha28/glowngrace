@@ -319,6 +319,55 @@ export type AdminEventFormData = z.infer<typeof adminEventSchema>;
 export const adminEventPatchSchema = adminEventSchema.partial();
 export type AdminEventPatch = z.infer<typeof adminEventPatchSchema>;
 
+export const homeSectionSettingSchema = z.object({
+  key: z.enum(["hero", "categories", "bestsellers", "partners", "jobs", "cta", "testimonials"]),
+  visible: z.boolean(),
+});
+
+export const homeTextSectionSchema = z.object({
+  eyebrow: z.string().default(""),
+  title: z.string().default(""),
+  description: z.string().default(""),
+});
+
+export const homeHeroContentSchema = z.object({
+  eyebrow: z.string().default(""),
+  title: z.string().default(""),
+  titleHighlight: z.string().default(""),
+  description: z.string().default(""),
+  primaryLabel: z.string().default(""),
+  primaryHref: z.string().default(""),
+  secondaryLabel: z.string().default(""),
+  secondaryHref: z.string().default(""),
+  stats: z.array(z.object({ value: z.string(), label: z.string() })).default([]),
+  trust: z.array(z.object({ emoji: z.string(), text: z.string() })).default([]),
+});
+
+export const homeCtaContentSchema = z.object({
+  title: z.string().default(""),
+  description: z.string().default(""),
+  primaryLabel: z.string().default(""),
+  primaryHref: z.string().default(""),
+  secondaryLabel: z.string().default(""),
+  secondaryHref: z.string().default(""),
+});
+
+export const homeConfigSchema = z.object({
+  sections: z.array(homeSectionSettingSchema).default([]),
+  hero: homeHeroContentSchema,
+  categories: homeTextSectionSchema,
+  bestsellers: homeTextSectionSchema,
+  partners: homeTextSectionSchema,
+  jobs: homeTextSectionSchema,
+  cta: homeCtaContentSchema,
+  testimonials: z.object({
+    eyebrow: z.string().default(""),
+    title: z.string().default(""),
+  }),
+});
+
+export type HomeConfigFormData = z.infer<typeof homeConfigSchema>;
+
 export const userAccountRoles = ["user", "candidate", "recruiter", "admin"] as const;
 export type UserAccountRole = (typeof userAccountRoles)[number];
 

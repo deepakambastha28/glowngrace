@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Job } from "@/lib/data";
+import type { HomeTextSection } from "@/lib/home-config";
 import { fetchJobs } from "@/lib/api";
 import { jobLocation } from "@/lib/utils";
 
-export function JobVacancies() {
+export function JobVacancies({ content }: { content: HomeTextSection }) {
   const [jobs, setJobs] = useState<Job[]>([]);
 
   useEffect(() => {
@@ -18,9 +19,9 @@ export function JobVacancies() {
     <section className="section bg-rose-blush" id="jobs" data-testid="jobs-section">
       <div className="mx-auto max-w-screen-xl px-6">
         <div className="section-head">
-          <p className="eyebrow">Latest Openings</p>
-          <h2>Current Beauty Job Vacancies</h2>
-          <p>Fresh opportunities from trusted parlours &amp; salons in Lucknow.</p>
+          <p className="eyebrow">{content.eyebrow}</p>
+          <h2>{content.title}</h2>
+          <p>{content.description}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6" data-testid="job-grid">
           {jobs.map((job) => (

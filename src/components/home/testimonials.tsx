@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { testimonials } from "@/lib/data";
 import type { Review } from "@/lib/data";
+import type { HomeConfig } from "@/lib/home-config";
 import { RatingStars } from "@/components/ui/rating-stars";
 
 interface TestimonialCard {
@@ -14,7 +15,7 @@ interface TestimonialCard {
   rating: number;
 }
 
-export function Testimonials() {
+export function Testimonials({ content }: { content: HomeConfig["testimonials"] }) {
   const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
@@ -56,8 +57,8 @@ export function Testimonials() {
     <section className="section bg-rose-blush" id="testimonials" data-testid="testimonials-section">
       <div className="mx-auto max-w-screen-xl px-6">
         <div className="section-head">
-          <p className="eyebrow">Testimonials</p>
-          <h2>Loved by Women Across Lucknow</h2>
+          <p className="eyebrow">{content.eyebrow}</p>
+          <h2>{content.title}</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {cards.map((t) => (
