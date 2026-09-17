@@ -4,17 +4,18 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { categories } from "@/lib/data";
 import type { Product } from "@/lib/data";
+import type { HomeTextSection } from "@/lib/home-config";
 import { fetchProducts } from "@/lib/api";
 import { ProductCard } from "@/components/shop/product-card";
 
-export function ShopCategories() {
+export function ShopCategories({ content }: { content: HomeTextSection }) {
   return (
     <section className="section">
       <div className="mx-auto max-w-screen-xl px-6">
         <div className="section-head">
-          <p className="eyebrow">Shop by Category</p>
-          <h2>Everything to Enhance Your Beauty</h2>
-          <p>Explore our curated collection of premium cosmetic and beauty products.</p>
+          <p className="eyebrow">{content.eyebrow}</p>
+          <h2>{content.title}</h2>
+          <p>{content.description}</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {categories.map((category, i) => (
@@ -38,7 +39,7 @@ export function ShopCategories() {
   );
 }
 
-export function Bestsellers() {
+export function Bestsellers({ content }: { content: HomeTextSection }) {
   const [items, setItems] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -56,9 +57,9 @@ export function Bestsellers() {
     <section className="section bg-rose-blush">
       <div className="mx-auto max-w-screen-xl px-6">
         <div className="section-head">
-          <p className="eyebrow">Bestsellers</p>
-          <h2>Trending Beauty Picks</h2>
-          <p>Handpicked favourites loved by women across Lucknow.</p>
+          <p className="eyebrow">{content.eyebrow}</p>
+          <h2>{content.title}</h2>
+          <p>{content.description}</p>
         </div>
         <div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"

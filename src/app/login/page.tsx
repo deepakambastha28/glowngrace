@@ -209,19 +209,19 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="card !rounded-[20px] p-6 space-y-4">
             <div>
-              <label className="field-label" htmlFor="email">Email </label><span className="text-rose" aria-hidden="true">*</span>
+              <label className="field-label" htmlFor="email">Email <span className="text-rose" aria-hidden="true">*</span></label>
               <div className="relative mt-1.5">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
-                <input id="email" type="email" className="field-input !rounded-full !pl-11" {...register("email")} placeholder="you@example.com" />
+                <input id="email" type="email" aria-label="Email" className="field-input !rounded-full !pl-11" {...register("email")} placeholder="you@example.com" />
               </div>
               {errors.email && <p className="mt-1 text-sm text-rose">{errors.email.message}</p>}
             </div>
 
             <div>
-              <label className="field-label" htmlFor="password">Password </label><span className="text-rose" aria-hidden="true">*</span>
+              <label className="field-label" htmlFor="password">Password <span className="text-rose" aria-hidden="true">*</span></label>
               <div className="relative mt-1.5">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose" />
-                <input id="password" type="password" className="field-input !rounded-full !pl-11" {...register("password")} placeholder="••••••••" />
+                <input id="password" type="password" aria-label="Password" className="field-input !rounded-full !pl-11" {...register("password")} placeholder="••••••••" />
               </div>
               {errors.password && <p className="mt-1 text-sm text-rose">{errors.password.message}</p>}
             </div>

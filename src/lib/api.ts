@@ -8,6 +8,7 @@ import type { Product } from "@/lib/data";
 import type { Partner } from "@/lib/data";
 import type { Job } from "@/lib/data";
 import type { Review } from "@/lib/data";
+import type { HomeConfig } from "@/lib/home-config";
 
 interface ApiResponse<T = unknown> {
   ok: boolean;
@@ -780,5 +781,35 @@ export function deleteAdminUser(
 ): Promise<ApiResponse<{ deleted: boolean }>> {
   return request<{ deleted: boolean }>(`/api/admin/users?id=${encodeURIComponent(id)}`, {
     method: "DELETE",
+  });
+}
+
+// ---------------------------------------------------------------
+// Home page configuration
+// ---------------------------------------------------------------
+
+export type HomeConfigResponse = {
+  persisted?: boolean;
+  config: HomeConfig;
+  error?: string;
+};
+
+/** GET /api/home-config — storefront home page configuration. */
+export function fetchHomeConfig(): Promise<ApiResponse<HomeConfigResponse>> {
+  return request<HomeConfigResponse>("/api/home-config");
+}
+
+/** GET /api/admin/home-config — admin view of the home page configuration. */
+export function fetchAdminHomeConfig(): Promise<ApiResponse<HomeConfigResponse>> {
+  return request<HomeConfigResponse>("/api/admin/home-config");
+}
+
+/** PUT /api/admin/home-config — save the home page configuration. */
+export function updateAdminHomeConfig(
+  config: HomeConfig
+): Promise<ApiResponse<{ persisted: boolean; error?: string }>> {
+  return request<{ persisted: boolean; error?: string }>("/api/admin/home-config", {
+    method: "PUT",
+    ...body(config),
   });
 }

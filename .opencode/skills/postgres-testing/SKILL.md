@@ -55,6 +55,7 @@ Tables created with `CREATE TABLE IF NOT EXISTS` in `src/lib/db.ts`
 | `gg_admin_partners` | slug (unique), name, type, loc, rating, reviews, tags(jsonb), status |
 | `gg_admin_candidates` | user_email, full_name, phone, email, skills(jsonb), gallery(jsonb), status |
 | `gg_admin_reviews` | author, product, rating, comment, status |
+| `gg_admin_home_config` | id (single row, 1), config(jsonb), updated_at |
 | `gg_admin_sessions` | token (unique), email |
 
 ## Verifying rows after creating data

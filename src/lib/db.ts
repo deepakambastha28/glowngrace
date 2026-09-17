@@ -224,6 +224,11 @@ const SCHEMA_STATEMENTS: string[] = [
   )`,
   `ALTER TABLE gg_recruiters ADD COLUMN IF NOT EXISTS gallery JSONB NOT NULL DEFAULT '[]'::jsonb`,
   `ALTER TABLE gg_recruiters ADD COLUMN IF NOT EXISTS services JSONB NOT NULL DEFAULT '[]'::jsonb`,
+  `CREATE TABLE IF NOT EXISTS gg_admin_home_config (
+    id INT PRIMARY KEY DEFAULT 1,
+    config JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ DEFAULT now()
+  )`,
   `CREATE TABLE IF NOT EXISTS gg_users (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,

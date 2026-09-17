@@ -132,7 +132,21 @@ mirrors the reference design and changes.
   `event-carousel` (container; hover pauses autoplay — hover in tests to keep
   the active slide stable), `event-slide` (4 slides, `data-active="true/false"`),
   `event-carousel-prev`, `event-carousel-next`, `event-carousel-dot`.
-- Auth: `login-*` / `signup-*` fields (email/password inputs by label text)
+- Auth: `login-*` / `signup-*` fields (email/password inputs by label text).
+  The login form inputs now also carry `aria-label` (`Email` / `Password`), so
+  `getByLabel("Password", { exact: true })` resolves deterministically even
+  though the visible label appends a required red `*`.
+- Admin Pages (`/admin/pages`): the sidebar "Pages" group lists Home, Shop,
+  Career, Partner, Event, Contact. `/admin/pages/home` renders the home page
+  manager (`home-config-form`), with `home-config-save`, `home-hero-eyebrow`
+  (and matching `home-hero-*` / `home-<section>-*` fields), the per-section
+  visibility toggle `home-section-toggle-<key>` (e.g.
+  `home-section-toggle-testimonials`), and `home-stat-add` / `home-trust-add`.
+  `tests/admin-pages.spec.ts` covers the Pages menu navigation;
+  `tests/admin-home-config.spec.ts` edits hero copy + toggles a section and
+  asserts the change on the storefront — it snapshots the original config via
+  `GET /api/home-config` and **restores it in `finally`**, so a failed run does
+  not leave the DB config modified.
 
 **strict-mode gotcha:** `add-to-cart` / `wishlist-button` testids appear on
 product CARDS too, so on a detail page they resolve to the main button PLUS the

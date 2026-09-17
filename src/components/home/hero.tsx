@@ -2,10 +2,23 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { stats, trustItems } from "@/lib/data";
 import { HeroCircleCarousel } from "@/components/home/hero-circle-carousel";
+import type { HomeHeroContent } from "@/lib/home-config";
 
-export function Hero() {
+function HighlightedTitle({ title, highlight }: { title: string; highlight: string }) {
+  if (!highlight || !title.includes(highlight)) return <>{title}</>;
+  const [before, ...rest] = title.split(highlight);
+  const after = rest.join(highlight);
+  return (
+    <>
+      {before}
+      <em className="text-rose italic">{highlight}</em>
+      {after}
+    </>
+  );
+}
+
+export function Hero({ content }: { content: HomeHeroContent }) {
   return (
     <>
       <section
@@ -21,26 +34,23 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <p className="eyebrow">Lucknow&apos;s Premier Beauty Destination</p>
+            <p className="eyebrow">{content.eyebrow}</p>
             <h1 className="mt-4 text-[2.3rem] md:text-[3.3rem] leading-[1.15] max-w-xl">
-              Discover Your <em className="text-rose italic">Radiant</em> Beauty
-              &amp; Career
+              <HighlightedTitle title={content.title} highlight={content.titleHighlight} />
             </h1>
             <p className="mt-5 text-muted text-[1.12rem] max-w-[480px]">
-              Shop premium women&apos;s cosmetics and skincare, or launch your
-              dream career in the beauty industry with our trusted parlour
-              placement services.
+              {content.description}
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link href="/products" className="btn-primary" data-testid="hero-shop">
-                Shop Cosmetics
+              <Link href={content.primaryHref} className="btn-primary" data-testid="hero-shop">
+                {content.primaryLabel}
               </Link>
-              <Link href="/careers" className="btn-outline" data-testid="hero-career">
-                Find a Career
+              <Link href={content.secondaryHref} className="btn-outline" data-testid="hero-career">
+                {content.secondaryLabel}
               </Link>
             </div>
             <div className="mt-11 flex flex-wrap gap-x-10 gap-y-4">
-              {stats.map((stat) => (
+              {content.stats.map((stat) => (
                 <div key={stat.label}>
                   <h3 className="text-[1.9rem] font-bold text-rose">{stat.value}</h3>
                   <p className="text-[0.85rem] text-muted">{stat.label}</p>
@@ -75,7 +85,7 @@ export function Hero() {
       {/* Trust bar */}
       <div className="bg-white border-b border-line py-[30px]">
         <div className="mx-auto max-w-screen-xl px-6 flex flex-wrap justify-around gap-5">
-          {trustItems.map((item) => (
+          {content.trust.map((item) => (
             <div
               key={item.text}
               className="flex items-center gap-3 text-muted font-semibold text-[0.95rem]"
