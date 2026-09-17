@@ -11,7 +11,13 @@ export function TopBar() {
           <span className="flex items-center gap-1.5">
             <Phone className="h-3.5 w-3.5" /> +91 89718 21213
           </span>
-          <a href="#" className="flex items-center gap-1.5 opacity-90 hover:text-rose-soft transition-colors" aria-label="Instagram">
+          <a
+            href="https://www.instagram.com/glowngracebiz/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 opacity-90 hover:text-rose-soft transition-colors"
+            aria-label="Instagram"
+          >
             <Instagram className="h-3.5 w-3.5" /> Instagram
           </a>
           <a href="#" className="flex items-center gap-1.5 opacity-90 hover:text-rose-soft transition-colors" aria-label="Facebook">
