@@ -58,6 +58,8 @@ dev-run.out.log
 dev-run.err.log
 start-run.log
 server-um*.log
+app-run.log
+app-run.err.log
 
 # design reference (never edit)
 design/

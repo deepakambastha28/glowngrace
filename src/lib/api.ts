@@ -9,6 +9,7 @@ import type { Partner } from "@/lib/data";
 import type { Job } from "@/lib/data";
 import type { Review } from "@/lib/data";
 import type { HomeConfig } from "@/lib/home-config";
+import type { ShopConfig } from "@/lib/shop-config";
 
 interface ApiResponse<T = unknown> {
   ok: boolean;
@@ -809,6 +810,36 @@ export function updateAdminHomeConfig(
   config: HomeConfig
 ): Promise<ApiResponse<{ persisted: boolean; error?: string }>> {
   return request<{ persisted: boolean; error?: string }>("/api/admin/home-config", {
+    method: "PUT",
+    ...body(config),
+  });
+}
+
+// ---------------------------------------------------------------
+// Shop page configuration
+// ---------------------------------------------------------------
+
+export type ShopConfigResponse = {
+  persisted?: boolean;
+  config: ShopConfig;
+  error?: string;
+};
+
+/** GET /api/shop-config — storefront shop page configuration. */
+export function fetchShopConfig(): Promise<ApiResponse<ShopConfigResponse>> {
+  return request<ShopConfigResponse>("/api/shop-config");
+}
+
+/** GET /api/admin/shop-config — admin view of the shop page configuration. */
+export function fetchAdminShopConfig(): Promise<ApiResponse<ShopConfigResponse>> {
+  return request<ShopConfigResponse>("/api/admin/shop-config");
+}
+
+/** PUT /api/admin/shop-config — save the shop page configuration. */
+export function updateAdminShopConfig(
+  config: ShopConfig
+): Promise<ApiResponse<{ persisted: boolean; error?: string }>> {
+  return request<{ persisted: boolean; error?: string }>("/api/admin/shop-config", {
     method: "PUT",
     ...body(config),
   });

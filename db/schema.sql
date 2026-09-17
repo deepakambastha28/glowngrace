@@ -48,6 +48,19 @@ CREATE TABLE IF NOT EXISTS gg_newsletter_subscribers (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- Single-row page configs (id = 1): storefront pages rendered from these.
+CREATE TABLE IF NOT EXISTS gg_admin_home_config (
+  id INT PRIMARY KEY DEFAULT 1,
+  config JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS gg_admin_shop_config (
+  id INT PRIMARY KEY DEFAULT 1,
+  config JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- Anonymous cart / wishlist snapshots keyed by a local device id
 CREATE TABLE IF NOT EXISTS gg_cart_snapshots (
   id SERIAL PRIMARY KEY,

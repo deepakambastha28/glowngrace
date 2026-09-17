@@ -33,6 +33,12 @@ pill buttons) when touching UI.
   `DATABASE_URL` unset; responses carry `persisted/applied/subscribed` booleans.
 - API client: `src/lib/api.ts` (typed wrappers over a shared `request<T>()`).
   Business components call THIS, not bare `fetch`.
+- Brand preloader: rendered from `design/loader.html` —
+  `src/components/preloader.tsx` (dark screen, animated ring + spark +
+  extracted logo `src/images/gngloader-logo.png` + "Loading..." + dots).
+  Applied project-wide: `src/app/loading.tsx` (route transitions) and all
+  inline async "Loading" states (admin shell, admin page config editors,
+  candidate page). Accepts `fullscreen={false}` for embedded use.
 - Schemas: `src/lib/schemas.ts` (Zod) — checkout, order payload, application,
   newsletter, auth forms (login, signup with `accountType`), candidate profile.
 - Auth: Zustand (`src/lib/auth.ts`), persisted to localStorage
@@ -65,12 +71,28 @@ pill buttons) when touching UI.
   `gg_admin_home_config` row (`id = 1`) — hero copy/stats/trust, section
   eyebrow/heading/description, CTA, testimonials heading, per-section
   visibility + ordering + deletion (`src/lib/home-config.ts` defaults +
-  `normalizeHomeConfig`, loaded by `src/lib/home-config-server.ts`).
+  `normalizeHomeConfig`, loaded by `src/lib/home-config-server.ts`). The hero
+  also takes up to `HOME_HERO_MAX_IMAGES` = 5 uploaded images shown as a
+  rotating slideshow inside the hero circle (380 × 380 px); when empty the
+  circle falls back to the product slides
+  (`src/components/home/hero-circle-carousel.tsx`).
   `/api/home-config` serves it; `/admin/pages/home` edits it (`GET`/`PUT
   /api/admin/home-config`, zod `homeConfigSchema` in `src/lib/schemas.ts`).
-  The home route is `force-dynamic` so edits publish immediately. The admin
-  "Pages" sidebar group also has placeholder shells for shop/career/partner/
-  event/contact.
+  The home route is `force-dynamic` so edits publish immediately.
+- Shop config: the storefront shop page (`/products`) is config-driven from a
+  single `gg_admin_shop_config` row (`id = 1`), mirroring home config — banner
+  (up to `SHOP_BANNER_MAX_IMAGES` = 5 uploaded images shown as a rotating
+  slideshow + title/subtitle), heading (eyebrow/title/description,
+  `{{count}}` placeholder renders the product count), and category chips (a
+  custom admin-managed list, falling back to auto-detected product categories
+  when empty), each with per-section visibility + ordering + deletion
+  (`src/lib/shop-config.ts` defaults + `normalizeShopConfig`, loaded by
+  `src/lib/shop-config-server.ts`). Breadcrumb, search/sort toolbar, and the
+  product grid always render (not configurable).
+  `/api/shop-config` serves it; `/admin/pages/shop` edits it (`GET`/`PUT
+  /api/admin/shop-config`, zod `shopConfigSchema`). The site top menu is NOT
+  configurable. The admin "Pages" sidebar group also has placeholder shells for
+  career/partner/event/contact.
 
 ## Test-data & deletion policy (user-mandated)
 - **Never delete production/real records.** Test helpers and specs may only
@@ -81,6 +103,16 @@ pill buttons) when touching UI.
 - **Always sync with the database** before deleting: GET the admin list first,
   resolve the row by slug/name/email/id, verify it is a test record, then
   DELETE by `?id=` (never sweep, never filter-drop, never `DELETE` by slug).
+  Deletes are verified: `deleteSeeded*` retry with a 60s timeout and **throw**
+  unless the DELETE returns 2xx, so a Neon slow-write can never silently strand
+  an E2E row in the live DB.
+- **Config specs restore prod data exactly:** `tests/admin-home-config.spec.ts`
+  and `tests/shop-config.spec.ts` snapshot the live page config
+  (`GET /api/home-config` / `/api/shop-config`) and restore it in `finally`
+  via `restoreAdminConfig` in `tests/helpers.ts` — PUTs with a generous timeout,
+  retries on Neon slow-write timeouts, and verifies the stored row equals the
+  original by reading it back, so a timed-out run cannot strand test changes in
+  the prod config row.
 - **Keep docs in sync:** whenever seeding/cleanup or the DB contract changes,
   update `AGENTS.md`, `README.md`, and `.opencode/skills/e2e-testing/SKILL.md`
   in the same change.

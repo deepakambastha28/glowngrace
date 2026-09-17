@@ -49,6 +49,26 @@ export async function seedProduct(
   return product!.slug;
 }
 
+/**
+ * DELETE an admin row by id, retrying and asserting `res.ok()` so a silently
+ * failed delete (Neon slow-write / proxy timeout) cannot strand an E2E record
+ * in the live DB. Throws after exhausting retries.
+ */
+async function deleteAdminRowById(request: APIRequestContext, url: string, what: string): Promise<void> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const res = await request.delete(url, { timeout: 60_000 });
+      if (res.ok()) return;
+      lastError = new Error(`DELETE ${url} returned ${res.status()}`);
+    } catch (error) {
+      lastError = error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+  throw new Error(`Failed to delete ${what} after retries: ${String(lastError)}`);
+}
+
 export async function deleteSeededProduct(request: APIRequestContext, slug: string): Promise<void> {
   const list = await request.get("/api/admin/products");
   if (!list.ok()) return;
@@ -58,7 +78,7 @@ export async function deleteSeededProduct(request: APIRequestContext, slug: stri
   if (!isTestRecord(row)) {
     throw new Error(`Refused to delete non-test product "${row.slug}". Only E2E test records may be deleted.`);
   }
-  await request.delete(`/api/admin/products?id=${row.id}`);
+  await deleteAdminRowById(request, `/api/admin/products?id=${row.id}`, `product "${row.slug}"`);
 }
 
 async function resolveSlug(
@@ -94,7 +114,7 @@ export async function deleteSeededEvent(request: APIRequestContext, slug: string
   if (!isTestRecord(row)) {
     throw new Error(`Refused to delete non-test event "${row.slug}". Only E2E test records may be deleted.`);
   }
-  await request.delete(`/api/admin/events?id=${row.id}`);
+  await deleteAdminRowById(request, `/api/admin/events?id=${row.id}`, `event "${row.slug}"`);
 }
 
 export async function seedJob(
@@ -115,7 +135,7 @@ export async function deleteSeededJob(request: APIRequestContext, slug: string):
   if (!isTestRecord(row)) {
     throw new Error(`Refused to delete non-test job "${row.slug}". Only E2E test records may be deleted.`);
   }
-  await request.delete(`/api/admin/jobs?id=${row.id}`);
+  await deleteAdminRowById(request, `/api/admin/jobs?id=${row.id}`, `job "${row.slug}"`);
 }
 
 export async function seedReview(
@@ -158,7 +178,54 @@ export async function deleteSeededReview(
   if (!isTestRecord(row)) {
     throw new Error(`Refused to delete non-test review id=${id} by "${row.author}". Only E2E test records may be deleted.`);
   }
-  await request.delete(`/api/admin/reviews?id=${id}`);
+  await deleteAdminRowById(request, `/api/admin/reviews?id=${id}`, `review id=${id} by "${row.author}"`);
+}
+
+/**
+ * PUT an admin page config with a generous timeout, retrying on Neon
+ * slow-write timeouts so a timed-out save never strands partial data.
+ */
+export async function saveAdminConfig(
+  request: APIRequestContext,
+  route: string,
+  config: unknown,
+  timeoutMs = 90_000
+): Promise<void> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const res = await request.put(route, { data: config, timeout: timeoutMs });
+      expect(res.ok()).toBeTruthy();
+      return;
+    } catch (error) {
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+  }
+  throw lastError;
+}
+
+/**
+ * Restore an admin page config to its exact original value and verify by
+ * reading it back. Retries until the stored row matches, so prod data is
+ * always synced back even when a write times out on the client side.
+ */
+export async function restoreAdminConfig(
+  request: APIRequestContext,
+  route: string,
+  readRoute: string,
+  original: unknown
+): Promise<void> {
+  const expected = JSON.stringify(original);
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    await saveAdminConfig(request, route, original);
+    const res = await request.get(readRoute, { timeout: 60_000 });
+    expect(res.ok()).toBeTruthy();
+    const body = (await res.json()) as { config?: unknown };
+    if (JSON.stringify(body.config) === expected) return;
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+  throw new Error(`Failed to restore ${route} to the original configuration after retries.`);
 }
 
 export interface AdminReviewRow {

@@ -72,6 +72,10 @@ UI pass, so interactive repair is usually unnecessary.
     resolve the row by slug/name/email/id, confirm it is a test row, then
     `DELETE /api/…?id=<id>`. Never sweep rows, never filter-drop, never delete
     by slug/name blindly.
+  - Deletes are verified resiliently: `deleteSeeded*` call
+    `deleteAdminRowById`, which uses a 60s timeout, retries 3× and **throws if
+    the DELETE does not return 2xx**, so a Neon slow-write / proxy timeout can
+    never silently strand an E2E row in the live DB.
   - Keep docs in sync too: when the seed/cleanup contract changes, update
     `AGENTS.md`, `README.md`, and this SKILL.md in the same change.
 - The whole suite is serial (`workers: 1`) because the specs share one live Neon
@@ -144,11 +148,43 @@ mirrors the reference design and changes.
   `home-section-toggle-<key>` (e.g. `home-section-toggle-testimonials`), delete
   `home-section-delete-<key>` and restore `home-section-restore-<key>`, plus
   up/down reorder; `home-stat-add` / `home-trust-add` manage hero stats/trust.
+  The hero section also has a multi-image uploader (`home-hero-image-upload`,
+  up to 5) with per-image `home-hero-image-preview` (use `.first()` when
+  asserting); the storefront hero circle renders `hero-circle-image` slides
+  when configured, else falls back to `hero-circle-product` slides.
+  `tests/admin-home-config.spec.ts` edits hero copy + toggles a section,
+  deletes/restores one, and uploads hero circle images (asserting the "380 ×
+  380 px" dimension guide and `hero-circle-image` slides), all asserting the
+  change on the storefront — it snapshots the original config via
+  `GET /api/home-config` and **restores it in `finally`** with
+  `restoreAdminConfig` (`tests/helpers.ts`), which PUTs with a generous timeout,
+  retries on Neon slow-write timeouts, and verifies the stored row matches the
+  original by reading it back, so a failed/timed-out run can never leave the DB
+  config modified.
   `tests/admin-pages.spec.ts` covers the Pages menu navigation;
-  `tests/admin-home-config.spec.ts` edits hero copy + toggles a section and
-  deletes/restores one, asserting the change on the storefront — it snapshots
-  the original config via `GET /api/home-config` and **restores it in
-  `finally`**, so a failed run does not leave the DB config modified.
+  `/admin/pages/shop` renders the shop page manager (`shop-config-form`, with
+  `shop-config-save`, `shop-banner-image-upload` (multiple, up to 5) /
+  per-image `shop-banner-image-preview` (use `.first()` when asserting),
+  `shop-banner-title`/`shop-banner-subtitle`,
+  `shop-heading-eyebrow`/`-title`/`-description`, `shop-category-add` /
+  `shop-category-input-<n>` / `shop-category-remove-<n>`, and the same
+  `shop-section-toggle-*` / `-delete-*` / `-restore-*` per-section card
+  controls). Only the banner, heading, and category chips are configurable.
+  The storefront `/products` sections carry `shop-banner` / `shop-breadcrumb` /
+  `shop-heading` / `shop-categories` / `shop-toolbar` / `shop-grid` testids
+  (breadcrumb/toolbar/grid always render; multi-image banners rotate with
+  `Go to banner slide N` dot buttons).
+  `tests/shop-config.spec.ts` (4 tests) edits the heading and hides category
+  chips, uploads a single banner image + text, uploads two banner images and
+  checks the slide dots, and adds a custom category chip (asserting the full
+  chip list with `toHaveText(["All", name])`) — all asserting on the
+  storefront and restoring the original config with `restoreAdminConfig`
+  (`/api/admin/shop-config` → `/api/shop-config`) in `finally`. Banner uploads
+  use `setInputFiles` with an in-memory 1×1 PNG buffer (no disk file needed).
+  Because a site can configure real hero-circle images in prod, `tests/home.spec.ts`
+  hero-circle tests resolve the current `/api/home-config` first and assert
+  `hero-circle-image` slides when configured (skipping the product-slide
+  assertions); the product-slide path still runs whenever no hero images exist.
 
 **strict-mode gotcha:** `add-to-cart` / `wishlist-button` testids appear on
 product CARDS too, so on a detail page they resolve to the main button PLUS the

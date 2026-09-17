@@ -24,7 +24,7 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 
 - **`/`** — Hero (+ rotating DB-backed product circle), stats, trust badges, categories, bestsellers, job vacancies, CTA banner, testimonials, newsletter, footer
 - **`/admin`** — Authenticated admin console (dashboard + products/jobs/events/partners/candidates/users with create / edit / hide / hold / delete, plus review moderation). Signed-in sessions (15-min expiry) gate the sidebar; `/admin` hides storefront chrome. Admins get an **Admin menu in the storefront top nav** once signed in.
-- **`/admin/pages`** — "Pages" sidebar group. `/admin/pages/home` is the **Home page manager**: edit storefront home copy (hero eyebrow/headline/highlight, stats, trust bar, section headings/descriptions, CTA buttons, testimonials heading), and manage each section independently — show/hide, delete/restore, and reorder — saved via `PUT /api/admin/home-config` into `gg_admin_home_config`. Shop / Career / Partner / Event / Contact pages are placeholder shells for upcoming work.
+- **`/admin/pages`** — "Pages" sidebar group. `/admin/pages/home` is the **Home page manager**: edit storefront home copy (hero eyebrow/headline/highlight, stats, trust bar, section headings/descriptions, CTA buttons, testimonials heading), upload up to 5 hero circle images (rotating slideshow, 380 × 380 px — falls back to product slides when empty), and manage each section independently — show/hide, delete/restore, and reorder — saved via `PUT /api/admin/home-config` into `gg_admin_home_config`. `/admin/pages/shop` is the **Shop page manager**: upload up to 5 banner images (rotating slideshow, title/subtitle), edit the page heading, add/remove custom category chips (falls back to auto-detected product categories when empty), and show/hide/delete/reorder the banner, heading, and category chips — saved via `PUT /api/admin/shop-config` into `gg_admin_shop_config`. Career / Partner / Event / Contact pages are placeholder shells for upcoming work.
 - **`/admin/partners`** — 2-column partner form (Basic+Stats fields, Salon Gallery with cover/tile upload, Services chips, Packages manager) with a sticky **Live Preview** that mirrors the storefront card (cover photo, service chips, stats, gallery thumbs, packages).
 - **`/admin/users`** — User-account management across every role (`user` / `candidate` / `recruiter` / `admin`): search + role/status filters, create accounts, activate/suspend, reset passwords, and delete. The seeded `admin@glowngrace.in` account is **protected** — it cannot be suspended, deleted, or have its password reset from the UI or API.
 - **`/recruiter`** — Role-gated recruiter portal with a single top-nav (Home, Shop, Candidates, Careers, Events). Browse & hire candidates (`/recruiter/candidates`), manage job openings (`/recruiter/jobs`), update profile (`/recruiter/profile`), and publish workshops to the storefront event calendar (`/recruiter/events`). Recruiters sign in with the `recruiter` account type; logout always returns to the home page. Recruiters get a **Recruiter menu in the storefront top nav** once signed in.
@@ -111,10 +111,29 @@ Alternatively use the CLI: `npm i -g vercel && vercel` (then `vercel --prod`).
 - **Home page content:** the storefront home page is server-rendered from the
   admin home configuration (`/api/home-config` → `gg_admin_home_config`, single
   row `id = 1`): hero copy/stats/trust bar, each section's
-  eyebrow/heading/description, CTA text/links, testimonials heading, and
-  per-section visibility + ordering, merged over `DEFAULT_HOME_CONFIG` in
-  `src/lib/home-config.ts`. The route is `force-dynamic`, so `/admin/pages/home`
-  edits publish immediately.
+  eyebrow/heading/description, CTA text/links, testimonials heading, up to 5
+  uploaded hero circle images (rotating slideshow, 380 × 380 px — product
+  slides render when empty), and per-section visibility + ordering, merged over
+  `DEFAULT_HOME_CONFIG` in `src/lib/home-config.ts`. The route is
+  `force-dynamic`, so `/admin/pages/home` edits publish immediately.
+- **Brand preloader:** a Figma-sourced splash (`design/loader.html`) —
+  `src/components/preloader.tsx` renders a dark screen with an animated
+  conic-gradient ring, orbiting spark, breathing logo
+  (`src/images/gngloader-logo.png`), pulsing "Loading..." text and dots. Used
+  project-wide: root `src/app/loading.tsx` (route transitions) plus all inline
+  async loading states (admin shell, home/shop page editors, candidate page,
+  shopper orders, recruiter profile/jobs). `fullscreen={false}` embeds the
+  compact brand block inside cards/containers.
+- **Shop page content:** the storefront shop page (`/products`) is
+  config-driven from the admin shop configuration (`/api/shop-config` →
+  `gg_admin_shop_config`, single row `id = 1`): an optional banner (up to 5
+  uploaded images, shown as a rotating slideshow + title/subtitle), the page
+  heading (eyebrow/title/description — `{{count}}` renders the live product
+  count), and category chips (admin-managed list, or auto-detected from
+  products when empty), each with per-section visibility + ordering, merged
+  over `DEFAULT_SHOP_CONFIG` in `src/lib/shop-config.ts`. The breadcrumb,
+  search/sort toolbar, product grid, and top menu are not configurable. The
+  route is `force-dynamic`, so `/admin/pages/shop` edits publish immediately.
 - **Totals:** `total = subtotal + 5% GST + shipping (FREE over ₹999) − promo`
 - **Cart/wishlist:** persisted to `localStorage` (Zustand `persist` middleware);
   the cart-page wishlist resolves product details from `/api/products`
@@ -158,14 +177,20 @@ src/
 - Neon Postgres via `src/lib/db.ts` (graceful no-op when `DATABASE_URL` is unset).
 - Admin tables: `gg_admin_products`, `gg_admin_jobs`, `gg_admin_events`,
   `gg_admin_partners`, `gg_admin_candidates`, `gg_admin_reviews`,
-  `gg_admin_sessions`, `gg_admin_home_config`, `gg_users`. `/api/products`,
-  `/api/partners`, `/api/events`, and `/api/jobs` expose non-hidden rows to the
-  storefront with `admin-`-prefixed ids.
+  `gg_admin_sessions`, `gg_admin_home_config`, `gg_admin_shop_config`, `gg_users`.
+  `/api/products`, `/api/partners`, `/api/events`, and `/api/jobs` expose
+  non-hidden rows to the storefront with `admin-`-prefixed ids.
 - Home configuration: `gg_admin_home_config` (single row, `id = 1`) stores the
   storefront home page JSONB config, written by `PUT /api/admin/home-config`
   from `/admin/pages/home` and served to the storefront by `/api/home-config`.
   When the row is absent the app falls back to the defaults in
   `src/lib/home-config.ts`.
+- Shop configuration: `gg_admin_shop_config` (single row, `id = 1`) stores the
+  storefront shop page JSONB config (banner image data-URL + title/subtitle,
+  heading copy, per-section visibility/ordering), written by
+  `PUT /api/admin/shop-config` from `/admin/pages/shop` and served to the
+  storefront by `/api/shop-config`. When the row is absent the app falls back
+  to the defaults in `src/lib/shop-config.ts`.
 - User accounts: `gg_users` rows are created/updated/deleted via
   `/api/admin/users` (admin console) and `/api/users/register` (storefront
   signup, best-effort); passwords are stored as salted scrypt hashes
