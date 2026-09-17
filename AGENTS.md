@@ -61,6 +61,16 @@ pill buttons) when touching UI.
   admin records via `tests/helpers.ts` (`seedProduct` / `deleteSeededProduct`,
   `seedEvent` / `deleteSeededEvent`, `seedJob` / `deleteSeededJob`,
   `seedReview` / `deleteSeededReview`, `waitForAdminReview`).
+- Home config: the storefront home page is server-rendered from a single
+  `gg_admin_home_config` row (`id = 1`) — hero copy/stats/trust, section
+  eyebrow/heading/description, CTA, testimonials heading, per-section
+  visibility + ordering (`src/lib/home-config.ts` defaults +
+  `normalizeHomeConfig`, loaded by `src/lib/home-config-server.ts`).
+  `/api/home-config` serves it; `/admin/pages/home` edits it (`GET`/`PUT
+  /api/admin/home-config`, zod `homeConfigSchema` in `src/lib/schemas.ts`).
+  The home route is `force-dynamic` so edits publish immediately. The admin
+  "Pages" sidebar group also has placeholder shells for shop/career/partner/
+  event/contact.
 
 ## Test-data & deletion policy (user-mandated)
 - **Never delete production/real records.** Test helpers and specs may only
