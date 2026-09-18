@@ -362,7 +362,7 @@ function ShopConfigContent() {
   };
 
   if (!config) {
-    return <Preloader fullscreen={false} />;
+    return <Preloader />;
   }
 
   const sectionProps = (key: ShopSectionKey, index: number) => {

@@ -95,7 +95,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (authed === null || !authed) {
     return (
       <div className="grid min-h-screen place-items-center bg-[#faf5f8]">
-        <Preloader fullscreen={false} />
+        <Preloader />
       </div>
     );
   }

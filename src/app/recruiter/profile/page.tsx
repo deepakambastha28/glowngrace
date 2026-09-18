@@ -275,7 +275,7 @@ export default function RecruiterProfilePage() {
   if (loading) {
     return (
       <div className="card !shadow-lg p-8">
-        <Preloader fullscreen={false} label="Loading profile..." />
+        <Preloader label="Loading profile..." />
       </div>
     );
   }
