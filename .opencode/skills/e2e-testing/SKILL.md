@@ -87,6 +87,9 @@ UI pass, so interactive repair is usually unnecessary.
 The app exposes `data-testid` hooks. Prefer these over text/CSS because page copy
 mirrors the reference design and changes.
 
+- Loading: `gg-loader` (component-level animated GIF spinner; used inline in
+  admin shell, candidate, shopper, recruiter pages). There is no page-level
+  `preloader` testid — route-level `src/app/loading.tsx` was removed.
 - Nav/layout: `topbar`, `navbar`, `logo`, `cart-link`, `cart-count`
 - Home: `hero-shop`, `hero-career`, `category-<name>` (e.g. `category-makeup`),
   `jobs-section`, `testimonials-section`, `newsletter`, `newsletter-email`,
