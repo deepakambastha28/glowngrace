@@ -82,7 +82,7 @@ function RecruiterJobsContent() {
 
       {loading ? (
         <div className="card !shadow-lg p-8">
-          <Preloader fullscreen={false} label="Loading jobs..." />
+          <Preloader label="Loading jobs..." />
         </div>
       ) : items.length ? (
         <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">

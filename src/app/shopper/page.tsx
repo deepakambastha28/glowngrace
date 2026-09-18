@@ -272,7 +272,7 @@ function OrdersTab({ user }: { user: { email: string } }) {
   if (loading) {
     return (
       <div className="card !rounded-[20px] p-10">
-        <Preloader fullscreen={false} label="Loading orders..." />
+        <Preloader label="Loading orders..." />
       </div>
     );
   }

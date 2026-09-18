@@ -58,6 +58,10 @@ dev-run.out.log
 dev-run.err.log
 start-run.log
 server-um*.log
+dev-err.log
+dev-out.log
+run-app-err.log
+run-app.log
 app-run.log
 app-run.err.log
 

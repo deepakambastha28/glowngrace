@@ -116,14 +116,11 @@ Alternatively use the CLI: `npm i -g vercel && vercel` (then `vercel --prod`).
   slides render when empty), and per-section visibility + ordering, merged over
   `DEFAULT_HOME_CONFIG` in `src/lib/home-config.ts`. The route is
   `force-dynamic`, so `/admin/pages/home` edits publish immediately.
-- **Brand preloader:** a Figma-sourced splash (`design/loader.html`) —
-  `src/components/preloader.tsx` renders a dark screen with an animated
-  conic-gradient ring, orbiting spark, breathing logo
-  (`src/images/gngloader-logo.png`), pulsing "Loading..." text and dots. Used
-  project-wide: root `src/app/loading.tsx` (route transitions) plus all inline
-  async loading states (admin shell, home/shop page editors, candidate page,
-  shopper orders, recruiter profile/jobs). `fullscreen={false}` embeds the
-  compact brand block inside cards/containers.
+- **Loading indicator:** `src/components/preloader.tsx` renders the animated
+  spinner from `src/images/loader-animated.gif` with a label, used inline in
+  async loading states at the component level across the app (admin shell,
+  home/shop page editors, candidate page, shopper orders, recruiter
+  profile/jobs). There is no page-level route loader.
 - **Shop page content:** the storefront shop page (`/products`) is
   config-driven from the admin shop configuration (`/api/shop-config` →
   `gg_admin_shop_config`, single row `id = 1`): an optional banner (up to 5

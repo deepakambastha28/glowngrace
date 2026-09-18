@@ -357,7 +357,7 @@ function HomeConfigContent() {
   };
 
   if (!config) {
-    return <Preloader fullscreen={false} />;
+    return <Preloader />;
   }
 
   const hero = config.hero;

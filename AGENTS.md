@@ -33,12 +33,11 @@ pill buttons) when touching UI.
   `DATABASE_URL` unset; responses carry `persisted/applied/subscribed` booleans.
 - API client: `src/lib/api.ts` (typed wrappers over a shared `request<T>()`).
   Business components call THIS, not bare `fetch`.
-- Brand preloader: rendered from `design/loader.html` —
-  `src/components/preloader.tsx` (dark screen, animated ring + spark +
-  extracted logo `src/images/gngloader-logo.png` + "Loading..." + dots).
-  Applied project-wide: `src/app/loading.tsx` (route transitions) and all
-  inline async "Loading" states (admin shell, admin page config editors,
-  candidate page). Accepts `fullscreen={false}` for embedded use.
+- Loading indicator: `src/components/preloader.tsx` renders the animated
+  spinner from `src/images/loader-animated.gif` + a label. Component-level
+  only — used inline in the app's async "Loading" states (admin shell, admin
+  page config editors, candidate page, shopper orders, recruiter
+  profile/jobs). There is no page-level route loader (`src/app/loading.tsx`).
 - Schemas: `src/lib/schemas.ts` (Zod) — checkout, order payload, application,
   newsletter, auth forms (login, signup with `accountType`), candidate profile.
 - Auth: Zustand (`src/lib/auth.ts`), persisted to localStorage
