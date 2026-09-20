@@ -10,7 +10,10 @@ test.describe("Shop (product listing)", () => {
     }
   });
 
-  test("shows the product grid", async ({ page }) => {
+  test("shows the product grid", async ({ page, request }) => {
+    const slug = await seedProduct(request, `E2E Grid ${Date.now()}`);
+    seededSlugs.push(slug);
+
     await page.goto("/products");
 
     await expect(page.getByTestId("product-card").first()).toBeVisible();
@@ -21,8 +24,9 @@ test.describe("Shop (product listing)", () => {
   });
 
   test("search filters the grid", async ({ page, request }) => {
-    const slug = await seedProduct(request, `E2E Lush Lipstick ${Date.now()}`);
-    seededSlugs.push(slug);
+    const lipstick = await seedProduct(request, `E2E Lush Lipstick ${Date.now()}`);
+    const serum = await seedProduct(request, `E2E Dewy Serum ${Date.now()}`);
+    seededSlugs.push(lipstick, serum);
 
     await page.goto("/products");
     await expect(page.getByTestId("product-card").first()).toBeVisible();
@@ -55,7 +59,10 @@ test.describe("Shop (product listing)", () => {
     expect(borderRadius).not.toBe("0px");
   });
 
-  test("clicking a product opens its detail page", async ({ page }) => {
+  test("clicking a product opens its detail page", async ({ page, request }) => {
+    const slug = await seedProduct(request, `E2E Click ${Date.now()}`);
+    seededSlugs.push(slug);
+
     await page.goto("/products");
 
     const card = page.getByTestId("product-card").first();

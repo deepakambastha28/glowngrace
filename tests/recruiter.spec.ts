@@ -164,7 +164,7 @@ test.describe("Recruiter portal", () => {
       await signIn(page);
       await page.getByTestId("recruiter-topnav").getByRole("link", { name: "Events" }).click();
       await expect(page.getByRole("heading", { name: "Events" })).toBeVisible({ timeout: 30_000 });
-      await page.getByRole("button", { name: "Create Event" }).click();
+      await page.getByRole("button", { name: "Create Event" }).first().click();
       await expect(page.getByRole("heading", { name: /Add New Event/ })).toBeVisible({ timeout: 30_000 });
 
       await page.getByTestId("event-title-input").fill(title);
