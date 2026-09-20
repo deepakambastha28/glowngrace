@@ -29,6 +29,7 @@ function toItem(r: Record<string, unknown>) {
     perks: r.perks,
     status: r.status,
     hidden: Boolean(r.hidden),
+    verified: Boolean(r.verified),
     createdAt: r.created_at,
   };
 }
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
     const rows = await query(
       `SELECT id, slug, title, salon, location, type, salary_min, salary_max,
          salary_text, experience, openings, description, responsibilities,
-         requirements, perks, status, hidden, created_at
+         requirements, perks, status, hidden, verified, created_at
        FROM gg_admin_jobs WHERE id = $1 LIMIT 1`,
       [Number(id)]
     );
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
   const rows = await query(
     `SELECT id, slug, title, salon, location, type, salary_min, salary_max,
        salary_text, experience, openings, description, responsibilities,
-       requirements, perks, status, hidden, created_at
+       requirements, perks, status, hidden, verified, created_at
      FROM gg_admin_jobs ORDER BY created_at DESC`
   );
   const items = (rows ?? []).map(toItem);
@@ -91,8 +92,8 @@ export async function POST(request: Request) {
     const rows = await query(
       `INSERT INTO gg_admin_jobs
         (slug, title, salon, location, type, salary_min, salary_max, salary_text,
-         experience, openings, description, responsibilities, requirements, perks, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13::jsonb,$14::jsonb,$15)
+         experience, openings, description, responsibilities, requirements, perks, status, verified)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13::jsonb,$14::jsonb,$15,$16)
        RETURNING id`,
       [
         slug,
@@ -110,6 +111,7 @@ export async function POST(request: Request) {
         JSON.stringify(d.requirements),
         JSON.stringify(d.perks),
         d.status || "Open",
+        Boolean(d.verified),
       ]
     );
 
@@ -172,6 +174,7 @@ export async function PATCH(request: NextRequest) {
       const salaryMin = d.salaryMin ?? 0;
       const salaryMax = d.salaryMax || salaryMin;
       const add = (column: string, value: unknown, cast = "") => {
+        if (value === undefined) return;
         entries.push(`${column}=$${values.length + 1}${cast}`);
         values.push(value);
       };
@@ -181,17 +184,22 @@ export async function PATCH(request: NextRequest) {
       add("type", d.type);
       add("salary_min", d.salaryMin);
       add("salary_max", salaryMax);
-      add(
-        "salary_text",
-        d.salaryText ||
-          `₹${(salaryMin / 1000).toFixed(0)}k–${(salaryMax / 1000).toFixed(0)}k`
-      );
+      if (d.salaryText || d.salaryMin !== undefined || d.salaryMax !== undefined) {
+        add(
+          "salary_text",
+          d.salaryText ||
+            `₹${(salaryMin / 1000).toFixed(0)}k–${(salaryMax / 1000).toFixed(0)}k`
+        );
+      }
       add("experience", d.experience);
       add("openings", d.openings);
       add("description", d.description);
-      add("responsibilities", JSON.stringify(d.responsibilities), "::jsonb");
-      add("requirements", JSON.stringify(d.requirements), "::jsonb");
-      add("perks", JSON.stringify(d.perks), "::jsonb");
+      if (d.responsibilities !== undefined) add("responsibilities", JSON.stringify(d.responsibilities), "::jsonb");
+      if (d.requirements !== undefined) add("requirements", JSON.stringify(d.requirements), "::jsonb");
+      if (d.perks !== undefined) add("perks", JSON.stringify(d.perks), "::jsonb");
+      if (typeof d.verified === "boolean") {
+        add("verified", d.verified);
+      }
       if (typeof d.status === "string") {
         add("status", d.status);
       }

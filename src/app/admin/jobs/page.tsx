@@ -7,6 +7,7 @@ import { AdminPageHead } from "@/components/admin/page-head";
 import { fetchAdminJobs, updateAdminJob, deleteAdminJob, type AdminJobRecord } from "@/lib/api";
 import { Eye, X, CheckCircle2, Pause, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const statusPill = (status: string) => {
   const key = (status || "").toLowerCase();
@@ -53,6 +54,16 @@ function JobsContent() {
       load();
     } else {
       toast.error("Could not update job status");
+    }
+  };
+
+  const toggleVerified = async (j: AdminJobRecord) => {
+    const res = await updateAdminJob(j.id, { verified: !j.verified });
+    if (res.ok) {
+      toast.success(j.verified ? "Listing marked as Standard" : "Listing verified as a Genuine Job Hunt");
+      load();
+    } else {
+      toast.error("Could not update verified flag");
     }
   };
 
@@ -134,7 +145,39 @@ function JobsContent() {
                   <b>Hidden</b>
                 </div>
               )}
+              <div className="flex items-center justify-between border-b border-line pb-2">
+                <span className="text-muted">Listing type</span>
+                <b>
+                  {viewing.verified ? (
+                    <span className="verified-badge ml-0">✓ Genuine Job Hunt</span>
+                  ) : (
+                    "Standard"
+                  )}
+                </b>
+              </div>
             </div>
+
+            <button
+              type="button"
+              onClick={() => toggleVerified(viewing)}
+              className="mt-4 flex w-full items-center justify-between rounded-xl border border-line bg-cream/40 px-4 py-3 text-left text-sm"
+              data-testid="toggle-verified-listing"
+            >
+              <span>
+                <b className="text-charcoal">Verified listing</b>
+                <span className="block text-xs text-muted">
+                  Flag this job as a Genuine Job Hunt Listing — visible only to Pro / Pro Max members.
+                </span>
+              </span>
+              <span
+                className={cn(
+                  "rounded-full px-4 py-1.5 text-sm font-bold",
+                  viewing.verified ? "bg-gold text-white" : "bg-white text-muted shadow-sm"
+                )}
+              >
+                {viewing.verified ? "Verified" : "Not verified"}
+              </span>
+            </button>
 
             {viewing.description && (
               <div className="mt-5">
@@ -232,6 +275,7 @@ function JobsContent() {
                     <td>
                       {statusPill(j.status)}
                       {j.hidden && <span className="p-pill grey ml-1">Hidden</span>}
+                      {j.verified && <span className="p-pill ml-1" style={{ background: "var(--gold)", color: "#fff" }}>Verified</span>}
                     </td>
                     <td>
                       <div className="flex gap-2">
