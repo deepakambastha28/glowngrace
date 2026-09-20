@@ -1,0 +1,42 @@
+# ============================================================
+# Glow & Grace — local development Postgres (Docker)
+#
+# Mirrors the Neon schema so the app can run against a local
+# database instead of the cloud when USE_LOCAL_DB=true.
+#
+#   npm run db:up        # start
+#   npm run db:down      # stop (data kept in the volume)
+#   npm run db:reset     # stop + wipe the volume (start fresh)
+#   npm run start:local  # start db + dev server
+#
+# Credentials default to gg/gg/glowngrace on port 5433 and can be
+# overridden from .env.local via LOCAL_DB_USER / LOCAL_DB_PASSWORD /
+# LOCAL_DB_NAME / LOCAL_DB_PORT — the app reads the same variables.
+# ============================================================
+
+name: glowngrace-local
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gg-local-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${LOCAL_DB_USER:-gg}
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:-gg}
+      POSTGRES_DB: ${LOCAL_DB_NAME:-glowngrace}
+    ports:
+      - "${LOCAL_DB_PORT:-5433}:5432"
+    volumes:
+      - gg-local-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LOCAL_DB_USER:-gg} -d ${LOCAL_DB_NAME:-glowngrace}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  # Named volume — survives `db:down` and `docker compose down` so local data
+  # persists between runs until you explicitly `npm run db:reset`.
+  gg-local-pgdata:
