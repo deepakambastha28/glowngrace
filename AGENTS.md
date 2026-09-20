@@ -16,12 +16,19 @@ pill buttons) when touching UI.
   `$env:Path += ";C:\Program Files\Git\cmd;C:\Users\deepak\AppData\Local\Microsoft\WinGet\Packages\GitHub.cli_Microsoft.Winget.Source_8wekyb3d8bbwe\bin"`
 - Node v24.20.0 (supports `node --env-file=.env.local`).
 - No `rg`; use the grep tool. `$HOME` is read-only.
+- **Docker Desktop CLI is NOT on PATH** (per-user install under
+  `AppData\Local\Programs\DockerDesktop\resources\bin`). Use the npm scripts
+  (`npm run db:up` / `db:down` / `db:reset` → `scripts/local-db.mjs`), which
+  locate the CLI automatically; don't call raw `docker` from shell.
 
 ## Secrets / env
 - `.env.local` holds LIVE Neon Postgres credentials — **never commit it,
   never echo the DATABASE_URL value**, never put the URL in output.
 - `.env` and `.env*.local` are gitignored. `exNEXT_PUBLIC_APP_URL` etc. in
   `.env.example` are safe to reference.
+- `.env.local` also carries `USE_LOCAL_DB=true` — the signal that dev/testing
+  runs against the local Docker Postgres. `DATABASE_URL` keeps the Neon URL as
+  the sync source.
 
 ## Architecture
 - Styling: Tailwind 3 + custom tokens/classes in `src/app/globals.css`
@@ -31,6 +38,23 @@ pill buttons) when touching UI.
 - Persistence: Neon via `src/lib/db.ts` (```db.query(text, params)``` — NEVER
   `db(text,...)`, first arg is a `TemplateStringsArray`). Graceful no-op when
   `DATABASE_URL` unset; responses carry `persisted/applied/subscribed` booleans.
+- **Local DB mode:** when `USE_LOCAL_DB=true` (set in `.env.local`),
+  `src/lib/db.ts` points at the Docker-Postgres from
+  `local-dev/docker-compose.yml` (port 5433, named volume `gg-local-pgdata`)
+  using the `pg` driver — the Neon HTTP driver can't talk to a plain Postgres.
+  `npm run db:up` / `db:down` / `db:reset` manage the container via
+  `scripts/local-db.mjs`; `npm run start:local` starts it with the dev server.
+  In local mode the app NEVER queries Neon on its own; `DATABASE_URL` is kept
+  as the Neon source for the admin dashboard **"Sync from Neon → Local"**
+  button, which snapshots every `gg_%` table down into the local DB
+  (`src/lib/sync.ts` + `POST /api/admin/sync`, admin-auth guarded, read-only
+  on Neon: one metadata query + one SELECT per table, replaces local rows in a
+  single transaction, excludes `gg_admin_sessions` so the admin stays logged
+  in). `/api/health` reports `mode: "local" | "cloud" | "none"` (force-dynamic)
+  and `GET /api/admin/sync` preflights the dashboard button
+  (`fetchSyncStatus` in `src/lib/api.ts`, reports
+  `{ local, sourceConfigured, sourceAvailable }` — the button disables with a
+  note when Neon is unreachable, e.g. quota exceeded).
 - API client: `src/lib/api.ts` (typed wrappers over a shared `request<T>()`).
   Business components call THIS, not bare `fetch`.
 - Loading indicator: `src/components/preloader.tsx` renders the animated

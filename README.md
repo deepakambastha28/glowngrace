@@ -69,6 +69,29 @@ npm run test:e2e        # Playwright E2E (headed, serial) against BASE_URL
 npm run test:e2e:ui     # Playwright UI mode (watch + debug)
 ```
 
+### Local development database (Docker) — optional
+
+Instead of dev/testing against the live Neon database, run the app against a
+disposable Docker-Postgres that mirrors the Neon schema:
+
+```bash
+npm run db:up          # start the local Postgres container (port 5433)
+npm run start:local    # start the container + the dev server together
+npm run db:down        # stop it (data persists in the gg-local-pgdata volume)
+npm run db:reset       # stop + wipe the volume, start fresh
+```
+
+Enable it with `USE_LOCAL_DB=true` in `.env.local` (see `.env.example`). While
+on, **every app read/write goes to the local Docker database** (`localhost:5433`,
+`pg` driver) — Neon is never queried by the app on its own. `DATABASE_URL`
+stays set to the Neon URL as the sync source. From the admin dashboard, the
+  **"Sync from Neon → Local"** button snapshots the whole `gg_%` database down
+  into the local one (read-only on Neon: one metadata query + one SELECT per
+  table; explicit admin action only). If Neon is unreachable (e.g. plan quota
+  exceeded) the button disables with a note instead of failing.
+  `/api/health` reports `mode: "local"`.
+  Compose file: `local-dev/docker-compose.yml`; helper: `scripts/local-db.mjs`.
+
 Run settings (in `playwright.config.ts`): headed Chromium, serial (`workers: 1`),
 `retries: 2`, action/navigation/expectation timeouts 30s, trace on first retry.
 
@@ -171,7 +194,10 @@ src/
 
 ## Persistence
 
-- Neon Postgres via `src/lib/db.ts` (graceful no-op when `DATABASE_URL` is unset).
+- Neon Postgres via `src/lib/db.ts` (graceful no-op when `DATABASE_URL` is
+  unset). When `USE_LOCAL_DB=true` the same layer targets the Docker-Postgres
+  from `local-dev/docker-compose.yml` using the `pg` driver instead — see the
+  local dev section above.
 - Admin tables: `gg_admin_products`, `gg_admin_jobs`, `gg_admin_events`,
   `gg_admin_partners`, `gg_admin_candidates`, `gg_admin_reviews`,
   `gg_admin_sessions`, `gg_admin_home_config`, `gg_admin_shop_config`, `gg_users`.
