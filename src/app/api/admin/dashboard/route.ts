@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { query, isDbConfigured } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 /** GET /api/admin/dashboard — aggregate stats for the admin dashboard. */
 export async function GET() {
   const fallback = {

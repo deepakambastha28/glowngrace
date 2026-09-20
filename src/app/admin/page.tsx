@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Heart, Wallet, ShoppingBag, Users, Briefcase,
-  TrendingUp, TrendingDown,
+  TrendingUp, TrendingDown, Database, RefreshCw,
 } from "lucide-react";
+import { fetchSyncStatus, syncFromNeon } from "@/lib/api";
 
 interface DashboardData {
   persisted: boolean;
@@ -41,6 +42,12 @@ const chartData = [
 
 export default function AdminPage() {
   const [data, setData] = useState<DashboardData | null>(null);
+  const [localMode, setLocalMode] = useState(false);
+  const [sourceReady, setSourceReady] = useState(false);
+  const [sourceAvailable, setSourceAvailable] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   const loadDashboard = useCallback(() => {
     fetch("/api/admin/dashboard")
@@ -51,6 +58,27 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadDashboard();
+    fetchSyncStatus().then((res) => {
+      setLocalMode(!!res.data?.local);
+      setSourceReady(!!res.data?.sourceConfigured);
+      setSourceAvailable(!!res.data?.sourceAvailable);
+    });
+  }, [loadDashboard]);
+
+  const handleSync = useCallback(async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    setSyncError(null);
+    const res = await syncFromNeon();
+    setSyncing(false);
+    if (res.ok && res.data?.synced) {
+      setSyncResult(
+        `Synced ${res.data.rows} rows across ${res.data.tables} tables from Neon. `.trimEnd()
+      );
+      loadDashboard();
+    } else {
+      setSyncError(res.data?.error || res.errorMessage || "Sync failed.");
+    }
   }, [loadDashboard]);
 
   const stats = [
@@ -71,6 +99,62 @@ export default function AdminPage() {
           <Heart className="h-5 w-5 text-rose" />
         </div>
       </div>
+
+      {localMode && (
+        <div className="card !shadow-lg mb-6 p-6" data-testid="local-sync-card">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-emerald/15 text-emerald">
+                <Database className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold">Local database mode</h3>
+                  <span className="rounded-full bg-emerald/15 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-emerald">
+                    Local
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-muted">
+                  The app reads and writes the Docker Postgres on localhost:5433, not Neon — so
+                  local development and testing never hit the cloud database. Pull a fresh snapshot
+                  of the Neon database into this local database whenever you need prod-like data.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              data-testid="sync-from-neon"
+              onClick={handleSync}
+              disabled={syncing || !sourceAvailable}
+              className="btn btn-primary shrink-0"
+            >
+              <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Syncing…" : "Sync from Neon → Local"}
+            </button>
+          </div>
+          {!sourceReady && (
+            <p className="mt-3 text-sm text-red font-semibold">
+              DATABASE_URL (the Neon source) is not set — sync is unavailable.
+            </p>
+          )}
+          {sourceReady && sourceAvailable === false && (
+            <p className="mt-3 text-sm text-red font-semibold" data-testid="sync-source-unavailable">
+              The Neon source is unreachable right now (quota exceeded or network issue) — sync is
+              temporarily unavailable.
+            </p>
+          )}
+          {syncResult && (
+            <p className="mt-3 text-sm font-semibold text-emerald" data-testid="sync-result">
+              {syncResult}
+            </p>
+          )}
+          {syncError && (
+            <p className="mt-3 text-sm font-semibold text-red" data-testid="sync-error">
+              {syncError}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((s) => (

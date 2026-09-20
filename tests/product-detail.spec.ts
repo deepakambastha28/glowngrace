@@ -54,7 +54,11 @@ test.describe("Product detail", () => {
     await expect(page.getByTestId("quantity-display")).toHaveText("2");
   });
 
-  test("wishlist button toggles state", async ({ page }) => {
+  test("wishlist button toggles state", async ({ page, request }) => {
+    const name = `E2E Detail Wish ${Date.now()}`;
+    const slug = await seedProduct(request, name);
+    seededSlugs.push(slug);
+
     await page.goto("/products");
 
     const wish = page.getByTestId("product-card").first().getByTestId("wishlist-button");

@@ -1,17 +1,36 @@
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
+import { Pool } from "pg";
 
 /**
- * Neon serverless Postgres connection helper.
+ * Postgres connection helper for Glow & Grace.
  *
- * - Lazy-initialised from `process.env.DATABASE_URL`.
- * - Returns `null` (graceful no-op) when the database is not configured,
- *   so the app builds and runs locally and in CI without a database.
- * - Schema is idempotently ensured before the first write (see SCHEMA_STATEMENTS).
+ * Two backends, switched by `USE_LOCAL_DB`:
+ *
+ * - Cloud (USE_LOCAL_DB != "true") — Neon via @neondatabase/serverless over
+ *   `DATABASE_URL`. Zero-config serverless queries; schema auto-created
+ *   idempotently (see SCHEMA_STATEMENTS).
+ * - Local (USE_LOCAL_DB = "true") — Docker-Postgres
+ *   (local-dev/docker-compose.yml, `npm run db:up`) via the `pg` driver. The
+ *   Neon HTTP driver cannot talk to a plain Postgres, hence the different
+ *   client. DATABASE_URL stays set to the Neon URL and is only consulted by
+ *   the explicit admin "Sync from Neon" action (see /api/admin/sync), so the
+ *   app never touches Neon while working locally.
+ *
+ * Both backends expose the same `query(text, params)` shape returning row
+ * objects. It returns `null` (graceful no-op) only when a database is
+ * configured but unreachable errors should pause writes — and `isDbConfigured()`
+ * is false only when no backend is configured at all, so the app still builds
+ * and runs without a database.
  */
 
-type SqlQuery = NeonQueryFunction<boolean, boolean>;
+type NeonQuery = NeonQueryFunction<boolean, boolean>;
 
-let sql: SqlQuery | null = null;
+interface DbClient {
+  query(text: string, params: unknown[]): Promise<Record<string, unknown>[]>;
+}
+
+let neonSql: NeonQuery | null = null;
+let pgPool: Pool | null = null;
 let schemaPromise: Promise<void> | null = null;
 
 const SCHEMA_STATEMENTS: string[] = [
@@ -111,6 +130,11 @@ const SCHEMA_STATEMENTS: string[] = [
     id SERIAL PRIMARY KEY,
     token TEXT UNIQUE NOT NULL,
     email TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+  )`,
+  `CREATE TABLE IF NOT EXISTS gg_newsletter_subscribers (
+    id SERIAL PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
   )`,
   `CREATE TABLE IF NOT EXISTS gg_partners (
@@ -247,15 +271,66 @@ const SCHEMA_STATEMENTS: string[] = [
   )`,
 ];
 
-export function getDb(): SqlQuery | null {
-  if (!process.env.DATABASE_URL) return null;
-  if (!sql) {
-    sql = neon(process.env.DATABASE_URL);
-  }
-  return sql;
+/** True when the app is configured to run against the local Docker database. */
+export function isLocalMode(): boolean {
+  return process.env.USE_LOCAL_DB === "true";
 }
 
-function ensureSchema(db: SqlQuery): Promise<void> {
+/**
+ * Resolve the local Docker database URL. LOCAL_DB_URL wins when set; otherwise
+ * the individual LOCAL_DB_* parts compose it. Defaults match
+ * local-dev/docker-compose.yml so `USE_LOCAL_DB=true` alone is enough after
+ * `npm run db:up`.
+ */
+export function getLocalDbUrl(): string {
+  if (process.env.LOCAL_DB_URL?.trim()) return process.env.LOCAL_DB_URL;
+  const user = process.env.LOCAL_DB_USER || "gg";
+  const password = process.env.LOCAL_DB_PASSWORD || "gg";
+  const host = process.env.LOCAL_DB_HOST || "localhost";
+  const port = process.env.LOCAL_DB_PORT || "5433";
+  const name = process.env.LOCAL_DB_NAME || "glowngrace";
+  return `postgres://${user}:${password}@${host}:${port}/${name}`;
+}
+
+/** The URL the app currently reads/writes, or null when no backend is set. */
+function resolveDbUrl(): string | null {
+  if (isLocalMode()) return getLocalDbUrl();
+  return process.env.DATABASE_URL || null;
+}
+
+function getClient(): DbClient | null {
+  const url = resolveDbUrl();
+  if (!url) return null;
+
+  if (isLocalMode()) {
+    if (!pgPool) {
+      pgPool = new Pool({
+        connectionString: url,
+        max: 5,
+        idleTimeoutMillis: 30_000,
+        connectionTimeoutMillis: 10_000,
+      });
+    }
+    return {
+      query: async (text, params) => {
+        const result = await pgPool!.query(text, params);
+        return result.rows as Record<string, unknown>[];
+      },
+    };
+  }
+
+  if (!neonSql) {
+    neonSql = neon(url);
+  }
+  return {
+    query: async (text, params) => {
+      const rows = await neonSql!.query(text, params);
+      return rows as Record<string, unknown>[];
+    },
+  };
+}
+
+function ensureSchema(db: DbClient): Promise<void> {
   if (!schemaPromise) {
     schemaPromise = (async () => {
       for (const statement of SCHEMA_STATEMENTS) {
@@ -263,7 +338,7 @@ function ensureSchema(db: SqlQuery): Promise<void> {
           await db.query(statement, []);
         } catch {
           // Ignore per-statement failures (the table may already exist or a
-          // cold Neon connection hiccuped); later queries still work.
+          // cold connection hiccuped); later queries still work.
         }
       }
     })();
@@ -273,19 +348,48 @@ function ensureSchema(db: SqlQuery): Promise<void> {
 
 export type DbResult = Record<string, unknown>[] | null;
 
-/** Run a parameterised query. Returns null when the DB is not configured. */
+/** True when Neon refused the request because the account/project quota was exceeded (HTTP 402). */
+export function isNeonQuotaError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    /^Server error \(HTTP status 402\): .*quota/i.test(error.message)
+  );
+}
+
+/**
+ * Run a parameterised query. Returns null when no database is configured or
+ * when Neon is quota-suspended; other errors propagate.
+ */
 export async function query(
   text: string,
   params: unknown[] = []
 ): Promise<DbResult> {
-  const db = getDb();
+  const db = getClient();
   if (!db) return null;
   await ensureSchema(db);
-  const rows = (await db.query(text, params)) as unknown[];
-  return rows as Record<string, unknown>[];
+  try {
+    return await db.query(text, params);
+  } catch (error) {
+    if (isNeonQuotaError(error)) {
+      console.error(
+        "Neon database suspended (plan quota exceeded) — continuing without persistence.",
+        error
+      );
+      return null;
+    }
+    throw error;
+  }
 }
 
-/** True when a Neon database is configured. */
+/**
+ * The active database client (local pg Pool or Neon), or null when neither is
+ * configured and the app is running without persistence.
+ */
+export function getDb(): DbClient | null {
+  return getClient();
+}
+
+/** True when a database backend is configured (local Docker or Neon). */
 export function isDbConfigured(): boolean {
-  return Boolean(process.env.DATABASE_URL);
+  return Boolean(resolveDbUrl());
 }

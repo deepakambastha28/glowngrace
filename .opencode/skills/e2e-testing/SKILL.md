@@ -40,6 +40,15 @@ npm run build && npm run start     # serve on http://localhost:3000
 $env:BASE_URL="http://localhost:3000"; npm run test:e2e
 ```
 
+**Local DB mode:** the whole suite can run against the Docker-Postgres instead
+of live Neon by setting `USE_LOCAL_DB=true` in `.env.local` and starting the
+app with `npm run start:local` (starts the container + dev server) or
+`npm run db:up` + `npm run build && npm run start`. In that mode every write
+goes to the local DB — Neon is only touched by the admin "Sync from Neon"
+action. The sync feature is exercised by `tests/local-db-sync.spec.ts`, which
+**self-skips when `/api/health` reports `mode !== "local"`**, so it's safe to
+leave in the suite for the cloud/Vercel default run.
+
 Headed mode pops up real Chromium windows while the suite runs — that run IS the
 UI pass, so interactive repair is usually unnecessary.
 
@@ -112,7 +121,17 @@ mirrors the reference design and changes.
   also contains "Password"). Dashboard renders at `/admin` once the session
   cookie is set; sidebar gated by session (`admin-sidebar` testid present only
   when authed). Demo creds: `admin@glowngrace.in` / `admin123`. Login/logout
-  force a full-page reload so layout and page stay in sync. Record CRUD lives on
+  force a full-page reload so layout and page stay in sync. In local DB mode
+  (`USE_LOCAL_DB=true`) the dashboard shows a `local-sync-card` with a
+  **"Sync from Neon → Local"** button (`sync-from-neon`), a spinner, and the
+  `sync-result` / `sync-error` readouts. The API preflight is
+  `GET /api/admin/sync` → `{ local, sourceConfigured, sourceAvailable }`; the
+  action is `POST /api/admin/sync` (success text matches
+  `Synced \d+ rows across \d+ tables`). When the Neon source is unreachable
+  (e.g. quota exceeded) the button disables and a `sync-source-unavailable`
+  note renders — `tests/local-db-sync.spec.ts` asserts the disabled/note path
+  in that case and the success path otherwise. The card/button are absent in
+  cloud mode. Record CRUD lives on
   list pages (products/jobs/partners/candidates) with rows + Edit / Hide / Hold /
   Delete controls; add flows are reached from each combined list page ("Add
   Product/Job/Partner"). Form save buttons: "Save Product", "Save Job",

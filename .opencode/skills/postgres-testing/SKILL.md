@@ -5,10 +5,19 @@ description: Use when verifying the Glow & Grace Neon Postgres-backed flows — 
 
 # Postgres Testing (Glow & Grace)
 
-The app persists to Neon Postgres via `@neondatabase/serverless` through
-`src/lib/db.ts`. Everything degrades gracefully: when `DATABASE_URL` is unset,
-the DB layer returns null and API routes still answer `200` (no-op), so UI and
-E2E never depend on a live database.
+The app persists through `src/lib/db.ts` with two backends:
+
+- **Cloud (default, `USE_LOCAL_DB != "true"`)** — Neon Postgres via
+  `@neondatabase/serverless` over `DATABASE_URL`.
+- **Local (`USE_LOCAL_DB=true` in `.env.local`)** — Docker-Postgres from
+  `local-dev/docker-compose.yml` via the `pg` driver. Managed with
+  `npm run db:up` / `db:down` / `db:reset` (`scripts/local-db.mjs`); inspected
+  with `npm run db:ps` / `db:logs`. The app NEVER queries Neon on its own in
+  this mode — Neon is read only by the explicit admin "Sync from Neon" action.
+
+Everything degrades gracefully: when no DB is configured, the DB layer returns
+null and API routes still answer `200` (no-op), so UI and E2E never depend on a
+live database.
 
 Local `.env.local` has REAL live Neon credentials — it is gitignored, never
 commit it, never print the DATABASE_URL value in command output.
@@ -32,11 +41,27 @@ then hit the health route with Invoke-RestMethod and confirm `database` is
 Invoke-RestMethod http://localhost:3000/api/health
 ```
 
-Expected: `{"status":"ok","database":"connected","message":"Neon Postgres connected."}`
+Expected (cloud): `{"status":"ok","database":"connected","mode":"cloud","message":"Neon Postgres connected."}`
+Expected (local): `{"status":"ok","database":"connected","mode":"local","message":"Local Docker Postgres connected."}`
 
-`database: "disabled"` means DATABASE_URL isn't set in the server process
-(env not loaded / .env.local missing) — not a code bug. `database: "error"`
-means the URL is set but a `SELECT 1` failed (network, revoked/dropped).
+`database: "disabled"` means no backend is configured (env not loaded /
+`.env.local` missing) — not a code bug. `database: "error"` means the URL is
+set but a `SELECT 1` failed (network, engine down, revoked/dropped). In local
+mode that usually means the container is down — start it with `npm run db:up`
+(the compose file adds a `pg_isready` healthcheck; `npm run db:ps` shows state).
+
+## Local DB mode extra checks
+
+- `GET /api/admin/sync` preflights the dashboard button:
+  `{"local": true, "sourceConfigured": true, "sourceAvailable": true}` when
+  local mode is on, `DATABASE_URL` (Neon source) is present, and Neon answers
+  a `SELECT 1`. `sourceAvailable: false` (Neon down, e.g. quota exceeded)
+  disables the button with a `sync-source-unavailable` note.
+- `POST /api/admin/sync` (admin session required) snapshots every `gg_%` table
+  from Neon into the local DB: `{"synced": true, "tables", "rows", "summary"}`.
+  Read-only on Neon (one metadata query + one SELECT per table), replaces local
+  rows in one transaction, excludes `gg_admin_sessions` (admin stays logged
+  in). The E2E for this is `tests/local-db-sync.spec.ts` (skips in cloud mode).
 
 ## Schema (auto-created idempotently on first write)
 
@@ -68,6 +93,14 @@ raw one-off check, run the exact same driver directly (Node 20.6+ has
 
 ```powershell
 node --env-file=.env.local -e "import('@neondatabase/serverless').then(async({neon})=>{const db=neon(process.env.DATABASE_URL);const r=await db.query('SELECT COUNT(*)::int AS n FROM gg_orders');console.log(JSON.stringify(r));}).catch(e=>{console.error(e.message);process.exit(1);})"
+```
+
+In **local mode** use the `pg` driver against the compose container instead
+(never query Neon directly for a write-path check — reads are OK, it just won't
+show local-mode writes):
+
+```powershell
+node --env-file=.env.local -e "import('pg').then(async({Pool})=>{const p=new Pool({connectionString:process.env.USE_LOCAL_DB==='true'?(process.env.LOCAL_DB_URL||'postgres://gg:gg@localhost:5433/glowngrace'):process.env.DATABASE_URL});const r=await p.query('SELECT COUNT(*)::int AS n FROM gg_orders');console.log(JSON.stringify(r.rows));await p.end();}).catch(e=>{console.error(e.message);process.exit(1);})"
 ```
 
 Label-specific checks (replace table/key with the flow under test):

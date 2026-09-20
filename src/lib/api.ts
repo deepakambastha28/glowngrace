@@ -844,3 +844,31 @@ export function updateAdminShopConfig(
     ...body(config),
   });
 }
+
+// ---------------------------------------------------------------
+// Neon → local database sync
+// ---------------------------------------------------------------
+
+export type SyncStatusResponse = {
+  local: boolean;
+  sourceConfigured: boolean;
+  sourceAvailable: boolean;
+};
+
+export type SyncResultResponse = {
+  synced: boolean;
+  tables: number;
+  rows: number;
+  summary: Record<string, number>;
+  error?: string;
+};
+
+/** GET /api/admin/sync — is local mode on and is the Neon source configured? */
+export function fetchSyncStatus(): Promise<ApiResponse<SyncStatusResponse>> {
+  return request<SyncStatusResponse>("/api/admin/sync");
+}
+
+/** POST /api/admin/sync — snapshot the Neon database down into the local Docker database. */
+export function syncFromNeon(): Promise<ApiResponse<SyncResultResponse>> {
+  return request<SyncResultResponse>("/api/admin/sync", { method: "POST" });
+}
