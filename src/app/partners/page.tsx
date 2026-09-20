@@ -2,10 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, Map, LayoutGrid } from "lucide-react";
+import {
+  Search,
+  Map,
+  LayoutGrid,
+  Users,
+  Megaphone,
+  ShieldCheck,
+  TrendingUp,
+} from "lucide-react";
+import { fetchPartners } from "@/lib/api";
 import { localityPos } from "@/lib/data";
 import type { Partner } from "@/lib/data";
-import { fetchPartners } from "@/lib/api";
 import { PartnerCard } from "@/components/partners/partner-card";
 
 type SortKey = "rating" | "name" | "reviews";
@@ -14,6 +22,40 @@ const sortOptions: { value: SortKey; label: string }[] = [
   { value: "rating", label: "⭐ Top Rated" },
   { value: "name", label: "🔤 Name (A–Z)" },
   { value: "reviews", label: "💬 Most Reviewed" },
+];
+
+const benefits = [
+  {
+    icon: Users,
+    title: "Verified Talent Pool",
+    description:
+      "Access a growing pool of trained, background-checked beauticians and stylists ready to join your team.",
+  },
+  {
+    icon: Megaphone,
+    title: "Free Job Posting",
+    description:
+      "List vacancies on our platform at no cost and reach thousands of job-seeking beauty professionals.",
+  },
+  {
+    icon: TrendingUp,
+    title: "Grow Your Salon",
+    description:
+      "Attract more customers with your partner badge and premium listing across our storefront and channels.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Trusted Partnership",
+    description:
+      "Partner with a trusted Lucknow beauty brand and gain instant credibility in the local market.",
+  },
+];
+
+const steps = [
+  { number: "1", title: "Register", description: "Tell us about your salon in minutes." },
+  { number: "2", title: "Get Verified", description: "Our team verifies and onboards your salon." },
+  { number: "3", title: "Hire Talent", description: "Post jobs and interview vetted professionals." },
+  { number: "4", title: "Grow Together", description: "Get customer leads and grow with us." },
 ];
 
 export default function PartnersPage() {
@@ -89,7 +131,7 @@ export default function PartnersPage() {
             Home
           </Link>
           <span className="text-muted">/</span>
-          <span className="text-charcoal">Partner Parlours</span>
+          <span className="text-charcoal">Partners</span>
         </div>
       </div>
 
@@ -337,6 +379,62 @@ export default function PartnersPage() {
           )}
         </div>
       </section>
+
+      {/* Why partner */}
+      <div className="mx-auto max-w-screen-xl px-6 pt-16">
+        <div className="section-head">
+          <p className="eyebrow">Why Partner With Us</p>
+          <h2>Perks of a Glow &amp; Grace Partnership</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {benefits.map(({ icon: Icon, title, description }) => (
+            <div key={title} className="card !rounded-[18px] p-[28px_24px]">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-rose-gradient text-white">
+                <Icon className="h-6 w-6" />
+              </div>
+              <h3 className="mt-5 text-[1.1rem] mb-2">{title}</h3>
+              <p className="text-[0.88rem] text-muted leading-relaxed">{description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* How it works */}
+      <div className="mx-auto max-w-screen-xl px-6 pt-16">
+        <div className="section-head">
+          <p className="eyebrow">How It Works</p>
+          <h2>From Sign-Up to Scaling</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {steps.map((step) => (
+            <div key={step.number} className="text-center">
+              <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-rose-gradient text-[1.5rem] font-bold text-white shadow-gold">
+                {step.number}
+              </div>
+              <h3 className="text-[1.1rem] mb-1.5">{step.title}</h3>
+              <p className="text-[0.85rem] text-muted">{step.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Brand trust CTA */}
+      <div className="mx-auto max-w-screen-xl px-6 pt-16">
+        <div className="rounded-[28px] bg-dark-gradient px-8 py-[50px] text-center relative overflow-hidden">
+          <span className="pointer-events-none absolute top-[-20px] left-8 text-[4.5rem] opacity-10">💼</span>
+          <span className="pointer-events-none absolute bottom-[-20px] right-8 text-[4.5rem] opacity-10">💄</span>
+          <h2 className="text-white text-[1.8rem] md:text-[2.1rem] mb-3">
+            Representing Globally Recognised Beauty Brands
+          </h2>
+          <p className="text-[#d9cbd8] max-w-xl mx-auto mb-8">
+            Become a verified partner salon and hire trained, passionate
+            professionals through Glow &amp; Grace.
+          </p>
+          <Link href="/signup?accountType=recruiter" className="btn-gold">
+            Register Your Salon
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

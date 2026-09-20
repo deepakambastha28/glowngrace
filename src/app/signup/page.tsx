@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   User, Mail, Lock, Phone, Sparkles, Briefcase,
@@ -61,6 +61,13 @@ export default function SignupPage() {
   const router = useRouter();
   const [selectedType, setSelectedType] = useState<string>("user");
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("accountType") === "recruiter") {
+      setSelectedType("recruiter");
+    }
+  }, []);
 
   const {
     register,
