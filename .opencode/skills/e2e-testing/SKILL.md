@@ -146,7 +146,23 @@ mirrors the reference design and changes.
   without validating (fields mount on step 2); getByLabel on step-2 fields only
   after advancing.
 - Careers: `job-grid`, `apply-now` (detail page), links `Apply Now` on the list,
-  `apply-form`, `resume-input`, `submit-application`
+  `apply-form`, `resume-input`, `submit-application`. Verified jobs render a gold
+  `verified-badge` ("Genuine Job Hunt Listing"); the free tier (logged out or
+  `tier: free`) sees only unverified jobs and renders `job-grid-empty` when
+  nothing is visible.
+- Candidate premium (`/candidate` → Preview Profile tab): `premium-pricing`
+  section with `plan-free` / `plan-pro` / `plan-pro-max` cards, kebab-case
+  upgrade CTAs `upgrade-free` / `upgrade-pro` / `upgrade-pro-max` (free is
+  never shown as an upgrade — it's the default tier), `current-plan` disabled
+  buttons on tiers you already hold, `pro-max-emphasis`, the `tier-badge`
+  next to the profile heading, and the Pro Max `fulfillment-tracker`. Tier is
+  persisted in the `glow-grace-user` localStorage store, so it survives reloads.
+  The admin `/admin/jobs` detail toggles a live job's verified flag via
+  `toggle-verified-listing`. `tests/premium-pricing.spec.ts` covers the
+  pricing section, upgrade + persistence, verified-job gating end-to-end, and
+  the tier badge (patches `verified` on a seeded job through
+  `PATCH /api/admin/jobs?id=… { verified: true }` — the PATCH route applies
+  only the fields present, so a `{ verified }`-only PATCH is valid).
 - Events: `event-search`, `event-date-filter` (option label = month, e.g. "Sep 2026"),
   `event-loc-filter`, `event-clear`, `event-count`, `event-tile` (card → links to
   `/events/<slug>`), `event-date`, `event-loc` (on tile; contains "📍 <loc> · <time>"),

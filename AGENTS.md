@@ -69,12 +69,26 @@ pill buttons) when touching UI.
   Demo credentials in `src/app/login/page.tsx` (`shopper@...`, `candidate@...`,
   `admin@...`, `recruiter@...`).
   Registered users stored in localStorage `glow-grace-registered-users`.
+- Premium membership: `glow-grace-user` also carries `tier`
+  (`free` | `pro` | `pro_max`), `tierExpiresAt` (365-day expiry, resolved via
+  `activeTier` — expired tiers fall back to `free`), and `jobsSecuredCount`
+  (Pro Max placement tracker, capped at `PRO_MAX_PLACEMENT_CAP` = 3 by
+  `incrementJobsSecured`). Tiers are upgraded client-side on the candidate
+  preview profile's "Membership Plans" section (`plan-<tier>` cards,
+  `upgrade-<tier>` / `current-plan` CTAs, `tier-badge`, `fulfillment-tracker`).
 - Data: `src/lib/data.ts` — static catalog was removed from the storefront:
   `/api/products`, `/api/partners`, `/api/events`, and `/api/jobs` are
   **admin-DB only** (products have `reviewsCount` (not `reviews`) and inStock
   (not `available`) — grep it before coding against a shape). `data.ts` now
   backs only home static content (testimonials); jobs and events come from
-  `gg_admin_jobs` / `gg_admin_events`. Reviews flow: the product star popup and
+  `gg_admin_jobs` / `gg_admin_events`. Jobs carry a `verified` flag
+  (admin-toggleable in `/admin/jobs` via `toggle-verified-listing`, surfaced as
+  a gold "Genuine Job Hunt Listing" pill on the careers list and `/api/jobs`).
+  Free-tier users (logged out or `tier === "free"`) only see unverified
+  (`verified = false`) jobs on `/careers`; Pro / Pro Max members see all open
+  jobs plus the verified badge (`verified-badge`). `/careers` renders
+  `job-grid-empty` when the free tier has no visible jobs.
+  Reviews flow: the product star popup and
   the `/contact` page POST to `/api/reviews` → `gg_admin_reviews` (status
   `Pending`), the admin console approves/hides them (`PATCH
   /api/admin/reviews`), and only `Approved` rows surface on product pages, the
@@ -86,10 +100,17 @@ pill buttons) when touching UI.
   recruiter "Hold" submits `Pending Hold`. Admin Accept publishes (`Open`),
   rejects (`Rejected`), or for a `Pending Hold` row approves the hold
   (`On Hold`) or rejects it (back to `Open`). Only `Open` + not `hidden` rows
-  hit `/api/jobs`. Storefront E2E specs seed
+  hit `/api/jobs` (rows also carry `verified` → "Genuine Job Hunt Listing").
+  Storefront E2E specs seed
   admin records via `tests/helpers.ts` (`seedProduct` / `deleteSeededProduct`,
   `seedEvent` / `deleteSeededEvent`, `seedJob` / `deleteSeededJob`,
   `seedReview` / `deleteSeededReview`, `waitForAdminReview`).
+  `tests/premium-pricing.spec.ts` covers the tiers + verified-job gating
+  end-to-end (sets `verified` via `PATCH /api/admin/jobs?id=… { verified }`).
+  Note the `/partner` storefront route is removed — partner/recruiter info now
+  lives on `/partners`, and the "Hire Talent" footer + partners CTA link to
+  `/signup?accountType=recruiter` (the signup page preselects the Recruiter
+  account type via the `accountType` query param).
 - Home config: the storefront home page is server-rendered from a single
   `gg_admin_home_config` row (`id = 1`) — hero copy/stats/trust, section
   eyebrow/heading/description, CTA, testimonials heading, per-section

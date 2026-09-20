@@ -30,7 +30,7 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 - **`/recruiter`** — Role-gated recruiter portal with a single top-nav (Home, Shop, Candidates, Careers, Events). Browse & hire candidates (`/recruiter/candidates`), manage job openings (`/recruiter/jobs`), update profile (`/recruiter/profile`), and publish workshops to the storefront event calendar (`/recruiter/events`). Recruiters sign in with the `recruiter` account type; logout always returns to the home page. Recruiters get a **Recruiter menu in the storefront top nav** once signed in.
 - **`/recruiter/profile`** — Recruiter profile mirrors the admin partner form: a 2-column layout (`1.7fr/1fr`) with all sections stacked on the left (Basic Information, About, Salon Gallery, Services Provided, Packages) and a sticky **Live Preview** sidebar with Save/Cancel. Gallery photos, service tags, and bio are persisted as JSONB on `gg_recruiters`; service packages live in `gg_recruiter_packages` and support single add or JSON/CSV bulk import.
 - **Partner gallery & packages** (`/admin/partners` + storefront) — The admin partner form persists a **cover/tile image** plus additional gallery photos (`gallery` JSONB), selected/custom service tags, and priced package rows (`menu` JSONB, with duration/description/services and JSON/CSV import). Storefront `/partners` cards use the first uploaded image as the tile, and `/partners/[slug]` shows the hero photo, a `.gallery-grid` lightbox, and package listings with ₹ pricing — falling back to gradient + emoji tiles for partners without uploads.
-- **Recruiter job review flow** (`/recruiter/jobs`) — Recruiters create, **edit**, and request a **hold** on vacancies. New and edited jobs are submitted as `Pending`; a hold request is submitted as `Pending Hold`. Each decision authorizes in the admin console (`/admin/jobs`): approving publishes (`Open`) or holds (`On Hold`), rejecting marks `Rejected` or keeps the job live — and only then does the change reflect on the website (`/careers`, `/api/jobs`).
+- **Recruiter job review flow** (`/recruiter/jobs`) — Recruiters create, **edit**, and request a **hold** on vacancies. New and edited jobs are submitted as `Pending`; a hold request is submitted as `Pending Hold`. Each decision authorizes in the admin console (`/admin/jobs`): approving publishes (`Open`) or holds (`On Hold`), rejecting marks `Rejected` or keeps the job live — and only then does the change reflect on the website (`/careers`, `/api/jobs`). Admin can also flag a live job `verified` (gold "Genuine Job Hunt Listing") — see premium membership below.
 - **`/products`** — Filter by category, sort by price/rating, live search. Catalog is **admin-DB driven** (`/api/products`), no static seed.
 - **`/products/[slug]`** — Gallery + thumbnails, price + % saved, qty stepper, Add to Cart, features, delivery info, tabs (Description / Info / Reviews). **Tap a star** under the rating to open the rate-and-review popup (1–5 stars + comment); submissions start as **Pending** in `/admin/reviews` and only appear on the product once approved. Rating + review counts on the card and detail header are derived from approved reviews. Unknown slugs → custom 404.
 - **`/cart`** — Editable quantity, remove, promo code (`GLOW10` for 10% off), summary (subtotal + free-shipping logic + 5% GST + total), empty state, DB-backed wishlist section.
@@ -39,10 +39,10 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 - **`/partners`** — Partner directory driven by admin DB (`/api/partners`), hidden on home when empty. Cards + detail pages render uploaded cover/gallery photos and priced packages.
 - **`/partners/[slug]`** — Partner detail with hero cover photo, gallery grid + lightbox, service chips (with optional duration/description), ratings/stats, and a packages list with ₹ prices.
 - **`/events`** — Admin-DB event tiles (created in `/admin/events`, exposed via `/api/events`), search + date/location filters, detail with gallery + lightbox, carousel banner
-- **`/careers`** — Job cards (type, title, salon, location, salary, experience) driven by `/api/jobs` (admin DB)
+- **`/careers`** — Job cards (type, title, salon, location, salary, experience) driven by `/api/jobs` (admin DB). Live jobs flagged **verified** (a gold "Genuine Job Hunt Listing" pill) are shown only to **Pro / Pro Max members**; free-tier visitors (logged out or `tier: free`) see just the unverified openings.
 - **`/careers/[slug]`** — Job header + tags, responsibilities, requirements, perks, sticky Apply box
 - **`/careers/[slug]/apply`** — Validated application form with drag-drop PDF/DOC resume upload, T&C, success screen
-- **`/shopper`** & **`/candidate`** — Role-based profiles with Edit Profile / orders / password / address / contact tabs
+- **`/shopper`** & **`/candidate`** — Role-based profiles with Edit Profile / orders / password / address / contact tabs. The candidate **Preview Profile** tab adds a **Membership Plans** section (Free / Pro ₹1,000 / Pro Max ₹3,000 per year, Pro Max highlighted) with one-click upgrades, a member tier badge, and a Pro Max placement-placement tracker — the tier gates verified job listings on `/careers`.
 - **`/contact`** — Contact page with a **comment-only** review form (no star rating); submissions land in `/admin/reviews` as **Pending** for moderation
 - **`/login`**, **`/signup`** — Zod-validated auth with `shopper` / `candidate` / `admin` / `recruiter` account-type selector and demo credentials. Sign-in also checks server-side accounts (`gg_users`): suspended accounts are blocked, wrong passwords are rejected, and `admin`-role server accounts skip client-only auth.
 
@@ -247,7 +247,17 @@ src/
   accepts, holds, or rejects, and row details offer **Approve Hold** / **Reject
   Hold** for hold requests. Only `Open` rows that are not `hidden` surface on
   the storefront (`/api/jobs`); everything else (including `Pending` and
-  `Pending Hold`) is hidden until reviewed.
+  `Pending Hold`) is hidden until reviewed. `verified` (BOOLEAN, default
+  `false`) marks a live job as a "Genuine Job Hunt Listing": the careers list
+  renders a gold pill for it, and `/api/jobs` returns the flag so the client
+  can hide verified rows from free-tier visitors.
+- Premium membership (`src/lib/auth.ts`): the persisted `glow-grace-user`
+  localStorage store carries `tier` (`free` | `pro` | `pro_max`,
+  `upgradeTier` writes a 365-day `tierExpiresAt`, resolved via `activeTier` —
+  expired tiers fall back to `free`) and `jobsSecuredCount` (Pro Max placement
+  tracker capped at `PRO_MAX_PLACEMENT_CAP` = 3 via `incrementJobsSecured`).
+  Tier upgrades are client-side on the candidate preview profile; a `free` tier
+  (or a logged-out visitor) only sees unverified jobs on `/careers`.
 - API reads that must reflect DB changes immediately (e.g. `/api/products`,
   `/api/events`, `/api/recruiters/candidates`) call `noStore()` from
   `next/cache` so their response is never baked into the build.
