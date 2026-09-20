@@ -6,10 +6,13 @@ import { useRouter } from "next/navigation";
 import {
   User, Mail, Phone, MapPin, Briefcase, GraduationCap, Star,
   ImageUp, Trash2, Plus, Save, Camera, Eye, Pencil,
-  FileText, Clock, BriefcaseBusiness,
+  FileText, Clock, BriefcaseBusiness, Check, Crown,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useAuthStore } from "@/lib/auth";
+import {
+  useAuthStore, activeTier, TIER_LABELS, TIER_RANK,
+  PRO_MAX_PLACEMENT_CAP, type MembershipTier,
+} from "@/lib/auth";
 import { usePersistReady } from "@/lib/use-persist-ready";
 import { saveCandidate, fetchCandidate, deleteCandidate, fetchApplications, fetchJobs } from "@/lib/api";
 import type { ApplicationRecord } from "@/lib/api";
@@ -41,6 +44,56 @@ const specializationJobMap: Record<string, string[]> = {
   "Spa & Wellness": ["spa-therapist"],
 };
 
+const plans: {
+  key: MembershipTier;
+  name: string;
+  price: string;
+  period: string;
+  tagline: string;
+  highlighted?: boolean;
+  features: string[];
+}[] = [
+  {
+    key: "free",
+    name: "Free",
+    price: "₹0",
+    period: "forever",
+    tagline: "Start your beauty career journey",
+    features: [
+      "Standard job listings",
+      "Apply to any open role",
+      "Standard profile visibility",
+    ],
+  },
+  {
+    key: "pro",
+    name: "Pro",
+    price: "₹1,000",
+    period: "/ year",
+    tagline: "For serious, job-ready professionals",
+    features: [
+      "Everything in Free",
+      "Genuine Job Hunt Listings (admin verified)",
+      "Profile Boost — stand out in employer searches",
+      "Early access to newly verified roles",
+    ],
+  },
+  {
+    key: "pro_max",
+    name: "Pro Max",
+    price: "₹3,000",
+    period: "/ year",
+    tagline: "Our best plan for guaranteed careers",
+    highlighted: true,
+    features: [
+      "Everything in Pro",
+      "Priority Placement tag — top of employer results",
+      "Dedicated career manager",
+      "Up to 3 guaranteed job placements",
+    ],
+  },
+];
+
 function daysAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
   if (diff === 0) return "Today";
@@ -52,6 +105,7 @@ export default function CandidatePage() {
   const router = useRouter();
   const persistReady = usePersistReady();
   const user = useAuthStore((s) => s.user);
+  const upgradeTier = useAuthStore((s) => s.upgradeTier);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -210,6 +264,47 @@ export default function CandidatePage() {
     return <Preloader />;
   }
 
+  const tier = activeTier(user);
+  const jobsSecured = user?.jobsSecuredCount ?? 0;
+  const placementFulfilled = tier === "pro_max" && jobsSecured >= PRO_MAX_PLACEMENT_CAP;
+
+  const handleUpgrade = (next: MembershipTier) => {
+    upgradeTier(next);
+    toast.success(`Welcome to ${TIER_LABELS[next]} Membership 🎉`);
+  };
+
+  const testKey = (key: string) => key.replace(/_/g, "-");
+
+  const renderCta = (plan: (typeof plans)[number]) => {
+    const testId = `upgrade-${testKey(plan.key)}`;
+    const isCurrent = TIER_RANK[plan.key] <= TIER_RANK[tier];
+    if (isCurrent) {
+      return (
+        <button
+          type="button"
+          disabled
+          data-testid="current-plan"
+          className="btn btn-outline w-full justify-center opacity-60 cursor-not-allowed"
+        >
+          Current Plan
+        </button>
+      );
+    }
+    return (
+      <button
+        type="button"
+        data-testid={testId}
+        onClick={() => handleUpgrade(plan.key)}
+        className={cn(
+          "btn w-full justify-center",
+          plan.highlighted ? "btn-gold" : "btn-primary"
+        )}
+      >
+        Upgrade to {plan.name}
+      </button>
+    );
+  };
+
   const hasProfile = Boolean(fullName.trim() || phone.trim() || city.trim() || skills.length || gallery.length);
 
   const recommendedJobs = specialization
@@ -241,6 +336,19 @@ export default function CandidatePage() {
           <h1 className="text-3xl font-bold">
             My <span className="text-rose italic">Profile</span>
           </h1>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span
+              data-testid="tier-badge"
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold",
+                tier === "free"
+                  ? "bg-[#fbf3e2] text-gold"
+                  : "bg-gold text-white"
+              )}
+            >
+              {tier === "free" ? "Free Member" : `${TIER_LABELS[tier]} Member`}
+            </span>
+          </div>
           <p className="mt-1 text-muted">
             {candidateId
               ? "Manage your candidate profile and showcase gallery."
@@ -253,6 +361,39 @@ export default function CandidatePage() {
           </button>
         )}
       </div>
+
+      {/* Pro Max fulfillment tracker */}
+      {tier === "pro_max" && (
+        <div
+          data-testid="fulfillment-tracker"
+          className="mb-6 rounded-[16px] border border-gold/40 bg-[#fbf3e2]/60 px-6 py-4"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="font-semibold text-charcoal">
+                Job Placement Guarantee{" "}
+                <span className="font-bold text-rose">
+                  {jobsSecured} of {PRO_MAX_PLACEMENT_CAP}
+                </span>{" "}
+                secured
+              </p>
+              <p className="mt-0.5 text-xs text-muted">
+                {placementFulfilled
+                  ? "Guarantee fulfilled — you keep verified listings access for the rest of your 365-day cycle, and your career manager queue is closed."
+                  : "Your career manager tracks accepted offers toward your placement guarantee."}
+              </p>
+            </div>
+            <span
+              className={cn(
+                "rounded-full px-4 py-1.5 text-sm font-bold",
+                placementFulfilled ? "bg-emerald text-white" : "bg-gold text-white"
+              )}
+            >
+              {placementFulfilled ? "Fulfilled ✓" : `${jobsSecured}/${PRO_MAX_PLACEMENT_CAP}`}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Tab toggle */}
       <div className="mb-6 flex flex-wrap gap-1 rounded-full border border-line bg-white p-1 w-fit">
@@ -518,6 +659,7 @@ export default function CandidatePage() {
 
       {tab === "preview" && (
         /* ========== PREVIEW MODE ========== */
+        <div>
         <div className="grid lg:grid-cols-[1.7fr_1fr] gap-6 items-start">
           <div className="space-y-6">
             <div className="card !shadow-lg p-6">
@@ -680,6 +822,41 @@ export default function CandidatePage() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Membership plans */}
+        <div className="mt-10" data-testid="premium-pricing">
+          <div className="section-head">
+            <p className="eyebrow">Membership Plans</p>
+            <h2>Choose Your Career Advantage</h2>
+            <p>Get verified job hunt listings, a boosted profile and guaranteed placement support.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+            {plans.map((plan) => (
+              <div key={plan.key} data-testid={`plan-${testKey(plan.key)}`} className={cn("card !rounded-[20px] p-[30px_26px] flex flex-col relative", plan.highlighted && "border-2 border-gold shadow-gold")}>
+                {plan.highlighted && (
+                  <div data-testid="pro-max-emphasis" className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gold px-4 py-1 text-xs font-bold text-white">
+                    <Crown className="inline h-3.5 w-3.5 mr-1 -mt-0.5" /> Most Popular
+                  </div>
+                )}
+                <h3 className="text-[1.15rem] font-bold">{plan.name}</h3>
+                <p className="text-muted text-[0.85rem] mt-1">{plan.tagline}</p>
+                <div className="mt-4 flex items-baseline gap-1.5">
+                  <span className="text-[1.9rem] font-extrabold">{plan.price}</span>
+                  <span className="text-muted text-[0.85rem]">{plan.period}</span>
+                </div>
+                <ul className="mt-5 mb-7 space-y-2 text-[0.88rem]">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex gap-2 items-start">
+                      <Check className="h-4 w-4 text-rose shrink-0 mt-0.5" /> {feature}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-auto">{renderCta(plan)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
         </div>
       )}
 

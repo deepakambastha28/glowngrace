@@ -31,6 +31,7 @@ function toStorefrontJob(row: Record<string, unknown>): Job {
     responsibilities,
     requirements,
     perks,
+    verified: Boolean(row.verified),
   };
 }
 
@@ -42,7 +43,7 @@ export async function GET() {
     const rows = await query(
       `SELECT id, slug, title, salon, location, type, salary_min, salary_max,
               salary_text, experience, openings, description, responsibilities,
-              requirements, perks
+              requirements, perks, verified
        FROM gg_admin_jobs WHERE hidden = false AND status = 'Open' ORDER BY created_at DESC`
     );
     items = (rows ?? []).map(toStorefrontJob);

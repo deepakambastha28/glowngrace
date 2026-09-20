@@ -64,6 +64,8 @@ run-app-err.log
 run-app.log
 app-run.log
 app-run.err.log
+next-start.log
+next-start.err.log
 
 # design reference (never edit)
 design/

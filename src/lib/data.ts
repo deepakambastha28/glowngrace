@@ -34,6 +34,7 @@ export interface Job {
   requirements: string[];
   perks: string[];
   occasions?: string[];
+  verified?: boolean;
 }
 
 export interface CartItem {

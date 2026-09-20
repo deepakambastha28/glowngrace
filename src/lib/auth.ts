@@ -5,10 +5,36 @@ import { persist } from "zustand/middleware";
 
 export type UserRole = "user" | "candidate" | "admin" | "recruiter";
 
+export type MembershipTier = "free" | "pro" | "pro_max";
+
+export const TIER_LABELS: Record<MembershipTier, string> = {
+  free: "Free",
+  pro: "Pro",
+  pro_max: "Pro Max",
+};
+
+export const TIER_RANK: Record<MembershipTier, number> = {
+  free: 0,
+  pro: 1,
+  pro_max: 2,
+};
+
+export const PRO_MAX_PLACEMENT_CAP = 3;
+
+/** Resolve the active membership tier for a user (expired tiers fall back to free). */
+export function activeTier(user: AuthUser | null): MembershipTier {
+  if (!user?.tier || user.tier === "free") return "free";
+  if (user.tierExpiresAt && Date.parse(user.tierExpiresAt) < Date.now()) return "free";
+  return user.tier;
+}
+
 export interface AuthUser {
   name: string;
   email: string;
   role: UserRole;
+  tier?: MembershipTier;
+  tierExpiresAt?: string | null;
+  jobsSecuredCount?: number;
 }
 
 interface RegisteredUser {
@@ -53,7 +79,11 @@ interface AuthStore {
   signIn: (user: AuthUser) => void;
   signOut: () => void;
   hasRole: (role: UserRole) => boolean;
+  upgradeTier: (tier: MembershipTier) => void;
+  incrementJobsSecured: () => void;
 }
+
+const TIER_DURATION_MS = 365 * 24 * 60 * 60 * 1000;
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -62,6 +92,24 @@ export const useAuthStore = create<AuthStore>()(
       signIn: (user) => set({ user }),
       signOut: () => set({ user: null }),
       hasRole: (role) => get().user?.role === role,
+      upgradeTier: (tier) => {
+        const user = get().user;
+        if (!user) return;
+        set({
+          user: {
+            ...user,
+            tier,
+            tierExpiresAt: new Date(Date.now() + TIER_DURATION_MS).toISOString(),
+          },
+        });
+      },
+      incrementJobsSecured: () => {
+        const user = get().user;
+        if (!user || user.tier !== "pro_max") return;
+        const current = user.jobsSecuredCount ?? 0;
+        if (current >= PRO_MAX_PLACEMENT_CAP) return;
+        set({ user: { ...user, jobsSecuredCount: Math.min(current + 1, PRO_MAX_PLACEMENT_CAP) } });
+      },
     }),
     {
       name: "glow-grace-user",

@@ -295,6 +295,7 @@ export type AdminJobRecord = {
   perks: string[];
   status: string;
   hidden: boolean;
+  verified?: boolean;
   createdAt: string;
 };
 
