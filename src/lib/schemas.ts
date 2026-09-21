@@ -392,6 +392,107 @@ export const shopConfigSchema = z.object({
 
 export type ShopConfigFormData = z.infer<typeof shopConfigSchema>;
 
+export const careerSectionSettingSchema = z.object({
+  key: z.enum(["heading", "services", "steps", "jobs", "cta"]),
+  visible: z.boolean(),
+  deleted: z.boolean().default(false),
+});
+
+export const careerServiceSchema = z.object({
+  emoji: z.string().default(""),
+  title: z.string().default(""),
+  description: z.string().default(""),
+});
+
+export const careerStepSchema = z.object({
+  title: z.string().default(""),
+  description: z.string().default(""),
+});
+
+export const careerCtaContentSchema = z.object({
+  title: z.string().default(""),
+  description: z.string().default(""),
+  primaryLabel: z.string().default(""),
+  primaryHref: z.string().default(""),
+  secondaryLabel: z.string().default(""),
+  secondaryHref: z.string().default(""),
+});
+
+export const careerConfigSchema = z.object({
+  sections: z.array(careerSectionSettingSchema).default([]),
+  heading: homeTextSectionSchema,
+  services: homeTextSectionSchema.extend({
+    items: z.array(careerServiceSchema).default([]),
+  }),
+  steps: homeTextSectionSchema.extend({
+    items: z.array(careerStepSchema).default([]),
+  }),
+  jobs: homeTextSectionSchema,
+  cta: careerCtaContentSchema,
+});
+
+export type CareerConfigFormData = z.infer<typeof careerConfigSchema>;
+
+export const partnerSectionSettingSchema = z.object({
+  key: z.enum(["directory", "benefits", "steps", "cta"]),
+  visible: z.boolean(),
+  deleted: z.boolean().default(false),
+});
+
+export const partnerBenefitSchema = z.object({
+  emoji: z.string().default(""),
+  title: z.string().default(""),
+  description: z.string().default(""),
+});
+
+export const partnerStepSchema = z.object({
+  title: z.string().default(""),
+  description: z.string().default(""),
+});
+
+export const partnerCtaContentSchema = z.object({
+  title: z.string().default(""),
+  description: z.string().default(""),
+  primaryLabel: z.string().default(""),
+  primaryHref: z.string().default(""),
+  secondaryLabel: z.string().default(""),
+  secondaryHref: z.string().default(""),
+});
+
+export const partnerConfigSchema = z.object({
+  sections: z.array(partnerSectionSettingSchema).default([]),
+  directory: homeTextSectionSchema,
+  benefits: homeTextSectionSchema.extend({
+    items: z.array(partnerBenefitSchema).default([]),
+  }),
+  steps: homeTextSectionSchema.extend({
+    items: z.array(partnerStepSchema).default([]),
+  }),
+  cta: partnerCtaContentSchema,
+});
+
+export type PartnerConfigFormData = z.infer<typeof partnerConfigSchema>;
+
+export const eventSectionSettingSchema = z.object({
+  key: z.enum(["banner", "carousel", "heading"]),
+  visible: z.boolean(),
+  deleted: z.boolean().default(false),
+});
+
+export const eventBannerContentSchema = z.object({
+  images: z.array(z.string()).default([]),
+  title: z.string().default(""),
+  subtitle: z.string().default(""),
+});
+
+export const eventConfigSchema = z.object({
+  sections: z.array(eventSectionSettingSchema).default([]),
+  banner: eventBannerContentSchema,
+  heading: homeTextSectionSchema,
+});
+
+export type EventConfigFormData = z.infer<typeof eventConfigSchema>;
+
 export const userAccountRoles = ["user", "candidate", "recruiter", "admin"] as const;
 export type UserAccountRole = (typeof userAccountRoles)[number];
 

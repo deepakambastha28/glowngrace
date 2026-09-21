@@ -10,6 +10,9 @@ import type { Job } from "@/lib/data";
 import type { Review } from "@/lib/data";
 import type { HomeConfig } from "@/lib/home-config";
 import type { ShopConfig } from "@/lib/shop-config";
+import type { CareerConfig } from "@/lib/career-config";
+import type { PartnerConfig } from "@/lib/partner-config";
+import type { EventConfig } from "@/lib/event-config";
 
 interface ApiResponse<T = unknown> {
   ok: boolean;
@@ -841,6 +844,96 @@ export function updateAdminShopConfig(
   config: ShopConfig
 ): Promise<ApiResponse<{ persisted: boolean; error?: string }>> {
   return request<{ persisted: boolean; error?: string }>("/api/admin/shop-config", {
+    method: "PUT",
+    ...body(config),
+  });
+}
+
+// ---------------------------------------------------------------
+// Career page configuration
+// ---------------------------------------------------------------
+
+export type CareerConfigResponse = {
+  persisted?: boolean;
+  config: CareerConfig;
+  error?: string;
+};
+
+/** GET /api/career-config — storefront career page configuration. */
+export function fetchCareerConfig(): Promise<ApiResponse<CareerConfigResponse>> {
+  return request<CareerConfigResponse>("/api/career-config");
+}
+
+/** GET /api/admin/career-config — admin view of the career page configuration. */
+export function fetchAdminCareerConfig(): Promise<ApiResponse<CareerConfigResponse>> {
+  return request<CareerConfigResponse>("/api/admin/career-config");
+}
+
+/** PUT /api/admin/career-config — save the career page configuration. */
+export function updateAdminCareerConfig(
+  config: CareerConfig
+): Promise<ApiResponse<{ persisted: boolean; error?: string }>> {
+  return request<{ persisted: boolean; error?: string }>("/api/admin/career-config", {
+    method: "PUT",
+    ...body(config),
+  });
+}
+
+// ---------------------------------------------------------------
+// Partners page configuration
+// ---------------------------------------------------------------
+
+export type PartnerConfigResponse = {
+  persisted?: boolean;
+  config: PartnerConfig;
+  error?: string;
+};
+
+/** GET /api/partner-config — storefront partners page configuration. */
+export function fetchPartnerConfig(): Promise<ApiResponse<PartnerConfigResponse>> {
+  return request<PartnerConfigResponse>("/api/partner-config");
+}
+
+/** GET /api/admin/partner-config — admin view of the partners page configuration. */
+export function fetchAdminPartnerConfig(): Promise<ApiResponse<PartnerConfigResponse>> {
+  return request<PartnerConfigResponse>("/api/admin/partner-config");
+}
+
+/** PUT /api/admin/partner-config — save the partners page configuration. */
+export function updateAdminPartnerConfig(
+  config: PartnerConfig
+): Promise<ApiResponse<{ persisted: boolean; error?: string }>> {
+  return request<{ persisted: boolean; error?: string }>("/api/admin/partner-config", {
+    method: "PUT",
+    ...body(config),
+  });
+}
+
+// ---------------------------------------------------------------
+// Events page configuration
+// ---------------------------------------------------------------
+
+export type EventConfigResponse = {
+  persisted?: boolean;
+  config: EventConfig;
+  error?: string;
+};
+
+/** GET /api/event-config — storefront events page configuration. */
+export function fetchEventConfig(): Promise<ApiResponse<EventConfigResponse>> {
+  return request<EventConfigResponse>("/api/event-config");
+}
+
+/** GET /api/admin/event-config — admin view of the events page configuration. */
+export function fetchAdminEventConfig(): Promise<ApiResponse<EventConfigResponse>> {
+  return request<EventConfigResponse>("/api/admin/event-config");
+}
+
+/** PUT /api/admin/event-config — save the events page configuration. */
+export function updateAdminEventConfig(
+  config: EventConfig
+): Promise<ApiResponse<{ persisted: boolean; error?: string }>> {
+  return request<{ persisted: boolean; error?: string }>("/api/admin/event-config", {
     method: "PUT",
     ...body(config),
   });

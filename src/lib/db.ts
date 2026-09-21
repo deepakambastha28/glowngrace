@@ -259,6 +259,21 @@ const SCHEMA_STATEMENTS: string[] = [
     config JSONB NOT NULL DEFAULT '{}'::jsonb,
     updated_at TIMESTAMPTZ DEFAULT now()
   )`,
+  `CREATE TABLE IF NOT EXISTS gg_admin_career_config (
+    id INT PRIMARY KEY DEFAULT 1,
+    config JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ DEFAULT now()
+  )`,
+  `CREATE TABLE IF NOT EXISTS gg_admin_partner_config (
+    id INT PRIMARY KEY DEFAULT 1,
+    config JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ DEFAULT now()
+  )`,
+  `CREATE TABLE IF NOT EXISTS gg_admin_event_config (
+    id INT PRIMARY KEY DEFAULT 1,
+    config JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ DEFAULT now()
+  )`,
   `CREATE TABLE IF NOT EXISTS gg_users (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,

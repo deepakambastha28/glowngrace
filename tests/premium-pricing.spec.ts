@@ -89,20 +89,20 @@ test.describe("Candidate premium membership", () => {
 
       // Logged out = free tier: standard listed, verified hidden
       await page.goto("/careers");
-      await expect(page.getByText("E2E Premium Standard Beautician")).toBeVisible();
+      await expect(page.getByText("E2E Premium Standard Beautician").first()).toBeVisible();
       await expect(page.getByText("E2E Premium Verified Makeup Artist")).toHaveCount(0);
 
       // Free candidate: still hidden
       await loginAsCandidate(page);
       await page.goto("/careers");
-      await expect(page.getByText("E2E Premium Standard Beautician")).toBeVisible();
+      await expect(page.getByText("E2E Premium Standard Beautician").first()).toBeVisible();
       await expect(page.getByText("E2E Premium Verified Makeup Artist")).toHaveCount(0);
 
       // Upgrade to Pro from the candidate preview profile, then see the verified job with a badge
       await openPreviewTab(page);
       await page.getByTestId("plan-pro").getByTestId("upgrade-pro").click();
       await page.goto("/careers");
-      await expect(page.getByText("E2E Premium Verified Makeup Artist")).toBeVisible();
+      await expect(page.getByText("E2E Premium Verified Makeup Artist").first()).toBeVisible();
       await expect(page.getByTestId("verified-badge").first()).toBeVisible();
     } finally {
       await deleteSeededJob(request, plainSlug);
