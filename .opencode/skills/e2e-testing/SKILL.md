@@ -223,6 +223,62 @@ mirrors the reference design and changes.
   hero-circle tests resolve the current `/api/home-config` first and assert
   `hero-circle-image` slides when configured (skipping the product-slide
   assertions); the product-slide path still runs whenever no hero images exist.
+  `/admin/pages/career` renders the career page manager (`career-config-form`,
+  with `career-config-save`, `career-heading-eyebrow`/`-title`/`-description`
+  (`{{count}}` → open-position count on the storefront),
+  `career-services-eyebrow`/`-title`/`-description` plus the service-card list
+  (`career-services-add`, `career-services-emoji-<n>`, `career-services-title-<n>`,
+  `career-services-description-<n>`, `career-services-remove-<n>`),
+  `career-steps-eyebrow`/`-title`/`-description` plus the numbered step list
+  (`career-steps-add`, `career-steps-title-<n>`, `career-steps-description-<n>`,
+  `career-steps-remove-<n>`), `career-jobs-eyebrow`/`-title`/`-description`,
+  `career-cta-title`/`-description`/`-primary-label`/`-primary-href`/
+  `-secondary-label`/`-secondary-href`, and the same
+  `career-section-toggle-*` / `career-section-delete-*` / `career-section-restore-*`
+  per-section card controls). The storefront `/careers` sections carry
+  `career-heading` / `career-services` / `career-steps` / `career-jobs` /
+  `career-cta` testids; the breadcrumb and job grid (`job-grid` /
+  `job-grid-empty`) always render. `tests/career-config.spec.ts` (3 tests) edits
+  the heading and hides the services section, adds a service card and edits a
+  step, and edits the CTA copy — all asserted on the storefront and restored in
+  `finally` with `restoreAdminConfig` (`/api/admin/career-config` →
+  `/api/career-config`).
+  `/admin/pages/partner` renders the partner page manager (`partner-config-form`,
+  with `partner-config-save`, `partner-directory-eyebrow`/`-title`/`-description`,
+  `partner-benefits-eyebrow`/`-title`/`-description` plus the benefit-card list
+  (`partner-benefits-add`, `partner-benefits-emoji-<n>`, `partner-benefits-title-<n>`,
+  `partner-benefits-description-<n>`, `partner-benefits-remove-<n>`),
+  `partner-steps-eyebrow`/`-title`/`-description` plus the numbered step list
+  (`partner-steps-add`, `partner-steps-title-<n>`, `partner-steps-description-<n>`,
+  `partner-steps-remove-<n>`), `partner-cta-title`/`-description`/`-primary-label`/
+  `-primary-href`/`-secondary-label`/`-secondary-href`, and the same
+  `partner-section-toggle-*` / `partner-section-delete-*` / `partner-section-restore-*`
+  per-section card controls). The storefront `/partners` sections carry
+  `partner-directory` (heading + toolbar + grid + map) / `partner-benefits` /
+  `partner-steps` / `partner-cta` testids; the breadcrumb always renders.
+  `tests/partner-config.spec.ts` (3 tests) edits the directory heading and hides
+  the benefits section, adds a benefit card and edits a step, and edits the CTA
+  copy — all asserted on the storefront and restored in `finally` with
+  `restoreAdminConfig` (`/api/admin/partner-config` → `/api/partner-config`).
+  `/admin/pages/event` renders the events page manager (`event-config-form`,
+  with `event-config-save`, `event-banner-image-upload` /
+  `event-banner-image-preview`, `event-banner-title`/`-subtitle`,
+  `event-heading-eyebrow`/`-title`/`-description`, and the same
+  `event-section-toggle-*` / `event-section-delete-*` /
+  `event-section-restore-*` per-section card controls; the `banner` section
+  carries image upload + title/subtitle, the `carousel` section is
+  visibility-only). The storefront `/events` sections carry `event-banner`
+  (banner slideshow — slide dots are `Go to event banner slide N` buttons),
+  `event-carousel` (inside the carousel component; it returns null when no
+  events exist) and `event-heading` (heading + toolbar + grid) testids; the
+  breadcrumb always renders. `tests/event-config.spec.ts` (4 tests) edits the
+  heading + hides the carousel, edits the heading eyebrow + description,
+  deletes then restores the events listing, and uploads a banner image + sets
+  banner text — asserted on the storefront and restored in `finally` with
+  `restoreAdminConfig` (`/api/admin/event-config` → `/api/event-config`). Note:
+  when a stored config predates the banner section it normalizes deleted/hidden,
+  so the banner test restores the section (and expands its collapsed card via
+  `getByRole("button", { name: "Banner", expanded: false })`) before editing.
 
 **strict-mode gotcha:** `add-to-cart` / `wishlist-button` testids appear on
 product CARDS too, so on a detail page they resolve to the main button PLUS the

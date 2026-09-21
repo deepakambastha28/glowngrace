@@ -24,7 +24,7 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 
 - **`/`** — Hero (+ rotating DB-backed product circle), stats, trust badges, categories, bestsellers, job vacancies, CTA banner, testimonials, newsletter, footer
 - **`/admin`** — Authenticated admin console (dashboard + products/jobs/events/partners/candidates/users with create / edit / hide / hold / delete, plus review moderation). Signed-in sessions (15-min expiry) gate the sidebar; `/admin` hides storefront chrome. Admins get an **Admin menu in the storefront top nav** once signed in.
-- **`/admin/pages`** — "Pages" sidebar group. `/admin/pages/home` is the **Home page manager**: edit storefront home copy (hero eyebrow/headline/highlight, stats, trust bar, section headings/descriptions, CTA buttons, testimonials heading), upload up to 5 hero circle images (rotating slideshow, 380 × 380 px — falls back to product slides when empty), and manage each section independently — show/hide, delete/restore, and reorder — saved via `PUT /api/admin/home-config` into `gg_admin_home_config`. `/admin/pages/shop` is the **Shop page manager**: upload up to 5 banner images (rotating slideshow, title/subtitle), edit the page heading, add/remove custom category chips (falls back to auto-detected product categories when empty), and show/hide/delete/reorder the banner, heading, and category chips — saved via `PUT /api/admin/shop-config` into `gg_admin_shop_config`. Career / Partner / Event / Contact pages are placeholder shells for upcoming work.
+- **`/admin/pages`** — "Pages" sidebar group. `/admin/pages/home` is the **Home page manager**: edit storefront home copy (hero eyebrow/headline/highlight, stats, trust bar, section headings/descriptions, CTA buttons, testimonials heading), upload up to 5 hero circle images (rotating slideshow, 380 × 380 px — falls back to product slides when empty), and manage each section independently — show/hide, delete/restore, and reorder — saved via `PUT /api/admin/home-config` into `gg_admin_home_config`. `/admin/pages/shop` is the **Shop page manager**: upload up to 5 banner images (rotating slideshow, title/subtitle), edit the page heading, add/remove custom category chips (falls back to auto-detected product categories when empty), and show/hide/delete/reorder the banner, heading, and category chips — saved via `PUT /api/admin/shop-config` into `gg_admin_shop_config`. `/admin/pages/career` is the **Career page manager**: edit the page heading, manage career service cards (emoji/title/description list) and "How It Works" steps, the job vacancies heading, and the CTA banner, with the same show/hide/delete/reorder controls — saved via `PUT /api/admin/career-config` into `gg_admin_career_config`. `/admin/pages/partner` is the **Partners page manager**: edit the partner directory heading, manage "Why Partner" benefit cards (emoji/title/description list) and "How It Works" steps, and the CTA banner, with the same show/hide/delete/reorder controls — saved via `PUT /api/admin/partner-config` into `gg_admin_partner_config`. `/admin/pages/event` is the **Events page manager**: upload a banner slideshow (up to 5 images + title/subtitle), toggle the featured carousel, and edit the events listing heading, with the same show/hide/delete/reorder controls — saved via `PUT /api/admin/event-config` into `gg_admin_event_config`. The `/admin/pages/contact` page is still a placeholder shell.
 - **`/admin/partners`** — 2-column partner form (Basic+Stats fields, Salon Gallery with cover/tile upload, Services chips, Packages manager) with a sticky **Live Preview** that mirrors the storefront card (cover photo, service chips, stats, gallery thumbs, packages).
 - **`/admin/users`** — User-account management across every role (`user` / `candidate` / `recruiter` / `admin`): search + role/status filters, create accounts, activate/suspend, reset passwords, and delete. The seeded `admin@glowngrace.in` account is **protected** — it cannot be suspended, deleted, or have its password reset from the UI or API.
 - **`/recruiter`** — Role-gated recruiter portal with a single top-nav (Home, Shop, Candidates, Careers, Events). Browse & hire candidates (`/recruiter/candidates`), manage job openings (`/recruiter/jobs`), update profile (`/recruiter/profile`), and publish workshops to the storefront event calendar (`/recruiter/events`). Recruiters sign in with the `recruiter` account type; logout always returns to the home page. Recruiters get a **Recruiter menu in the storefront top nav** once signed in.
@@ -36,10 +36,10 @@ A production-ready Next.js 14 (App Router, TypeScript) eCommerce + beauty-career
 - **`/cart`** — Editable quantity, remove, promo code (`GLOW10` for 10% off), summary (subtotal + free-shipping logic + 5% GST + total), empty state, DB-backed wishlist section.
 - **`/checkout`** — 3-step wizard (Cart → Shipping & Payment → Confirmation) with live order summary; payment: Card / UPI / NetBanking / COD. Place Order clears the cart and shows order ID.
 - **`/checkout/success`** — Order confirmation with `#GG-2026-XXXXX`
-- **`/partners`** — Partner directory driven by admin DB (`/api/partners`), hidden on home when empty. Cards + detail pages render uploaded cover/gallery photos and priced packages.
+- **`/partners`** — Config-driven page (see `/admin/pages/partner`) rendering a partner directory heading + search/filter toolbar with grid & map views, "Why Partner" benefit cards, a "How It Works" steps strip, and a CTA banner. Partner cards/detail pages are driven by `/api/partners` (admin DB) and hidden on home when empty.
 - **`/partners/[slug]`** — Partner detail with hero cover photo, gallery grid + lightbox, service chips (with optional duration/description), ratings/stats, and a packages list with ₹ prices.
-- **`/events`** — Admin-DB event tiles (created in `/admin/events`, exposed via `/api/events`), search + date/location filters, detail with gallery + lightbox, carousel banner
-- **`/careers`** — Job cards (type, title, salon, location, salary, experience) driven by `/api/jobs` (admin DB). Live jobs flagged **verified** (a gold "Genuine Job Hunt Listing" pill) are shown only to **Pro / Pro Max members**; free-tier visitors (logged out or `tier: free`) see just the unverified openings.
+- **`/events`** — Config-driven page (see `/admin/pages/event`) rendering a configurable banner slideshow, a featured event carousel, and an events heading around the search + date/location filtered grid. Tiles are admin-DB (`/admin/events`, exposed via `/api/events`).
+- **`/careers`** — Config-driven page (see `/admin/pages/career`) rendering a page heading, career service cards, a "How It Works" steps strip, and a CTA banner around the job grid. Job cards (type, title, salon, location, salary, experience) are driven by `/api/jobs` (admin DB). Live jobs flagged **verified** (a gold "Genuine Job Hunt Listing" pill) are shown only to **Pro / Pro Max members**; free-tier visitors (logged out or `tier: free`) see just the unverified openings.
 - **`/careers/[slug]`** — Job header + tags, responsibilities, requirements, perks, sticky Apply box
 - **`/careers/[slug]/apply`** — Validated application form with drag-drop PDF/DOC resume upload, T&C, success screen
 - **`/shopper`** & **`/candidate`** — Role-based profiles with Edit Profile / orders / password / address / contact tabs. The candidate **Preview Profile** tab adds a **Membership Plans** section (Free / Pro ₹1,000 / Pro Max ₹3,000 per year, Pro Max highlighted) with one-click upgrades, a member tier badge, and a Pro Max placement-placement tracker — the tier gates verified job listings on `/careers`.
@@ -154,6 +154,32 @@ Alternatively use the CLI: `npm i -g vercel && vercel` (then `vercel --prod`).
   over `DEFAULT_SHOP_CONFIG` in `src/lib/shop-config.ts`. The breadcrumb,
   search/sort toolbar, product grid, and top menu are not configurable. The
   route is `force-dynamic`, so `/admin/pages/shop` edits publish immediately.
+- **Career page content:** the storefront career page (`/careers`) is
+  config-driven from the admin career configuration (`/api/career-config` →
+  `gg_admin_career_config`, single row `id = 1`): the page heading
+  (eyebrow/title/description — `{{count}}` renders the live open-position
+  count), career service cards (emoji/title/description), "How It Works" steps
+  (numbered title/description), the job vacancies heading, and a CTA banner
+  (title/description + dual buttons), each with per-section visibility +
+  ordering, merged over `DEFAULT_CAREER_CONFIG` in `src/lib/career-config.ts`.
+  The breadcrumb and the job grid itself (from `/api/jobs`) always render.
+- **Partner page content:** the storefront partners page (`/partners`) is
+  config-driven from the admin partner configuration (`/api/partner-config` →
+  `gg_admin_partner_config`, single row `id = 1`): the partner directory heading
+  (eyebrow/title/description), "Why Partner" benefit cards
+  (emoji/title/description), "How It Works" steps (numbered title/description),
+  and a CTA banner (title/description + buttons), each with per-section
+  visibility + ordering, merged over `DEFAULT_PARTNER_CONFIG` in
+  `src/lib/partner-config.ts`. The breadcrumb and the directory toolbar, search,
+  and grid/map views always render.
+- **Event page content:** the storefront events page (`/events`) is
+  config-driven from the admin event configuration (`/api/event-config` →
+  `gg_admin_event_config`, single row `id = 1`): the top banner slideshow
+  (up to `EVENT_BANNER_MAX_IMAGES` = 5 uploaded images + title/subtitle), the
+  featured events carousel (visibility only), and the events listing heading
+  (eyebrow/title/description), each with per-section visibility + ordering,
+  merged over `DEFAULT_EVENT_CONFIG` in `src/lib/event-config.ts`. The
+  breadcrumb and the search/sort toolbar + grid always render.
 - **Totals:** `total = subtotal + 5% GST + shipping (FREE over ₹999) − promo`
 - **Cart/wishlist:** persisted to `localStorage` (Zustand `persist` middleware);
   the cart-page wishlist resolves product details from `/api/products`
@@ -200,7 +226,9 @@ src/
   local dev section above.
 - Admin tables: `gg_admin_products`, `gg_admin_jobs`, `gg_admin_events`,
   `gg_admin_partners`, `gg_admin_candidates`, `gg_admin_reviews`,
-  `gg_admin_sessions`, `gg_admin_home_config`, `gg_admin_shop_config`, `gg_users`.
+  `gg_admin_sessions`, `gg_admin_home_config`, `gg_admin_shop_config`,
+  `gg_admin_career_config`, `gg_admin_partner_config`,
+  `gg_admin_event_config`, `gg_users`.
   `/api/products`, `/api/partners`, `/api/events`, and `/api/jobs` expose
   non-hidden rows to the storefront with `admin-`-prefixed ids.
 - Home configuration: `gg_admin_home_config` (single row, `id = 1`) stores the
@@ -214,6 +242,25 @@ src/
   `PUT /api/admin/shop-config` from `/admin/pages/shop` and served to the
   storefront by `/api/shop-config`. When the row is absent the app falls back
   to the defaults in `src/lib/shop-config.ts`.
+- Career configuration: `gg_admin_career_config` (single row, `id = 1`) stores
+  the storefront career page JSONB config (heading copy, service cards and
+  "How It Works" step lists, CTA buttons, per-section visibility/ordering),
+  written by `PUT /api/admin/career-config` from `/admin/pages/career` and
+  served to the storefront by `/api/career-config`. When the row is absent the
+  app falls back to the defaults in `src/lib/career-config.ts`.
+- Partner configuration: `gg_admin_partner_config` (single row, `id = 1`) stores
+  the storefront partners page JSONB config (directory heading, benefit card and
+  step lists, CTA buttons, per-section visibility/ordering), written by
+  `PUT /api/admin/partner-config` from `/admin/pages/partner` and served to the
+  storefront by `/api/partner-config`. When the row is absent the app falls
+  back to the defaults in `src/lib/partner-config.ts`.
+- Event configuration: `gg_admin_event_config` (single row, `id = 1`) stores
+  the storefront events page JSONB config (banner slideshow images + title/
+  subtitle, carousel visibility, listing heading, per-section
+  visibility/ordering), written by `PUT /api/admin/event-config`
+  from `/admin/pages/event` and served to the storefront by `/api/event-config`.
+  When the row is absent the app falls back to the defaults in
+  `src/lib/event-config.ts`.
 - User accounts: `gg_users` rows are created/updated/deleted via
   `/api/admin/users` (admin console) and `/api/users/register` (storefront
   signup, best-effort); passwords are stored as salted scrypt hashes

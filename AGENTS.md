@@ -135,8 +135,43 @@ pill buttons) when touching UI.
   product grid always render (not configurable).
   `/api/shop-config` serves it; `/admin/pages/shop` edits it (`GET`/`PUT
   /api/admin/shop-config`, zod `shopConfigSchema`). The site top menu is NOT
-  configurable. The admin "Pages" sidebar group also has placeholder shells for
-  career/partner/event/contact.
+  configurable. The admin "Pages" sidebar group is fully built for
+  home/shop/career/partner/event; only `/admin/pages/contact` is still a
+  placeholder shell.
+- Career config: the storefront career page (`/careers`) is config-driven from a
+  single `gg_admin_career_config` row (`id = 1`), mirroring home/shop config —
+  page heading (eyebrow/title/description, `{{count}}` placeholder renders the
+  number of open positions), career service cards (emoji/title/description list),
+  "How It Works" steps (numbered title/description list), the job vacancies
+  heading (the job grid itself always renders from `/api/jobs`), and a CTA
+  banner (title/description + dual buttons), each with per-section visibility +
+  ordering + deletion (`src/lib/career-config.ts` defaults +
+  `normalizeCareerConfig`, loaded by `src/lib/career-config-server.ts`). The
+  breadcrumb always renders.
+  `/api/career-config` serves it; `/admin/pages/career` edits it (`GET`/`PUT
+  /api/admin/career-config`, zod `careerConfigSchema`).
+- Partner config: the storefront partners page (`/partners`) is config-driven
+  from a single `gg_admin_partner_config` row (`id = 1`), mirroring career
+  config — the partner directory heading (eyebrow/title/description; the
+  directory toolbar/search + grid + map always render with it), "Why Partner"
+  benefit cards (emoji/title/description list), "How It Works" steps (numbered
+  title/description list), and a CTA banner (title/description + buttons),
+  each with per-section visibility + ordering + deletion
+  (`src/lib/partner-config.ts` defaults + `normalizePartnerConfig`, loaded by
+  `src/lib/partner-config-server.ts`). The breadcrumb always renders.
+  `/api/partner-config` serves it; `/admin/pages/partner` edits it (`GET`/`PUT
+  /api/admin/partner-config`, zod `partnerConfigSchema`).
+- Event config: the storefront events page (`/events`) is config-driven from a
+  single `gg_admin_event_config` row (`id = 1`), same pattern — the events
+  banner (up to `EVENT_BANNER_MAX_IMAGES` = 5 uploaded images shown as a
+  rotating slideshow + title/subtitle), the featured events carousel
+  (visibility only; still auto-shows the four soonest events) and the events
+  listing heading (eyebrow/title/description; the search/sort toolbar + grid
+  always render with it), each with per-section visibility + ordering +
+  deletion (`src/lib/event-config.ts` defaults + `normalizeEventConfig`, loaded
+  by `src/lib/event-config-server.ts`). The breadcrumb always renders.
+  `/api/event-config` serves it; `/admin/pages/event` edits it (`GET`/`PUT
+  /api/admin/event-config`, zod `eventConfigSchema`).
 
 ## Test-data & deletion policy (user-mandated)
 - **Never delete production/real records.** Test helpers and specs may only
@@ -150,9 +185,12 @@ pill buttons) when touching UI.
   Deletes are verified: `deleteSeeded*` retry with a 60s timeout and **throw**
   unless the DELETE returns 2xx, so a Neon slow-write can never silently strand
   an E2E row in the live DB.
-- **Config specs restore prod data exactly:** `tests/admin-home-config.spec.ts`
-  and `tests/shop-config.spec.ts` snapshot the live page config
-  (`GET /api/home-config` / `/api/shop-config`) and restore it in `finally`
+- **Config specs restore prod data exactly:** `tests/admin-home-config.spec.ts`,
+  `tests/shop-config.spec.ts`, `tests/career-config.spec.ts`,
+  `tests/partner-config.spec.ts` and `tests/event-config.spec.ts` snapshot the
+  live page config
+  (`GET /api/home-config` / `/api/shop-config` / `/api/career-config` /
+  `/api/partner-config` / `/api/event-config`) and restore it in `finally`
   via `restoreAdminConfig` in `tests/helpers.ts` — PUTs with a generous timeout,
   retries on Neon slow-write timeouts, and verifies the stored row equals the
   original by reading it back, so a timed-out run cannot strand test changes in

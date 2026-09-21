@@ -2,19 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  Search,
-  Map,
-  LayoutGrid,
-  Users,
-  Megaphone,
-  ShieldCheck,
-  TrendingUp,
-} from "lucide-react";
-import { fetchPartners } from "@/lib/api";
+import { Search, Map, LayoutGrid } from "lucide-react";
+import { fetchPartners, fetchPartnerConfig } from "@/lib/api";
 import { localityPos } from "@/lib/data";
 import type { Partner } from "@/lib/data";
 import { PartnerCard } from "@/components/partners/partner-card";
+import {
+  DEFAULT_PARTNER_CONFIG,
+  normalizePartnerConfig,
+  type PartnerConfig,
+  type PartnerSectionKey,
+} from "@/lib/partner-config";
 
 type SortKey = "rating" | "name" | "reviews";
 
@@ -24,42 +22,9 @@ const sortOptions: { value: SortKey; label: string }[] = [
   { value: "reviews", label: "💬 Most Reviewed" },
 ];
 
-const benefits = [
-  {
-    icon: Users,
-    title: "Verified Talent Pool",
-    description:
-      "Access a growing pool of trained, background-checked beauticians and stylists ready to join your team.",
-  },
-  {
-    icon: Megaphone,
-    title: "Free Job Posting",
-    description:
-      "List vacancies on our platform at no cost and reach thousands of job-seeking beauty professionals.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Grow Your Salon",
-    description:
-      "Attract more customers with your partner badge and premium listing across our storefront and channels.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Trusted Partnership",
-    description:
-      "Partner with a trusted Lucknow beauty brand and gain instant credibility in the local market.",
-  },
-];
-
-const steps = [
-  { number: "1", title: "Register", description: "Tell us about your salon in minutes." },
-  { number: "2", title: "Get Verified", description: "Our team verifies and onboards your salon." },
-  { number: "3", title: "Hire Talent", description: "Post jobs and interview vetted professionals." },
-  { number: "4", title: "Grow Together", description: "Get customer leads and grow with us." },
-];
-
 export default function PartnersPage() {
   const [items, setItems] = useState<Partner[]>([]);
+  const [config, setConfig] = useState<PartnerConfig>(DEFAULT_PARTNER_CONFIG);
   const [query, setQuery] = useState("");
   const [loc, setLoc] = useState("");
   const [service, setService] = useState("");
@@ -77,6 +42,22 @@ export default function PartnersPage() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetchPartnerConfig().then((res) => {
+      if (!active) return;
+      setConfig(normalizePartnerConfig(res.data?.config ?? DEFAULT_PARTNER_CONFIG));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const isSectionVisible = (key: PartnerSectionKey): boolean => {
+    const section = config.sections.find((s) => s.key === key);
+    return section ? section.visible && !section.deleted : true;
+  };
 
   const allLocs = useMemo(
     () => Array.from(new Set(items.map((p) => p.loc))).sort(),
@@ -135,306 +116,332 @@ export default function PartnersPage() {
         </div>
       </div>
 
-      <section className="section pt-10">
-        <div className="mx-auto max-w-screen-xl px-6">
-          <div className="section-head">
-            <p className="eyebrow">Our Network</p>
-            <h2>Partner Beauty Parlours</h2>
-            <p>
-              Explore our network of premium beauty parlours &amp; salons across
-              Lucknow. Browse their galleries, services and ratings.
-            </p>
-          </div>
-
-          {/* Toolbar */}
-          <div className="partner-toolbar">
-            <div className="partner-search">
-              <Search className="h-4 w-4 text-rose shrink-0" />
-              <input
-                placeholder="Search parlours, services or tags…"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
+      {isSectionVisible("directory") && (
+        <section className="section pt-10" data-testid="partner-directory">
+          <div className="mx-auto max-w-screen-xl px-6">
+            <div className="section-head">
+              <p className="eyebrow">{config.directory.eyebrow}</p>
+              <h1>{config.directory.title}</h1>
+              {config.directory.description && <p>{config.directory.description}</p>}
             </div>
-            <select
-              className="partner-select"
-              value={loc}
-              onChange={(e) => setLoc(e.target.value)}
-            >
-              <option value="">📍 All Localities</option>
-              {allLocs.map((l) => (
-                <option key={l} value={l}>
-                  {l}
-                </option>
-              ))}
-            </select>
-            <select
-              className="partner-select"
-              value={service}
-              onChange={(e) => setService(e.target.value)}
-            >
-              <option value="">💅 All Services</option>
-              {allServices.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-            <select
-              className="partner-select"
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
-            >
-              {sortOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-            <div className="view-toggle">
-              <button
-                className={view === "grid" ? "active" : ""}
-                onClick={() => setView("grid")}
-              >
-                <LayoutGrid className="h-4 w-4" /> Grid
-              </button>
-              <button
-                className={view === "map" ? "active" : ""}
-                onClick={() => setView("map")}
-              >
-                <Map className="h-4 w-4" /> Map
-              </button>
-            </div>
-            {hasFilters && (
-              <button
-                className="partner-clear"
-                onClick={() => {
-                  setQuery("");
-                  setLoc("");
-                  setService("");
-                  setSort("rating");
-                }}
-              >
-                Clear
-              </button>
-            )}
-          </div>
 
-          {/* Count + chips */}
-          <div className="partner-count">
-            <span>
-              Showing <b>{filtered.length}</b> of {items.length} parlours
-            </span>
-            {hasFilters && (
-              <span className="active-chips">
-                {query && (
-                  <span className="fchip">
-                    <span className="fk">Search:</span> &ldquo;{query}&rdquo;{" "}
-                    <span className="fx" onClick={() => setQuery("")}>
-                      ✕
-                    </span>
-                  </span>
-                )}
-                {loc && (
-                  <span className="fchip">
-                    <span className="fk">📍</span> {loc}{" "}
-                    <span className="fx" onClick={() => setLoc("")}>
-                      ✕
-                    </span>
-                  </span>
-                )}
-                {service && (
-                  <span className="fchip">
-                    <span className="fk">💅</span> {service}{" "}
-                    <span className="fx" onClick={() => setService("")}>
-                      ✕
-                    </span>
-                  </span>
-                )}
+            {/* Toolbar */}
+            <div className="partner-toolbar">
+              <div className="partner-search">
+                <Search className="h-4 w-4 text-rose shrink-0" />
+                <input
+                  placeholder="Search parlours, services or tags…"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              </div>
+              <select
+                className="partner-select"
+                value={loc}
+                onChange={(e) => setLoc(e.target.value)}
+              >
+                <option value="">📍 All Localities</option>
+                {allLocs.map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="partner-select"
+                value={service}
+                onChange={(e) => setService(e.target.value)}
+              >
+                <option value="">💅 All Services</option>
+                {allServices.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="partner-select"
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortKey)}
+              >
+                {sortOptions.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+              <div className="view-toggle">
                 <button
-                  className="clear-all-chip"
+                  className={view === "grid" ? "active" : ""}
+                  onClick={() => setView("grid")}
+                >
+                  <LayoutGrid className="h-4 w-4" /> Grid
+                </button>
+                <button
+                  className={view === "map" ? "active" : ""}
+                  onClick={() => setView("map")}
+                >
+                  <Map className="h-4 w-4" /> Map
+                </button>
+              </div>
+              {hasFilters && (
+                <button
+                  className="partner-clear"
                   onClick={() => {
                     setQuery("");
                     setLoc("");
                     setService("");
+                    setSort("rating");
                   }}
                 >
-                  Clear all
+                  Clear
                 </button>
-              </span>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Grid view */}
-          {view === "grid" && (
-            <>
-              {filtered.length === 0 ? (
-                <div className="partner-empty">
-                  <div className="ic">🔍</div>
-                  <h3>No parlours found</h3>
-                  <p style={{ marginTop: 8 }}>
-                    Try a different search, locality or service.
-                  </p>
+            {/* Count + chips */}
+            <div className="partner-count">
+              <span>
+                Showing <b>{filtered.length}</b> of {items.length} parlours
+              </span>
+              {hasFilters && (
+                <span className="active-chips">
+                  {query && (
+                    <span className="fchip">
+                      <span className="fk">Search:</span> &ldquo;{query}&rdquo;{" "}
+                      <span className="fx" onClick={() => setQuery("")}>
+                        ✕
+                      </span>
+                    </span>
+                  )}
+                  {loc && (
+                    <span className="fchip">
+                      <span className="fk">📍</span> {loc}{" "}
+                      <span className="fx" onClick={() => setLoc("")}>
+                        ✕
+                      </span>
+                    </span>
+                  )}
+                  {service && (
+                    <span className="fchip">
+                      <span className="fk">💅</span> {service}{" "}
+                      <span className="fx" onClick={() => setService("")}>
+                        ✕
+                      </span>
+                    </span>
+                  )}
                   <button
-                    className="btn-outline mt-4"
+                    className="clear-all-chip"
                     onClick={() => {
                       setQuery("");
                       setLoc("");
                       setService("");
                     }}
                   >
-                    Clear Filters
+                    Clear all
                   </button>
-                </div>
-              ) : (
-                <div className="partner-grid">
-                  {filtered.map((p) => (
-                    <PartnerCard key={p.id} partner={p} />
-                  ))}
-                </div>
+                </span>
               )}
-            </>
-          )}
+            </div>
 
-          {/* Map view */}
-          {view === "map" && (
-            <div className="map-wrap">
-              <div className="map-canvas">
-                <div className="road h" style={{ top: "22%", left: 0, right: 0 }} />
-                <div className="road h" style={{ top: "58%", left: 0, right: 0 }} />
-                <div className="road h" style={{ top: "82%", left: 0, right: 0 }} />
-                <div className="road v" style={{ left: "28%", top: 0, bottom: 0 }} />
-                <div className="road v" style={{ left: "62%", top: 0, bottom: 0 }} />
-                <div className="road v" style={{ left: "85%", top: 0, bottom: 0 }} />
-                <div
-                  className="river"
-                  style={{ width: "60%", height: 26, top: "40%", left: "20%" }}
-                />
-                <div className="map-label" style={{ top: "12%", left: "6%" }}>
-                  North Lucknow
-                </div>
-                <div className="map-label" style={{ top: "44%", left: "44%" }}>
-                  Gomti River
-                </div>
-                <div className="map-label" style={{ bottom: "6%", right: "8%" }}>
-                  South Lucknow
-                </div>
-                {pins.map((p) => (
-                  <Link
-                    key={p.id}
-                    href={`/partners/${p.slug}`}
-                    className="map-pin"
-                    style={{ left: `${p.left}%`, top: `${p.top}%` }}
-                    title={p.name}
-                  >
-                    <div
-                      className="bubble"
-                      style={{ background: p.gradient }}
-                    >
-                      <span>{p.emoji}</span>
-                      <span className="prate">⭐{p.rating}</span>
-                    </div>
-                    <div className="plabel">{p.name.split(" ")[0]}</div>
-                  </Link>
-                ))}
-                <div className="map-legend">
-                  📍 <b>{pins.length}</b> partner locations · tap a pin to view
-                </div>
-              </div>
-
-              <div className="map-list">
+            {/* Grid view */}
+            {view === "grid" && (
+              <>
                 {filtered.length === 0 ? (
                   <div className="partner-empty">
-                    <div className="ic">🗺️</div>
-                    <p>No locations match your filters.</p>
+                    <div className="ic">🔍</div>
+                    <h3>No parlours found</h3>
+                    <p style={{ marginTop: 8 }}>
+                      Try a different search, locality or service.
+                    </p>
+                    <button
+                      className="btn-outline mt-4"
+                      onClick={() => {
+                        setQuery("");
+                        setLoc("");
+                        setService("");
+                      }}
+                    >
+                      Clear Filters
+                    </button>
                   </div>
                 ) : (
-                  filtered.map((p) => (
+                  <div className="partner-grid">
+                    {filtered.map((p) => (
+                      <PartnerCard key={p.id} partner={p} />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Map view */}
+            {view === "map" && (
+              <div className="map-wrap">
+                <div className="map-canvas">
+                  <div className="road h" style={{ top: "22%", left: 0, right: 0 }} />
+                  <div className="road h" style={{ top: "58%", left: 0, right: 0 }} />
+                  <div className="road h" style={{ top: "82%", left: 0, right: 0 }} />
+                  <div className="road v" style={{ left: "28%", top: 0, bottom: 0 }} />
+                  <div className="road v" style={{ left: "62%", top: 0, bottom: 0 }} />
+                  <div className="road v" style={{ left: "85%", top: 0, bottom: 0 }} />
+                  <div
+                    className="river"
+                    style={{ width: "60%", height: 26, top: "40%", left: "20%" }}
+                  />
+                  <div className="map-label" style={{ top: "12%", left: "6%" }}>
+                    North Lucknow
+                  </div>
+                  <div className="map-label" style={{ top: "44%", left: "44%" }}>
+                    Gomti River
+                  </div>
+                  <div className="map-label" style={{ bottom: "6%", right: "8%" }}>
+                    South Lucknow
+                  </div>
+                  {pins.map((p) => (
                     <Link
                       key={p.id}
                       href={`/partners/${p.slug}`}
-                      className="map-item"
+                      className="map-pin"
+                      style={{ left: `${p.left}%`, top: `${p.top}%` }}
+                      title={p.name}
                     >
                       <div
-                        className="mi-ph"
+                        className="bubble"
                         style={{ background: p.gradient }}
                       >
-                        {p.emoji}
+                        <span>{p.emoji}</span>
+                        <span className="prate">⭐{p.rating}</span>
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <h4>{p.name}</h4>
-                        <div className="mi-loc">
-                          📍 {p.loc}, Lucknow
-                        </div>
-                        <div className="mi-meta">
-                          ⭐ {p.rating} · {p.reviews} reviews · {p.images?.length ?? p.gallery.length} photos
-                        </div>
-                      </div>
-                      <span style={{ color: "var(--rose)", fontSize: "1.2rem" }}>›</span>
+                      <div className="plabel">{p.name.split(" ")[0]}</div>
                     </Link>
-                  ))
-                )}
+                  ))}
+                  <div className="map-legend">
+                    📍 <b>{pins.length}</b> partner locations · tap a pin to view
+                  </div>
+                </div>
+
+                <div className="map-list">
+                  {filtered.length === 0 ? (
+                    <div className="partner-empty">
+                      <div className="ic">🗺️</div>
+                      <p>No locations match your filters.</p>
+                    </div>
+                  ) : (
+                    filtered.map((p) => (
+                      <Link
+                        key={p.id}
+                        href={`/partners/${p.slug}`}
+                        className="map-item"
+                      >
+                        <div
+                          className="mi-ph"
+                          style={{ background: p.gradient }}
+                        >
+                          {p.emoji}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <h4>{p.name}</h4>
+                          <div className="mi-loc">
+                            📍 {p.loc}, Lucknow
+                          </div>
+                          <div className="mi-meta">
+                            ⭐ {p.rating} · {p.reviews} reviews · {p.images?.length ?? p.gallery.length} photos
+                          </div>
+                        </div>
+                        <span style={{ color: "var(--rose)", fontSize: "1.2rem" }}>›</span>
+                      </Link>
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </section>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Why partner */}
-      <div className="mx-auto max-w-screen-xl px-6 pt-16">
-        <div className="section-head">
-          <p className="eyebrow">Why Partner With Us</p>
-          <h2>Perks of a Glow &amp; Grace Partnership</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {benefits.map(({ icon: Icon, title, description }) => (
-            <div key={title} className="card !rounded-[18px] p-[28px_24px]">
-              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-rose-gradient text-white">
-                <Icon className="h-6 w-6" />
+      {isSectionVisible("benefits") && (
+        <div className="mx-auto max-w-screen-xl px-6 pt-16" data-testid="partner-benefits">
+          <div className="section-head">
+            <p className="eyebrow">{config.benefits.eyebrow}</p>
+            <h2>{config.benefits.title}</h2>
+            {config.benefits.description && <p>{config.benefits.description}</p>}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {config.benefits.items.map((benefit, index) => (
+              <div key={index} className="card !rounded-[18px] p-[28px_24px]">
+                <div className="grid h-14 w-14 place-items-center rounded-2xl bg-rose-gradient text-3xl">
+                  {benefit.emoji}
+                </div>
+                {benefit.title && (
+                  <h3 className="mt-5 text-[1.1rem] mb-2">{benefit.title}</h3>
+                )}
+                {benefit.description && (
+                  <p className="text-[0.88rem] text-muted leading-relaxed">{benefit.description}</p>
+                )}
               </div>
-              <h3 className="mt-5 text-[1.1rem] mb-2">{title}</h3>
-              <p className="text-[0.88rem] text-muted leading-relaxed">{description}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* How it works */}
-      <div className="mx-auto max-w-screen-xl px-6 pt-16">
-        <div className="section-head">
-          <p className="eyebrow">How It Works</p>
-          <h2>From Sign-Up to Scaling</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {steps.map((step) => (
-            <div key={step.number} className="text-center">
-              <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-rose-gradient text-[1.5rem] font-bold text-white shadow-gold">
-                {step.number}
+      {isSectionVisible("steps") && (
+        <div className="mx-auto max-w-screen-xl px-6 pt-16" data-testid="partner-steps">
+          <div className="section-head">
+            <p className="eyebrow">{config.steps.eyebrow}</p>
+            <h2>{config.steps.title}</h2>
+            {config.steps.description && <p>{config.steps.description}</p>}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {config.steps.items.map((step, index) => (
+              <div key={index} className="text-center">
+                <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-rose-gradient text-[1.5rem] font-bold text-white shadow-gold">
+                  {index + 1}
+                </div>
+                {step.title && <h3 className="text-[1.1rem] mb-1.5">{step.title}</h3>}
+                {step.description && (
+                  <p className="text-[0.85rem] text-muted">{step.description}</p>
+                )}
               </div>
-              <h3 className="text-[1.1rem] mb-1.5">{step.title}</h3>
-              <p className="text-[0.85rem] text-muted">{step.description}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Brand trust CTA */}
-      <div className="mx-auto max-w-screen-xl px-6 pt-16">
-        <div className="rounded-[28px] bg-dark-gradient px-8 py-[50px] text-center relative overflow-hidden">
-          <span className="pointer-events-none absolute top-[-20px] left-8 text-[4.5rem] opacity-10">💼</span>
-          <span className="pointer-events-none absolute bottom-[-20px] right-8 text-[4.5rem] opacity-10">💄</span>
-          <h2 className="text-white text-[1.8rem] md:text-[2.1rem] mb-3">
-            Representing Globally Recognised Beauty Brands
-          </h2>
-          <p className="text-[#d9cbd8] max-w-xl mx-auto mb-8">
-            Become a verified partner salon and hire trained, passionate
-            professionals through Glow &amp; Grace.
-          </p>
-          <Link href="/signup?accountType=recruiter" className="btn-gold">
-            Register Your Salon
-          </Link>
+      {isSectionVisible("cta") && (
+        <div className="mx-auto max-w-screen-xl px-6 pt-16" data-testid="partner-cta">
+          <div className="rounded-[28px] bg-dark-gradient px-8 py-[50px] text-center relative overflow-hidden">
+            <span className="pointer-events-none absolute top-[-20px] left-8 text-[4.5rem] opacity-10">💼</span>
+            <span className="pointer-events-none absolute bottom-[-20px] right-8 text-[4.5rem] opacity-10">💄</span>
+            <h2 className="text-white text-[1.8rem] md:text-[2.1rem] mb-3">
+              {config.cta.title}
+            </h2>
+            {config.cta.description && (
+              <p className="text-[#d9cbd8] max-w-xl mx-auto mb-8">
+                {config.cta.description}
+              </p>
+            )}
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {config.cta.primaryLabel && config.cta.primaryHref && (
+                <Link href={config.cta.primaryHref} className="btn-gold">
+                  {config.cta.primaryLabel}
+                </Link>
+              )}
+              {config.cta.secondaryLabel && config.cta.secondaryHref && (
+                <Link
+                  href={config.cta.secondaryHref}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border-[1.6px] border-white/40 px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-charcoal"
+                >
+                  {config.cta.secondaryLabel}
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
