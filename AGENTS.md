@@ -152,13 +152,16 @@ pill buttons) when touching UI.
   /api/admin/career-config`, zod `careerConfigSchema`).
 - Partner config: the storefront partners page (`/partners`) is config-driven
   from a single `gg_admin_partner_config` row (`id = 1`), mirroring career
-  config — the partner directory heading (eyebrow/title/description; the
-  directory toolbar/search + grid + map always render with it), "Why Partner"
-  benefit cards (emoji/title/description list), "How It Works" steps (numbered
-  title/description list), and a CTA banner (title/description + buttons),
-  each with per-section visibility + ordering + deletion
-  (`src/lib/partner-config.ts` defaults + `normalizePartnerConfig`, loaded by
-  `src/lib/partner-config-server.ts`). The breadcrumb always renders.
+  config — a banner (up to `PARTNER_BANNER_MAX_IMAGES` = 5 uploaded images shown
+  as a rotating slideshow + title/subtitle), the partner directory heading
+  (eyebrow/title/description; the directory toolbar/search + grid + map always
+  render with it), "Why Partner" benefit cards (emoji/title/description list),
+  "How It Works" steps (numbered title/description list), and a CTA banner
+  (title/description + buttons), each with per-section visibility + ordering +
+  deletion; a section key missing from a stored config (e.g. the banner on an
+  older row) defaults to visible rather than deleted
+  (`src/lib/partner-config.ts` defaults + `normalizePartnerConfig`,
+  loaded by `src/lib/partner-config-server.ts`). The breadcrumb always renders.
   `/api/partner-config` serves it; `/admin/pages/partner` edits it (`GET`/`PUT
   /api/admin/partner-config`, zod `partnerConfigSchema`).
 - Event config: the storefront events page (`/events`) is config-driven from a

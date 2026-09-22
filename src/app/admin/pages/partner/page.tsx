@@ -6,6 +6,7 @@ import { AdminPageHead } from "@/components/admin/page-head";
 import { fetchAdminPartnerConfig, updateAdminPartnerConfig } from "@/lib/api";
 import {
   DEFAULT_PARTNER_CONFIG,
+  PARTNER_BANNER_MAX_IMAGES,
   PARTNER_SECTION_LABELS,
   normalizePartnerConfig,
   type PartnerConfig,
@@ -13,7 +14,7 @@ import {
   type PartnerBenefit,
   type PartnerStep,
 } from "@/lib/partner-config";
-import { ChevronDown, ChevronUp, Eye, EyeOff, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, EyeOff, ImagePlus, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Preloader } from "@/components/preloader";
 
@@ -370,6 +371,65 @@ function PartnerConfigContent() {
     );
   };
 
+  const handleBannerUpload = (list: FileList | null) => {
+    if (!config) return;
+    const files = Array.from(list ?? []).filter((f) => f.type.startsWith("image/"));
+    if (files.length === 0) {
+      toast.warning("Only image files are allowed");
+      return;
+    }
+    const remaining = PARTNER_BANNER_MAX_IMAGES - config.banner.images.length;
+    if (remaining <= 0) {
+      toast.warning(`You can add up to ${PARTNER_BANNER_MAX_IMAGES} banner images`);
+      return;
+    }
+    if (files.length > remaining) {
+      toast.warning(
+        `You can add up to ${PARTNER_BANNER_MAX_IMAGES} banner images (${remaining} left)`
+      );
+    }
+    const accepted = files.slice(0, remaining);
+    if (accepted.some((f) => f.size > 8 * 1024 * 1024)) {
+      toast.warning("One or more banner images exceed 8MB");
+      return;
+    }
+    const readers = accepted.map(
+      (file) =>
+        new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(String(e.target?.result ?? ""));
+          reader.readAsDataURL(file);
+        })
+    );
+    Promise.all(readers).then((dataUrls) =>
+      setConfig((c) =>
+        c
+          ? {
+              ...c,
+              banner: {
+                ...c.banner,
+                images: [...c.banner.images, ...dataUrls].slice(0, PARTNER_BANNER_MAX_IMAGES),
+              },
+            }
+          : c
+      )
+    );
+  };
+
+  const removeBannerImage = (index: number) => {
+    setConfig((c) =>
+      c
+        ? {
+            ...c,
+            banner: {
+              ...c.banner,
+              images: c.banner.images.filter((_, i) => i !== index),
+            },
+          }
+        : c
+    );
+  };
+
   const save = async () => {
     if (!config) return;
     setSaving(true);
@@ -404,6 +464,79 @@ function PartnerConfigContent() {
   };
 
   const sectionChildren: Record<PartnerSectionKey, React.ReactNode> = {
+    banner: (
+      <>
+        <div>
+          <label className="field-label">
+            Banner Images&nbsp;
+            <span className="text-muted">({config.banner.images.length}/{PARTNER_BANNER_MAX_IMAGES})</span>
+          </label>
+          <p className="mb-2 text-xs text-muted">
+            Shown at the top of the partners page as a rotating slideshow. Upload up to{" "}
+            <b>{PARTNER_BANNER_MAX_IMAGES} images</b> — recommended size{" "}
+            <b>1920 × 460 px</b> (wide landscape, ~4:1 ratio, min width 1200 px, max 8MB each).
+            Leave empty to use the default gradient banner.
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {config.banner.images.map((src, index) => (
+              <div
+                key={index}
+                className="relative h-32 w-full overflow-hidden rounded-xl border border-line"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={src}
+                  alt={`Banner image ${index + 1}`}
+                  data-testid="partner-banner-image-preview"
+                  className="h-full w-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeBannerImage(index)}
+                  aria-label={`Remove banner image ${index + 1}`}
+                  className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white hover:bg-red"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+            {config.banner.images.length < PARTNER_BANNER_MAX_IMAGES && (
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-rose-soft bg-blush px-4 py-6 text-muted transition hover:border-rose">
+                <ImagePlus className="h-5 w-5 text-rose" />
+                <span className="text-sm font-semibold text-rose">
+                  {config.banner.images.length === 0 ? "Upload banner image" : "Add banner image"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  data-testid="partner-banner-image-upload"
+                  className="hidden"
+                  onChange={(e) => {
+                    handleBannerUpload(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            )}
+          </div>
+        </div>
+        <Field
+          id="partner-banner-title"
+          label="Banner title"
+          value={config.banner.title}
+          onChange={(title) => setConfig({ ...config, banner: { ...config.banner, title } })}
+        />
+        <Field
+          id="partner-banner-subtitle"
+          label="Banner subtitle"
+          value={config.banner.subtitle}
+          onChange={(subtitle) =>
+            setConfig({ ...config, banner: { ...config.banner, subtitle } })
+          }
+        />
+      </>
+    ),
     directory: (
       <TextSectionBody
         keyPrefix="directory"
