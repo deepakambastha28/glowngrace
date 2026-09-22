@@ -1,4 +1,5 @@
 export const PARTNER_SECTION_KEYS = [
+  "banner",
   "directory",
   "benefits",
   "steps",
@@ -8,11 +9,18 @@ export const PARTNER_SECTION_KEYS = [
 export type PartnerSectionKey = (typeof PARTNER_SECTION_KEYS)[number];
 
 export const PARTNER_SECTION_LABELS: Record<PartnerSectionKey, string> = {
+  banner: "Banner",
   directory: "Partner Directory",
   benefits: "Why Partner",
   steps: "How It Works",
   cta: "CTA Banner",
 };
+
+export interface PartnerBannerContent {
+  images: string[];
+  title: string;
+  subtitle: string;
+}
 
 export interface PartnerTextSection {
   eyebrow: string;
@@ -48,14 +56,23 @@ export interface PartnerSectionSetting {
 
 export interface PartnerConfig {
   sections: PartnerSectionSetting[];
+  banner: PartnerBannerContent;
   directory: PartnerTextSection;
   benefits: PartnerTextSection & { items: PartnerBenefit[] };
   steps: PartnerTextSection & { items: PartnerStep[] };
   cta: PartnerCtaContent;
 }
 
+export const PARTNER_BANNER_MAX_IMAGES = 5;
+
 export const DEFAULT_PARTNER_CONFIG: PartnerConfig = {
   sections: PARTNER_SECTION_KEYS.map((key) => ({ key, visible: true, deleted: false })),
+  banner: {
+    images: [],
+    title: "Partner With Glow & Grace",
+    subtitle:
+      "Grow your salon with verified partners across Lucknow — hire trained talent and reach new customers.",
+  },
   directory: {
     eyebrow: "Our Network",
     title: "Partner Beauty Parlours",
@@ -140,7 +157,7 @@ function normalizeSections(raw: unknown): PartnerSectionSetting[] {
     }
   }
   for (const key of PARTNER_SECTION_KEYS) {
-    if (!seen.has(key)) out.push({ key, visible: false, deleted: true });
+    if (!seen.has(key)) out.push({ key, visible: true, deleted: false });
   }
   return out;
 }
@@ -151,6 +168,18 @@ function normalizeTextSection(raw: unknown, fallback: PartnerTextSection): Partn
     eyebrow: str(value.eyebrow, fallback.eyebrow),
     title: str(value.title, fallback.title),
     description: str(value.description, fallback.description),
+  };
+}
+
+function normalizeBanner(raw: unknown, fallback: PartnerBannerContent): PartnerBannerContent {
+  const value = (raw && typeof raw === "object" ? raw : {}) as Partial<PartnerBannerContent>;
+  const images = Array.isArray(value.images)
+    ? value.images.filter((src): src is string => typeof src === "string" && src.length > 0)
+    : [];
+  return {
+    images: images.slice(0, PARTNER_BANNER_MAX_IMAGES),
+    title: str(value.title, fallback.title),
+    subtitle: str(value.subtitle, fallback.subtitle),
   };
 }
 
@@ -169,6 +198,7 @@ export function normalizePartnerConfig(raw: unknown): PartnerConfig {
 
   return {
     sections: normalizeSections(value.sections),
+    banner: normalizeBanner(value.banner, base.banner),
     directory: normalizeTextSection(value.directory, base.directory),
     benefits: {
       ...normalizeTextSection(benefitsRaw, base.benefits),

@@ -434,9 +434,15 @@ export const careerConfigSchema = z.object({
 export type CareerConfigFormData = z.infer<typeof careerConfigSchema>;
 
 export const partnerSectionSettingSchema = z.object({
-  key: z.enum(["directory", "benefits", "steps", "cta"]),
+  key: z.enum(["banner", "directory", "benefits", "steps", "cta"]),
   visible: z.boolean(),
   deleted: z.boolean().default(false),
+});
+
+export const partnerBannerContentSchema = z.object({
+  images: z.array(z.string()).default([]),
+  title: z.string().default(""),
+  subtitle: z.string().default(""),
 });
 
 export const partnerBenefitSchema = z.object({
@@ -461,6 +467,7 @@ export const partnerCtaContentSchema = z.object({
 
 export const partnerConfigSchema = z.object({
   sections: z.array(partnerSectionSettingSchema).default([]),
+  banner: partnerBannerContentSchema,
   directory: homeTextSectionSchema,
   benefits: homeTextSectionSchema.extend({
     items: z.array(partnerBenefitSchema).default([]),

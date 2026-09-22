@@ -244,7 +244,9 @@ mirrors the reference design and changes.
   `finally` with `restoreAdminConfig` (`/api/admin/career-config` →
   `/api/career-config`).
   `/admin/pages/partner` renders the partner page manager (`partner-config-form`,
-  with `partner-config-save`, `partner-directory-eyebrow`/`-title`/`-description`,
+  with `partner-config-save`, `partner-banner-image-upload` /
+  `partner-banner-image-preview`, `partner-banner-title`/`-subtitle`,
+  `partner-directory-eyebrow`/`-title`/`-description`,
   `partner-benefits-eyebrow`/`-title`/`-description` plus the benefit-card list
   (`partner-benefits-add`, `partner-benefits-emoji-<n>`, `partner-benefits-title-<n>`,
   `partner-benefits-description-<n>`, `partner-benefits-remove-<n>`),
@@ -253,12 +255,17 @@ mirrors the reference design and changes.
   `partner-steps-remove-<n>`), `partner-cta-title`/`-description`/`-primary-label`/
   `-primary-href`/`-secondary-label`/`-secondary-href`, and the same
   `partner-section-toggle-*` / `partner-section-delete-*` / `partner-section-restore-*`
-  per-section card controls). The storefront `/partners` sections carry
-  `partner-directory` (heading + toolbar + grid + map) / `partner-benefits` /
+  per-section card controls; the `banner` section carries image upload +
+  title/subtitle). The storefront `/partners` sections carry `partner-banner`
+  (slideshow + title/subtitle with prev/next arrows, fixed 200 / 260 px height)
+  / `partner-directory` (heading + toolbar + grid + map) / `partner-benefits` /
   `partner-steps` / `partner-cta` testids; the breadcrumb always renders.
-  `tests/partner-config.spec.ts` (3 tests) edits the directory heading and hides
-  the benefits section, adds a benefit card and edits a step, and edits the CTA
-  copy — all asserted on the storefront and restored in `finally` with
+  `tests/partner-config.spec.ts` (5 tests: 4 storefront E2E + 1 unit) edits the
+  directory heading and hides the benefits section, adds a benefit card and
+  edits a step, edits the CTA copy, uploads a banner image with banner
+  title/subtitle, and verifies `normalizePartnerConfig` surfaces a missing
+  banner section as visible (so the banner shows by default on the storefront)
+  — the E2E asserts are made on the storefront and restored in `finally` with
   `restoreAdminConfig` (`/api/admin/partner-config` → `/api/partner-config`).
   `/admin/pages/event` renders the events page manager (`event-config-form`,
   with `event-config-save`, `event-banner-image-upload` /

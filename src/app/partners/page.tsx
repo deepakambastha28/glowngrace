@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, Map, LayoutGrid } from "lucide-react";
+import { Search, Map, LayoutGrid, ChevronLeft, ChevronRight } from "lucide-react";
 import { fetchPartners, fetchPartnerConfig } from "@/lib/api";
 import { localityPos } from "@/lib/data";
 import type { Partner } from "@/lib/data";
@@ -30,6 +30,12 @@ export default function PartnersPage() {
   const [service, setService] = useState("");
   const [sort, setSort] = useState<SortKey>("rating");
   const [view, setView] = useState<"grid" | "map">("grid");
+  const [bannerIndex, setBannerIndex] = useState(0);
+
+  const bannerImages = useMemo(
+    () => (config.banner.images ?? []).filter((src) => src.length > 0),
+    [config.banner.images]
+  );
 
   useEffect(() => {
     let active = true;
@@ -53,6 +59,16 @@ export default function PartnersPage() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (bannerImages.length < 2) return;
+    setBannerIndex(0);
+    const id = setInterval(
+      () => setBannerIndex((i) => (i + 1) % bannerImages.length),
+      5000
+    );
+    return () => clearInterval(id);
+  }, [bannerImages.length]);
 
   const isSectionVisible = (key: PartnerSectionKey): boolean => {
     const section = config.sections.find((s) => s.key === key);
@@ -115,6 +131,80 @@ export default function PartnersPage() {
           <span className="text-charcoal">Partners</span>
         </div>
       </div>
+
+      {isSectionVisible("banner") && (
+        <div data-testid="partner-banner" className="relative h-[200px] overflow-hidden md:h-[260px]">
+          {bannerImages.length > 0 && (
+            <div className="absolute inset-0">
+              {bannerImages.map((src, i) => (
+                <div
+                  key={i}
+                  className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
+                  style={{
+                    backgroundImage: `url(${src})`,
+                    opacity: i === bannerIndex ? 1 : 0,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+          <div
+            className="absolute inset-0"
+            style={
+              bannerImages.length > 0
+                ? { background: "linear-gradient(180deg, rgba(43,35,48,0.15) 0%, rgba(43,35,48,0.55) 100%)" }
+                : { background: "linear-gradient(135deg, #d6336c, #b02a5b)" }
+            }
+          />
+          <div className="relative mx-auto flex h-full max-w-screen-xl flex-col items-center justify-center px-6 text-center">
+            {config.banner.title && (
+              <h2 className="text-2xl sm:text-4xl font-bold text-white">
+                {config.banner.title}
+              </h2>
+            )}
+            {config.banner.subtitle && (
+              <p className="mt-3 text-white/85 max-w-xl mx-auto">{config.banner.subtitle}</p>
+            )}
+            {bannerImages.length > 1 && (
+              <div className="mt-5 flex justify-center gap-2">
+                {bannerImages.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setBannerIndex(i)}
+                    aria-label={`Go to partner banner slide ${i + 1}`}
+                    className={`h-2 rounded-full transition-all ${
+                      i === bannerIndex ? "w-6 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+          {bannerImages.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() =>
+                  setBannerIndex((bannerIndex - 1 + bannerImages.length) % bannerImages.length)
+                }
+                aria-label="Previous banner image"
+                className="absolute left-4 top-1/2 -translate-y-1/2 grid h-11 w-11 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setBannerIndex((bannerIndex + 1) % bannerImages.length)}
+                aria-label="Next banner image"
+                className="absolute right-4 top-1/2 -translate-y-1/2 grid h-11 w-11 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {isSectionVisible("directory") && (
         <section className="section pt-10" data-testid="partner-directory">

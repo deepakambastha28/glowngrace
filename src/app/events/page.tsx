@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, CalendarDays, MapPin } from "lucide-react";
+import { Search, CalendarDays, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import type { EventItem } from "@/lib/data";
 import { fetchEventConfig } from "@/lib/api";
 import { EventCard } from "@/components/events/event-card";
@@ -138,7 +138,7 @@ export default function EventsPage() {
       </div>
 
       {isSectionVisible("banner") && (
-        <div data-testid="event-banner" className="relative overflow-hidden">
+        <div data-testid="event-banner" className="relative h-[200px] overflow-hidden md:h-[260px]">
           {bannerImages.length > 0 && (
             <div className="absolute inset-0">
               {bannerImages.map((src, i) => (
@@ -161,7 +161,7 @@ export default function EventsPage() {
                 : { background: "linear-gradient(135deg, #d6336c, #b02a5b)" }
             }
           />
-          <div className="relative mx-auto max-w-screen-xl px-6 py-16 sm:py-20 text-center">
+          <div className="relative mx-auto flex h-full max-w-screen-xl flex-col items-center justify-center px-6 text-center">
             {config.banner.title && (
               <h2 className="text-2xl sm:text-4xl font-bold text-white">
                 {config.banner.title}
@@ -186,6 +186,28 @@ export default function EventsPage() {
               </div>
             )}
           </div>
+          {bannerImages.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() =>
+                  setBannerIndex((bannerIndex - 1 + bannerImages.length) % bannerImages.length)
+                }
+                aria-label="Previous banner image"
+                className="absolute left-4 top-1/2 -translate-y-1/2 grid h-11 w-11 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setBannerIndex((bannerIndex + 1) % bannerImages.length)}
+                aria-label="Next banner image"
+                className="absolute right-4 top-1/2 -translate-y-1/2 grid h-11 w-11 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </>
+          )}
         </div>
       )}
 
